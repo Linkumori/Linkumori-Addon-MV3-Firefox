@@ -1,0 +1,3266 @@
+{
+    "log_redirect": {
+        "message": "This url is redirected",
+        "description": "This string is used on redirections in the Linkumori (Clean URLS) log."
+    },
+    "log_domain_blocked": {
+        "message": "This domain is blocked",
+        "description": "This string is used on blocked domains in the Linkumori (Clean URLS) log."
+    },
+    "check_os_log": {
+        "message": "[Linkumori (Clean URLS)]: Log listener is added.",
+        "description": "This string is used on Linkumori (Clean URLS) log startup."
+    },
+    "log_html_page_title": {
+        "message": "Log from Linkumori (Clean URLS)",
+        "description": "This string is used as header on the log page."
+    },
+    "log_html_table_head_1": {
+        "message": "Before ",
+        "description": "This string is used as table title on the log page."
+    },
+    "log_html_table_head_2": {
+        "message": "After ",
+        "description": "This string is used as table title on the log page."
+    },
+    "log_html_table_head_3": {
+        "message": "Rule",
+        "description": "This string is used as table title on the log page."
+    },
+    "log_html_table_head_4": {
+        "message": "Time",
+        "description": "This string is used as table title on the log page."
+    },
+    "log_html_reset_button": {
+        "message": "Reset",
+        "description": "This string is used for the reset button on the log page."
+    },
+    "log_html_reset_button_title": {
+        "message": "Resets the global log",
+        "description": "This string is used as title for the reset button on the log page."
+    },
+    "popup_html_configs_head": {
+        "message": "Configs",
+        "description": "This string is used as title for the configs on the popup page."
+    },
+    "popup_html_configs_switch_filter": {
+        "message": "Filter",
+        "description": "This string is used as name for the filter switch button on the popup page."
+    },
+    "popup_html_configs_switch_filter_title": {
+        "message": "The filters switch activates the cleaning functionality of Linkumori (Clean URLS). If you disable this option, the whole addon is disabled",
+        "description": "This string is used as title for the filter switch button on the popup page."
+    },
+    "popup_html_configs_switch_log": {
+        "message": "Logging",
+        "description": "This string is used as name for the logging switch button on the popup page."
+    },
+    "popup_html_configs_switch_log_title": {
+        "message": "The log is saved only locally. We advise against this feature if you do not need it",
+        "description": "This string is used as title for the logging switch button on the popup page."
+    },
+    "popup_html_configs_switch_badges": {
+        "message": "Badges",
+        "description": "This string is used as name for the badges switch button on the popup page."
+    },
+    "popup_html_configs_switch_badges_title": {
+        "message": "Show numbers of cleaned urls",
+        "description": "This string is used as title for the badges switch button on the popup page."
+    },
+    "popup_html_statistics_head": {
+        "message": "Statistics",
+        "description": "This string is used as title for the statistics on the popup page."
+    },
+    "popup_html_statistics_elements": {
+        "message": "Elements",
+        "description": "This string is used as name for the elements on the popup page."
+    },
+    "popup_html_statistics_blocked": {
+        "message": "Blocked",
+        "description": "This string is used as name for the blocked elements on the popup page."
+    },
+    "popup_html_statistics_percentage": {
+        "message": "Percentage",
+        "description": "This string is used as name for the percentage of blocked elements on the popup page."
+    },
+    "popup_html_statistics_reset_button": {
+        "message": "Reset",
+        "description": "This string is used as name for the statistics reset button on the popup page."
+    },
+    "popup_html_statistics_reset_button_title": {
+        "message": "Reset the global statistics",
+        "description": "This string is used as title for the statistics reset button on the popup page."
+    },
+    "statistics_reset_success": {
+        "message": "Reset successful!",
+        "description": "This string is used as feedback after the statistics have been reset."
+    },
+    "popup_html_rules_status_head": {
+        "message": "Rules-Status",
+        "description": "This string is used as title for the rules-status section on the popup page."
+    },
+    "popup_html_log_head": {
+        "message": "View Logs",
+        "description": "This string is used as name for the log button on the popup page."
+    },
+    "popup_html_log_head_title": {
+        "message": "Open the log",
+        "description": "This string is used as title for the log button on the popup page."
+    },
+    "popup_html_tools_button": {
+        "message": "Tools",
+        "description": "This string is used for the tools button on the popup page."
+    },
+    "popup_html_tools_button_title": {
+        "message": "Open cleaning tools",
+        "description": "This string is used as a title for the tools button on the popup page."
+    },
+    "popup_html_settings_button": {
+        "message": "Settings",
+        "description": "This string is used for the settings button on the popup page."
+    },
+    "popup_html_settings_button_title": {
+        "message": "Open settings",
+        "description": "This string is used as a title for the settings button on the popup page."
+    },
+    "popup_html_report_button": {
+        "message": "Report current URL",
+        "description": "Note: Currently not used."
+    },
+    "popup_html_report_button_title": {
+        "message": "Report the current URL from this tab.",
+        "description": "Currently not used."
+    },
+    "core_save_on_disk": {
+        "message": "[Linkumori (Clean URLS)]: Save on disk.",
+        "description": "This string is used to tell the user, that Linkumori (Clean URLS) saved the settings on disk."
+    },
+    "core_error": {
+        "message": "[Linkumori (Clean URLS)]: The addon could not start.",
+        "description": "This string is used to tell the user, that Linkumori (Clean URLS) could not be started."
+    },
+    "configs_switch_statistics": {
+        "message": "Statistics",
+        "description": "This string is used as name for the statistics switch button on the popup page."
+    },
+    "configs_switch_statistics_title": {
+        "message": "Activate or deactivate the statistics function",
+        "description": "This string is used as title for the statistics switch button on the popup page."
+    },
+    "settings_html_page_title": {
+        "message": "Linkumori (Clean URLS) settings",
+        "description": "This string is used as title on the settings page."
+    },
+    "badged_color_label": {
+        "message": "Badge color",
+        "description": "This string is used as name for the badged color label."
+    },
+    "setting_html_reset_button": {
+        "message": "Reset",
+        "description": "This string is used as name for the reset button on the settings page."
+    },
+    "setting_html_reset_button_title": {
+        "message": "Resets everything",
+        "description": "This string is used as title for the reset button on the settings page."
+    },
+    "setting_rule_url_label": {
+        "message": "The url to the data.json file (rules)",
+        "description": "This string is used as name for the rule url label."
+    },
+    "settings_html_save_button": {
+        "message": "Save & reload addon",
+        "description": "This string is used as name for the save&reload button on the settings page."
+    },
+    "settings_html_save_button_title": {
+        "message": "Saves the settings",
+        "description": "This string is used as title for the save&reload button on the settings page."
+    },
+    "setting_hash_url_label": {
+        "message": "The url to the rules.hash file (hash)",
+        "description": "This string is used as name for the rule.hash url label."
+    },
+     "setting_types_label": {
+        "message": "<a href='https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/ResourceType' target='_blank'>Request types</a> (expert level)",
+        "description": "This string is used as name for the types label."
+    },
+    "setting_report_server_label": {
+        "message": "Report server for URLs",
+        "description": "Note: Currently not used."
+    },
+    "success_report_url": {
+        "message": "The URL was successfully reported. We will check this URL soon.",
+        "description": "Note: Currently not used."
+    },
+    "error_report_url": {
+        "message": "It seems like this URL has already been reported.",
+        "description": "Note: Currently not used."
+    },
+   
+    "clipboard_copy_link": {
+        "message": "Copy Clean Link Location",
+        "description": "This string is used in the context menu to copy clean links."
+    },
+    "context_menu_enabled": {
+        "message": "Display context menu entry",
+        "description": "This string is used toggle the context menu entry to copy clean links."
+    },
+    "history_listener_enabled": {
+        "message": "Prevent tracking injection over history API",
+        "description": "This string is used as name for the history API listener label."
+    },
+    "local_hosts_skipping": {
+        "message": "Skip URLs on local hosts (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10, 169.254.0.0/16, 127.0.0.1, localhost)",
+        "description": "This string is used as label for the local host skipping switch"
+    },
+    "local_hosts_skipping_title": {
+        "message": "Skips URLs on local hosts",
+        "description": "This string is used as title for the local host skipping switch"
+    },
+    "log_html_export_button": {
+        "message": "Export",
+        "description": "This string is used for the export button on the log page."
+    },
+    "log_html_export_button_title": {
+        "message": "Exports the global log",
+        "description": "This string is used as title for the export button on the log page."
+    },
+    "log_html_import_button": {
+        "message": "Import",
+        "description": "This string is used for the import button on the log page."
+    },
+    "log_html_import_button_title": {
+        "message": "Import the global log",
+        "description": "This string is used as title for the import button on the log page."
+    },
+    "setting_html_export_button": {
+        "message": "Export",
+        "description": "This string is used as name for the export button on the settings page."
+    },
+    "setting_html_export_button_title": {
+        "message": "Exports everything",
+        "description": "This string is used as title for the export button on the settings page."
+    },
+    "setting_html_import_button": {
+        "message": "Import",
+        "description": "This string is used as name for the reset button on the settings page."
+    },
+    "setting_html_import_button_title": {
+        "message": "Imports everything",
+        "description": "This string is used as title for the import button on the settings page."
+    },
+    "setting_log_limit_label": {
+        "message": "Limit the log to $LIMIT$ entries.",
+        "description": "This string is used as name for the log limit label.",
+        "placeholders": {
+            "limit": {
+                "content": "$1",
+                "example": "100"
+            }
+        }
+    },
+    "blocked_html_title": {
+        "message": "This site was blocked by <b>Linkumori (Clean URLS)</b>",
+        "description": "This string is used as title on the blocked site page."
+    },
+    "blocked_html_body": {
+        "message": "This site was blocked by the <b>Linkumori (Clean URLS)</b> Add-on, because we identify this site as an advertising and/or tracking service. To visit this site, you must temporarily deactivate the Add-on or disable domain blocking in the Linkumori (Clean URLS) settings. After this you can click on the button below to load the page.",
+        "description": "This string is used as body on the blocked site page."
+    },
+    "blocked_html_button": {
+        "message": "Visit page",
+        "description": "This string is used as button on the blocked site page."
+    },
+    "referral_marketing_enabled": {
+        "message": "Allow referral marketing",
+        "description": "This string is used as label for the referral marketing switch"
+    },
+    "referral_marketing_enabled_title": {
+        "message": "Allows referral marketing",
+        "description": "This string is used as title for the referral marketing switch"
+    },
+    "watchdog": {
+        "message": "[Linkumori (Clean URLS)]: The watchdog has detected a problem and has already failed $TIMES$ times.",
+        "description": "This string is used as text for the watchdog",
+        "placeholders": {
+            "times": {
+                "content": "$1",
+                "example": "3"
+            }
+        }
+    },
+    "domain_blocking_enabled": {
+        "message": "Allow domain blocking (Can lead to problems on pages that do not allow AdBlockers)",
+        "description": "This string is used as label for the domain blocking switch"
+    },
+    "domain_blocking_enabled_title": {
+        "message": "Allow domain blocking (Can lead to problems on pages that do not allow AdBlockers)",
+        "description": "This string is used as title for the domain blocking switch"
+    },
+    "log_ping_blocked": {
+        "message": "This hyperlink auditing was blocked",
+        "description": "This string is used on hyperlink auditing in the Linkumori (Clean URLS) log."
+    },
+    "ping_blocking_enabled": {
+        "message": "Block hyperlink auditing ",
+        "description": "This string is used as label for the hyperlink auditing blocking switch"
+    },
+    "ping_blocking_enabled_title": {
+        "message": "Block hyperlink auditing",
+        "description": "This string is used as title for the hyperlink auditing blocking switch"
+    },
+    "extension_description": {
+        "message": "Remove tracking elements from URLs.",
+        "description": "Extension description (max. 132 characters)"
+    },
+    "eTag_filtering_log": {
+        "message": "ETag header was removed from this request",
+        "description": "This string is used on ETag header filtering in the Linkumori (Clean URLS) log."
+    },
+    "eTag_filtering_enabled": {
+        "message": "Filters ETag headers from requests",
+        "description": "This string is used as label for the ETag header filtering switch"
+    },
+    "eTag_filtering_enabled_title": {
+        "message": "Filters ETag headers. Hint: Cache must be cleared before first use.",
+        "description": "This string is used as title for the ETag header filtering switch"
+    },
+    "data_management_title": {
+        "message": "Data Management",
+        "description": "Title for the Data Management section."
+    },
+    "general_settings_title": {
+        "message": "General Settings",
+        "description": "Title for the General Settings section."
+    },
+    "feature_toggles_title": {
+        "message": "Feature Settings",
+        "description": "Title for the Feature Settings section."
+    },
+    "bundled_rules_section_title": {
+        "message": "Rules Information",
+        "description": "Title for the Rules Information section."
+    },
+    "setting_log_limit_label_with_range": {
+        "message": "Log Limit (0-5000)",
+        "description": "Label for the log limit input field."
+    },
+    "domain_blocking_enabled_description": {
+        "message": "Block requests to specific domains.",
+        "description": "Description for the domain blocking toggle."
+    },
+    "local_hosts_skipping_description": {
+        "message": "Skip cleaning for localhost and local network addresses.",
+        "description": "Description for the local hosts skipping toggle."
+    },
+    "history_listener_enabled_description": {
+        "message": "Monitor and clean URLs in browser history.",
+        "description": "Description for the history listener toggle."
+    },
+    "context_menu_enabled_description": {
+        "message": "Add Linkumori options to right-click menu.",
+        "description": "Description for the context menu toggle."
+    },
+    "referral_marketing_enabled_description": {
+        "message": "Remove referral and affiliate tracking parameters.",
+        "description": "Description for the referral marketing toggle."
+    },
+    "ping_blocking_enabled_description": {
+        "message": "Block ping requests used for tracking.",
+        "description": "Description for the ping blocking toggle."
+    },
+    "eTag_filtering_enabled_description": {
+        "message": "Remove ETag headers to prevent tracking.",
+        "description": "Description for the ETag filtering toggle."
+    },
+    "bundled_rules_description": {
+        "message": "Linkumori uses bundled rules and custom rules to identify and remove tracking parameters from URLs. These rules are automatically updated to ensure effective protection against the latest tracking methods.",
+        "description": "Description for the bundled rules section."
+    },
+    "confirm_reset_settings": {
+        "message": "Are you sure you want to reset all settings to default?",
+        "description": "Confirmation message before resetting settings."
+    },
+    "status_load_settings_failed": {
+        "message": "Failed to load settings",
+        "description": "Status message when settings fail to load."
+    },
+    "status_resetting_settings": {
+        "message": "Resetting settings...",
+        "description": "Status message shown while settings are being reset."
+    },
+    "status_reset_successful": {
+        "message": "Settings reset successfully",
+        "description": "Status message shown after settings have been reset."
+    },
+    "status_reset_failed": {
+        "message": "Failed to reset settings",
+        "description": "Status message when settings reset fails."
+    },
+    "status_saving": {
+        "message": "Saving...",
+        "description": "Button text while saving settings."
+    },
+    "status_saved": {
+        "message": "Saved!",
+        "description": "Button text after settings are saved."
+    },
+    "status_save_successful": {
+        "message": "Settings saved successfully",
+        "description": "Status message when settings save is successful."
+    },
+    "status_save_failed": {
+        "message": "Failed to save settings",
+        "description": "Status message when settings save fails."
+    },
+    "status_exporting": {
+        "message": "Exporting...",
+        "description": "Button text while exporting settings."
+    },
+    "status_export_successful": {
+        "message": "Settings exported successfully",
+        "description": "Status message when settings export is successful."
+    },
+    "status_export_download_failed": {
+        "message": "Failed to download exported settings",
+        "description": "Status message when the exported file download fails."
+    },
+    "status_export_failed": {
+        "message": "Failed to export settings",
+        "description": "Status message when settings export fails."
+    },
+    "status_importing": {
+        "message": "Importing...",
+        "description": "Button text while importing settings."
+    },
+    "status_importing_settings": {
+        "message": "Importing settings...",
+        "description": "Status message when settings import begins."
+    },
+    "error_no_settings_in_file": {
+        "message": "No settings found in file",
+        "description": "Error message for empty or invalid settings file."
+    },
+    "status_importing_progress": {
+        "message": "Importing... $PROGRESS$%",
+        "description": "Button text showing import progress.",
+        "placeholders": {
+            "progress": {
+                "content": "$1",
+                "example": "50"
+            }
+        }
+    },
+    "status_import_successful": {
+        "message": "Settings imported successfully",
+        "description": "Status message when settings import is successful."
+    },
+    "status_import_complete": {
+        "message": "Import Complete!",
+        "description": "Button text when import is finished."
+    },
+    "status_import_some_failed": {
+        "message": "Failed to import some settings",
+        "description": "Status message when some settings fail to import."
+    },
+    "status_invalid_file_format": {
+        "message": "Invalid settings file format",
+        "description": "Status message for invalid JSON in settings file."
+    },
+    "status_read_file_failed": {
+        "message": "Failed to read settings file",
+        "description": "Status message when the settings file cannot be read."
+    },
+    "rules_status_label": {
+        "message": "Status:",
+        "description": "Label for rules status."
+    },
+    "rules_status_active": {
+        "message": "Active",
+        "description": "Value for active rules status."
+    },
+    "rules_providers_label": {
+        "message": "Total Providers:",
+        "description": "Label for rules providers count."
+    },
+    "rules_total_rules_label": {
+        "message": "Total Rules:",
+        "description": "Label for total rules count."
+    },
+    "rules_status_not_loaded": {
+        "message": "No rules loaded",
+        "description": "Value for when no rules are loaded."
+    },
+    "rules_status_error": {
+        "message": "Error loading rules",
+        "description": "Value for when rules fail to load."
+    },
+    "status_save_setting_failed": {
+        "message": "Failed to save $SETTING$ setting",
+        "description": "Error message when a specific toggle setting fails to save.",
+        "placeholders": {
+            "setting": {
+                "content": "$1",
+                "example": "domainBlocking"
+            }
+        }
+    },
+    "popup_html_rules_status_head_title": {
+        "message": " ",
+        "description": "not needed, only to prevent exceptions"
+    },
+    "popup_html_statistics_percentage_title": {
+        "message": " ",
+        "description": "not needed, only to prevent exceptions"
+    },
+    "popup_html_statistics_blocked_title": {
+        "message": " ",
+        "description": "not needed, only to prevent exceptions"
+    },
+    "popup_html_statistics_elements_title": {
+        "message": " ",
+        "description": "not needed, only to prevent exceptions"
+    },
+    "popup_html_statistics_head_title": {
+        "message": " ",
+        "description": "not needed, only to prevent exceptions"
+    },
+    "popup_html_configs_head_title": {
+        "message": " ",
+        "description": "not needed, only to prevent exceptions"
+    },
+    "context_menu_enabled_title": {
+        "message": " ",
+        "description": "not needed, only to prevent exceptions"
+    },
+    "hash_status_remote_loaded": {
+        "message": "Remote rules loaded successfully",
+        "description": "Status message when remote rules are loaded successfully."
+    },
+    "setting_rule_url_description":{
+      "message":"Custom remote URL for rule definitions",
+      "description":"Description for the custom rule URL input field"
+    },
+    "setting_hash_url_description": {
+        "message": "Hash file URL for rule verification:",
+        "description": "Description for the custom hash URL input field"
+      },
+  "whitelist_section_title": {
+    "message": "Domain Whitelist",
+    "description": "Title for the whitelist settings section"
+  },
+  "whitelist_section_description": {
+    "message": "Domains added here will bypass ALL URL cleaning. Tracking parameters will be preserved on these sites.",
+    "description": "Description explaining what the whitelist does"
+  },
+  "whitelist_add_label": {
+    "message": "Add Domain to Whitelist",
+    "description": "Label for the add domain input field"
+  },
+  "whitelist_add_button": {
+    "message": "Add",
+    "description": "Text for the add domain button"
+  },
+  "whitelist_remove_button": {
+    "message": "Remove",
+    "description": "Text for the remove domain button"
+  },
+  "whitelist_examples_text": {
+    "message": "Examples: <code>example.com</code>, <code>*.google.com</code>, <code>subdomain.site.com</code>",
+    "description": "Text before domain format examples"
+  },
+  "whitelist_list_label": {
+    "message": "Whitelisted Domains",
+    "description": "Label for the list of whitelisted domains"
+  },
+  "whitelist_input_placeholder": {
+    "message": "example.com or *.example.com",
+    "description": "Placeholder text for the domain input field"
+  },
+  "whitelist_empty": {
+    "message": "No domains whitelisted",
+    "description": "Text shown when whitelist is empty"
+  },
+  "whitelist_count": {
+    "message": "%d domain(s) whitelisted",
+    "description": "Text showing number of whitelisted domains. %d is replaced with the count."
+  },
+  "whitelist_enter_domain": {
+    "message": "Please enter a domain name",
+    "description": "Error message when trying to add empty domain"
+  },
+  "whitelist_invalid_format": {
+    "message": "Invalid domain format. Use: example.com or *.example.com",
+    "description": "Error message for invalid domain format"
+  },
+  "whitelist_added": {
+    "message": "Added %s to whitelist",
+    "description": "Success message when domain is added. %s is replaced with domain name."
+  },
+  "whitelist_already_exists": {
+    "message": "Domain already in whitelist or invalid",
+    "description": "Error message when domain already exists or is invalid"
+  },
+  "whitelist_removed": {
+    "message": "Removed %s from whitelist",
+    "description": "Success message when domain is removed. %s is replaced with domain name."
+  },
+  "whitelist_load_failed": {
+    "message": "Failed to load whitelist",
+    "description": "Error message when whitelist fails to load"
+  },
+  "whitelist_add_failed": {
+    "message": "Failed to add domain to whitelist",
+    "description": "Error message when adding domain fails"
+  },
+  "whitelist_remove_failed": {
+    "message": "Failed to remove domain from whitelist",
+    "description": "Error message when removing domain fails"
+  },
+
+  "popup_nav_main": {
+    "message": "Main",
+    "description": "Navigation label for main content section"
+  },
+  "popup_nav_main_title": {
+    "message": "Switch to main extension controls",
+    "description": "Tooltip for main navigation button"
+  },
+  "popup_nav_license": {
+    "message": "License",
+    "description": "Navigation label for license section"
+  },
+  "popup_nav_license_title": {
+    "message": "View license information and credits",
+    "description": "Tooltip for license navigation button"
+  },
+  "license_title": {
+    "message": "License",
+    "description": "License section title"
+  },
+  "license_links_title": {
+    "message": "Links",
+    "description": "Title for links section in license"
+  },
+  "license_third_party_title": {
+    "message": "Third Party Components",
+    "description": "Title for third party components section"
+  }, "datatable_search": {
+    "message": "Search:",
+    "description": "DataTables search label"
+  },
+  "datatable_length_menu": {
+    "message": "Show _MENU_ entries",
+    "description": "DataTables entries per page selector"
+  },
+  "datatable_info": {
+    "message": "Showing _START_ to _END_ of _TOTAL_ entries",
+    "description": "DataTables pagination info"
+  },
+  "datatable_info_empty": {
+    "message": "Showing 0 to 0 of 0 entries",
+    "description": "DataTables info when no data"
+  },
+  "datatable_info_filtered": {
+    "message": "(filtered from _MAX_ total entries)",
+    "description": "DataTables filtered info"
+  },
+  "datatable_empty_table": {
+    "message": "No data available in table",
+    "description": "DataTables empty table message"
+  },
+  "remote_rules_loaded": {
+    "message": "Remote rules loaded only",
+    "description": "Message shown when remote rules are loaded"
+  },
+  "hash_status_remote_custom_merged": {
+    "message": "Remote rules loaded and custom rules merged",
+    "description": "Message shown when remote rules are loaded and custom rules are merged"
+  },
+  "datatable_zero_records": {
+    "message": "No matching records found",
+    "description": "DataTables no search results message"
+  },
+  "datatable_loading": {
+    "message": "Loading...",
+    "description": "DataTables loading message"
+  },
+  "datatable_processing": {
+    "message": "Processing...",
+    "description": "DataTables processing message"
+  },
+  "datatable_first": {
+    "message": "First",
+    "description": "DataTables first page button"
+  },
+  "datatable_previous": {
+    "message": "Previous",
+    "description": "DataTables previous page button"
+  },
+  "datatable_next": {
+    "message": "Next",
+    "description": "DataTables next page button"
+  },
+  "datatable_last": {
+    "message": "Last",
+    "description": "DataTables last page button"
+  },
+  "datatable_sort_ascending": {
+    "message": ": activate to sort column ascending",
+    "description": "DataTables sort ascending accessibility text"
+  },
+  "datatable_sort_descending": {
+    "message": ": activate to sort column descending",
+    "description": "DataTables sort descending accessibility text"
+  },
+  
+  "reportIssueTitle": {
+    "message": "Report Issue",
+    "description": "Title for the report issue page"
+  },
+  "reportIssueHeader": {
+    "message": "Report Issues or Suggest Improvements",
+    "description": "Main header for the report section"
+  },
+  "reportIssueDescription": {
+    "message": "Found an issue with URL cleaning or have a suggestion? Help us improve Linkumori by submitting a report.",
+    "description": "Description text explaining the purpose of the report page"
+  },
+  "beforeReporting": {
+    "message": "Before reporting, check if your issue has already been reported:",
+    "description": "Text encouraging users to check existing issues first"
+  },
+  "findExistingConsentMessage": {
+    "message": "I understand that clicking \"Find Existing Issues\" will construct a GitHub search URL using the domain name and issue details I have entered, and then redirect me to that URL. No data is transmitted directly by this extension. The extension will show me the complete search URL before opening it, so I can review which search terms will be used. Once redirected to GitHub, I will be subject to $link$ and $terms_service$.",
+    "description": "Consent message for finding existing issues",
+    "placeholders": {
+      "link": {
+        "content": "<a href='https://docs.github.com/site-policy/privacy-policies/github-privacy-statement#github-search' target='_blank'>GitHub's Search Privacy Policy</a>"
+      },
+      "terms_service": {
+        "content": "<a href='https://docs.github.com/en/site-policy/github-terms/github-terms-of-service' target='_blank'>terms of service</a>"
+      }
+    }
+  },
+  "findExistingButton": {
+    "message": "Find Existing Issues",
+    "description": "Button text to search for existing issues"
+  },
+  "issueTypeLabel": {
+    "message": "Issue type:",
+    "description": "Label for the issue type dropdown"
+  },
+  "issueTypeSelect": {
+    "message": "Select issue type...",
+    "description": "Placeholder text for issue type dropdown"
+  },
+  "issueTypeTrackingNotRemoved": {
+    "message": "Tracking parameter not removed",
+    "description": "Issue type option for tracking parameters not being removed"
+  },
+  "issueTypeUrlBroken": {
+    "message": "URL broken after cleaning",
+    "description": "Issue type option for URLs being broken after cleaning"
+  },
+  "issueTypeFalsePositive": {
+    "message": "False positive (unnecessary cleaning)",
+    "description": "Issue type option for false positive cleaning"
+  },
+  "issueTypePerformance": {
+    "message": "Performance issue",
+    "description": "Issue type option for performance problems"
+  },
+  "issueTypeUi": {
+    "message": "UI/Display issue",
+    "description": "Issue type option for user interface problems"
+  },
+  "issueTypeFeatureRequest": {
+    "message": "Feature request",
+    "description": "Issue type option for requesting new features"
+  },
+  "issueTypeRuleSuggestion": {
+    "message": "Rule suggestion",
+    "description": "Issue type option for suggesting new cleaning rules"
+  },
+  "urlLabel": {
+    "message": "URL where the issue occurs:",
+    "description": "Label for the URL input field"
+  },
+  "customUrlPlaceholder": {
+    "message": "https://example.com",
+    "description": "Placeholder text for custom URL input"
+  },
+  "enterCustomUrl": {
+    "message": "Enter custom URL",
+    "description": "Option text for entering a custom URL in dropdown"
+  },
+  "nsfwLabel": {
+    "message": "Page contains adult content (NSFW)",
+    "description": "Label for NSFW content checkbox"
+  },
+  "additionalInfoLabel": {
+    "message": "Additional Information:",
+    "description": "Label for additional information textarea"
+  },
+  "additionalInfoPlaceholder": {
+    "message": "Please provide any additional details or comments about the issue...",
+    "description": "Placeholder text for additional information textarea"
+  },
+  "consentMessage": {
+    "message": "I understand that clicking \"Report on GitHub\" will construct a GitHub URL containing the information I've entered and the configuration data shown below, then redirect me to that URL. No data is transmitted directly by this extension. The extension will show me the complete URL before opening it, and I can review exactly what information will be included. Once redirected to GitHub, I will have full control to either submit the pre-filled issue form or cancel without submitting anything. I understand that accessing GitHub subjects me to $privacy_link$. Creating an issue requires a GitHub account, and once you choose to proceed and are redirected to GitHub, your activity is governed by $privacy_statement$ and $terms_service$. After being redirected with pre-filled information, you retain full control and can choose whether to submit or cancel the issue creation on our repository at $repo_link$. Even if you cancel the issue creation, GitHub may still collect data according to their privacy policy due to your interaction with their platform. If you proceed with submitting the issue, the information you submit, including any additional comments, will become publicly accessible. This is because the repository is public, and any reported issue will be visible to anyone using GitHub or related services.",
+    "description": "Comprehensive consent message for reporting issues",
+    "placeholders": {
+      "privacy_link": {
+        "content": "<a href='https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement' target='_blank'>GitHub's Privacy Statement</a>"
+      },
+      "privacy_statement": {
+        "content": "<a href='https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement' target='_blank'>GitHub's privacy statement</a>"
+      },
+      "terms_service": {
+        "content": "<a href='https://docs.github.com/en/site-policy/github-terms/github-terms-of-service' target='_blank'>terms of service</a>"
+      },
+      "repo_link": {
+        "content": "<a href='https://github.com/Linkumori/Linkumori-Extension' target='_blank'>https://github.com/Linkumori/Linkumori-Extension</a>"
+      }
+    }
+  },
+  "reportOnGitHub": {
+    "message": "Report on GitHub",
+    "description": "Button text to submit the report on GitHub"
+  },
+  "configInformation": {
+    "message": "Configuration Information",
+    "description": "Header for the configuration details section"
+  },
+  "urlPreviewTitle": {
+    "message": "URL Preview",
+    "description": "Title for URL preview dialog"
+  },
+  "urlPreviewWarning": {
+    "message": "Please review the URL that will be opened. This URL contains the information you entered and will redirect you to GitHub.",
+    "description": "Warning about URL contents and redirection"
+  },
+  "urlPreviewEncodedUrl": {
+    "message": "URL to be opened (technical format):",
+    "description": "Label for encoded URL display"
+  },
+  "urlPreviewShowDecoded": {
+    "message": "Show readable format (decoded URL)",
+    "description": "Label for decoded URL toggle button"
+  },
+  "urlPreviewCopy": {
+    "message": "Copy URL",
+    "description": "Label for copy URL button"
+  },
+  "urlPreviewCopied": {
+    "message": "Copied!",
+    "description": "Confirmation message after copying URL"
+  },
+  "urlPreviewCancelButton": {
+    "message": "Cancel",
+    "description": "Label for cancel button in URL preview"
+  },
+  "urlPreviewProceedButton": {
+    "message": "Open GitHub",
+    "description": "Label for proceed button in URL preview"
+  },
+  "urlPreviewSecurityNotice": {
+    "message": "This URL will redirect you to GitHub. Your data will be subject to $link$ once redirected.",
+    "description": "Security notice in URL preview dialog",
+    "placeholders": {
+      "link": {
+        "content": "<a href='https://docs.github.com/site-policy/privacy-policies/github-privacy-statement#github-search' target='_blank'>GitHub's Privacy Policy</a>"
+      }
+    }
+  },
+  "consentRequired": {
+    "message": "Please check the consent checkbox to proceed.",
+    "description": "Error message when consent is not given"
+  },
+  "issueTypeRequired": {
+    "message": "Please select an issue type.",
+    "description": "Error message when issue type is not selected"
+  },
+  "urlRequired": {
+    "message": "Please provide a URL.",
+    "description": "Error message when URL is missing"
+  },
+  "urlInvalid": {
+    "message": "Please enter a valid URL.",
+    "description": "Error message when URL is invalid"
+  },
+  "errorCreatingIssue": {
+    "message": "Error creating GitHub issue: ",
+    "description": "Error message prefix when issue creation fails"
+  },
+  "findExistingConsentRequired": {
+    "message": "Please confirm that you understand how your data will be used by checking the consent box.",
+    "description": "Error message when consent for finding existing issues is not given"
+  },
+  "errorFindingIssues": {
+    "message": "Error finding existing issues: ",
+    "description": "Error message prefix when searching for existing issues fails"
+  },
+  
+    "cleanUrlsToolTitle": {
+        "message": "Linkumori Advanced URL Cleaning Tool",
+        "description": "The title of the URL cleaning tool page."
+    },
+    "cleanUrlsToolHeader": {
+        "message": "Linkumori Clean URLs Tool",
+        "description": "The main header of the URL cleaning tool."
+    },
+    "inputUrlsTitle": {
+        "message": "Input URLs",
+        "description": "Title for the input URL section."
+    },
+    "inputUrlsDescription": {
+        "message": "With this tool you can paste in URLs and ClearURLs will clean the URLs after a click on the green button. You can paste in multiple URLs at once, but every URL must be on a separate line.",
+        "description": "Description text for the input URLs section."
+    },
+    "inputUrlsPlaceholder": {
+        "message": "Paste your URLs here, one per line...",
+        "description": "Placeholder text for the input URLs textarea."
+    },
+    "cleanedUrlsTitle": {
+        "message": "Cleaned URLs",
+        "description": "Title for the cleaned URLs section."
+    },
+    "cleanedUrlsPlaceholder": {
+        "message": "Cleaned URLs will appear here...",
+        "description": "Placeholder text for the cleaned URLs textarea."
+    },
+    "cleanUrlsButton": {
+        "message": "Clean URLs",
+        "description": "Text for the button that initiates URL cleaning."
+    },
+    "copyUrlsButton": {
+        "message": "Copy Results",
+        "description": "Text for the button that copies cleaned URLs."
+    },
+    "themeToggleAriaLabel": {
+        "message": "Toggle theme",
+        "description": "ARIA label for the theme toggle button for accessibility."
+    },
+    "copy_urls_success": {
+        "message": "URLs copied to clipboard!",
+        "description": "Success message when URLs are copied to clipboard in the cleaning tool."
+    },
+    "copy_urls_fail": {
+        "message": "Failed to copy URLs.",
+        "description": "Error message when copying URLs to clipboard fails in the cleaning tool."
+    },
+    "copy_urls_empty": {
+        "message": "No URLs to copy.",
+        "description": "Message when attempting to copy but the output URL area is empty."
+    },
+    "addDomainToWhitelist": {
+        "message": "Add $1 to whitelist",
+        "description": "Button label to add a domain to the whitelist. $1 is replaced with the domain."
+    },
+    "removeDomainFromWhitelist": {
+        "message": "Remove $1 from whitelist",
+        "description": "Button label to remove a domain from the whitelist. $1 is replaced with the domain."
+    },
+    "errorMessages_getCurrentDomain": {
+        "message": "Unable to get current domain",
+        "description": "Error message when the current domain cannot be determined."
+    },
+    "whitelist_update_failed": {
+        "message": "Failed to update whitelist",
+        "description": "Error message when updating the whitelist fails."
+    },
+    "addcurrentdomain_to_whitelist": {
+        "message": "Add Current Domain to Whitelist",
+        "description": "Button label to add the current domain to the whitelist."
+    },
+  "appearance_settings_title": {
+    "message": "Appearance Settings",
+    "description": "Title for the appearance settings section"
+  },
+  "badge_color_label": {
+    "message": "Badge Color",
+    "description": "Label for the badge color picker"
+  },
+  "badge_preview_label": {
+    "message": "Preview",
+    "description": "Label for the badge preview section"
+  },
+  "badge_color_description": {
+    "message": "Choose the color for the extension badge that shows the number of parameters cleaned on each page.",
+    "description": "Description text explaining what the badge color setting does"
+  },
+  "theme_selection_label": {
+    "message": "Theme",
+    "description": "Label for the theme selection section"
+  },
+  "theme_description": {
+    "message": "Choose your preferred theme appearance",
+    "description": "Description text for theme selection"
+  },
+  "theme_name_light": {
+    "message": "Light",
+    "description": "Name for the light theme"
+  },
+  "theme_name_dark": {
+    "message": "Dark",
+    "description": "Name for the dark theme"
+  },
+  "theme_name_midnight": {
+    "message": "Midnight",
+    "description": "Name for the midnight theme"
+  },
+  "theme_name_forest": {
+    "message": "Forest",
+    "description": "Name for the forest theme"
+  },
+  "theme_name_sunset": {
+    "message": "voilet",
+    "description": "Name for the sunset theme"
+  },
+  "btn_save": {
+    "message": "Save",
+    "description": "Save button text for color picker"
+  },
+  "btn_cancel": {
+    "message": "Cancel", 
+    "description": "Cancel button text for color picker"
+  },
+  "btn_clear": {
+    "message": "Clear",
+    "description": "Clear button text for color picker"
+  },
+  "status_color_picker_failed": {
+    "message": "Failed to initialize color picker",
+    "description": "Error message when color picker fails to load"
+  },
+  "import_no_file_selected": {
+    "message": "No file selected",
+    "description": "Error message when no file is selected for import"
+  },
+  "import_invalid_file_type": {
+    "message": "Invalid file type. Please select a .conf or .json file",
+    "description": "Error message for invalid file type"
+  },
+  "import_reading_file": {
+    "message": "Reading file...",
+    "description": "Status message while reading import file"
+  },
+  "import_invalid_format": {
+    "message": "Invalid file format or corrupted data",
+    "description": "Error message for invalid file format"
+  },
+  "import_confirm_message": {
+    "message": "This will replace your current settings. Are you sure you want to continue?",
+    "description": "Confirmation dialog for importing settings"
+  },
+  "import_cancelled": {
+    "message": "Import cancelled",
+    "description": "Message when import is cancelled by user"
+  },
+  "import_successful": {
+    "message": "Settings imported successfully",
+    "description": "Success message after importing settings"
+  },
+  "import_failed": {
+    "message": "Failed to import settings",
+    "description": "Error message when import fails"
+  },
+  "import_parse_error": {
+    "message": "Failed to parse file. Please check the file format.",
+    "description": "Error message when file parsing fails"
+  },
+  "import_read_error": {
+    "message": "Failed to read file",
+    "description": "Error message when file reading fails"
+  },
+  "welcomeTitle": {
+    "message": "Welcome to Linkumori - URL Cleaner"
+  },
+  "welcomeHeading": {
+    "message": "Welcome to Linkumori"
+  },
+  "welcomeDescription": {
+    "message": "Thank you for installing Linkumori, your personal URL privacy and tracking protection tool. Linkumori helps you maintain your online privacy by removing tracking parameters from URLs."
+  },
+  "feature1": {
+    "message": "Automatically remove tracking parameters from URLs"
+  },
+  "feature2": {
+    "message": "Protect your privacy across different websites"
+  },
+  "feature3": {
+    "message": "Easily customizable whitelist"
+  },
+  "feature4": {
+    "message": "Lightweight and non-intrusive"
+  },
+  "getStartedText": {
+    "message": "To get started, click the button below to open the extension settings."
+  },
+  "openSettings": {
+    "message": "Open Linkumori Settings"
+  },
+
+  "customRulesEditor_title": {
+    "message": "Custom Rules Editor - ClearURLs"
+  },
+  "customRulesEditor_pageTitle": {
+    "message": "Custom Rules Editor"
+  },
+  "customRulesEditor_customProviders": {
+    "message": "Custom Providers"
+  },
+  "customRulesEditor_rulesStatus": {
+    "message": "Rules Status"
+  },
+  "customRulesEditor_custom": {
+    "message": "Custom:"
+  },
+  "customRulesEditor_builtin": {
+    "message": "Built-in:"
+  },
+  "customRulesEditor_total": {
+    "message": "Total:"
+  },
+  "customRulesEditor_enforceRules": {
+    "message": "Enforce Rules"
+  },
+  "customRulesEditor_enforceTooltip": {
+    "message": "Reload extension to apply all rules immediately"
+  },
+  "customRulesEditor_enforceSuccess": {
+    "message": "Rules Enforced"
+  },
+  "customRulesEditor_enforceError": {
+    "message": "Enforce Failed"
+  },
+  "customRulesEditor_importTooltip": {
+    "message": "Import custom rules from file"
+  },
+  "customRulesEditor_exportTooltip": {
+    "message": "Export custom rules to file"
+  },
+  "customRulesEditor_addProvider": {
+    "message": "Add Provider"
+  },
+  "customRulesEditor_selectProvider": {
+    "message": "Select a provider to edit"
+  },
+  "customRulesEditor_saveTooltip": {
+    "message": "Save current provider"
+  },
+  "customRulesEditor_deleteTooltip": {
+    "message": "Delete current provider"
+  },
+  "customRulesEditor_welcome": {
+    "message": "Welcome to Custom Rules Editor"
+  },
+  "customRulesEditor_description": {
+    "message": "Create and manage custom URL cleaning rules for websites not covered by the built-in providers."
+  },
+  "customRulesEditor_createFirst": {
+    "message": "Create Your First Provider"
+  },
+  "customRulesEditor_addNewProvider": {
+    "message": "Add New Provider"
+  },
+  "customRulesEditor_editProvider": {
+    "message": "Edit Provider"
+  },
+  "customRulesEditor_providerName": {
+    "message": "Provider Name *"
+  },
+  "customRulesEditor_providerNamePlaceholder": {
+    "message": "e.g., example.com, mysite"
+  },
+  "customRulesEditor_providerNameHelp": {
+    "message": "Unique identifier for this provider (e.g., \"example.com\", \"mysite\")"
+  },
+  "customRulesEditor_urlPattern": {
+    "message": "URL Pattern *"
+  },
+  "customRulesEditor_urlPatternPlaceholder": {
+    "message": "^https?:\\/\\/(?:[a-z0-9-]+\\.)*?example\\.com"
+  },
+  "customRulesEditor_urlPatternHelp": {
+    "message": "Regular expression to match URLs"
+  },
+  "customRulesEditor_domainPatterns": {
+    "message": "Domain Patterns"
+  },
+  "customRulesEditor_domainPatternsDescription": {
+    "message": "Domain-based patterns"
+  },
+  "customRulesEditor_domainPatternsHelp": {
+     "message": "Simple domain patterns (cannot be used with URL Pattern). Formats: example.com, *.example.com, ||example.com^, ||*.example.com^ One pattern per line.",
+     "description": "Help text for domain patterns field"
+  },
+  "customRulesEditor_domainExceptions": {
+    "message": "Domain Exceptions"
+  },
+  "customRulesEditor_domainExceptionPatterns": {
+    "message": "Domain exception patterns"
+  },
+  "customRulesEditor_domainExceptionsHelp": {
+    "message": "Domain patterns to exclude from rule application. Uses same format as Domain Patterns: example.com, *.example.com, ||example.com^, ||*.example.*^. URLs matching these patterns will not be processed. One pattern per line.",
+    "description": "Help text for domain exceptions field"
+  },
+  "customRulesEditor_domainRedirections": {
+    "message": "Domain Redirections"
+  },
+  "customRulesEditor_domainRedirectionPatterns": {
+    "message": "Domain redirection patterns"
+  },
+  "customRulesEditor_domainRedirectionsHelp": {
+    "message": "Domain-based redirection patterns with $redirect= syntax. Format: pattern$redirect=target_url. Examples: redirect.example.com$redirect=https://target.com, ||short.ly^$redirect=extracted_url. One pattern per line.",
+    "description": "Help text for domain redirections field"
+  },
+  "customRulesEditor_urlPatternDisabledTooltip": {
+    "message": "URL Pattern is disabled when Domain Patterns are used"
+  },
+  "customRulesEditor_domainPatternsDisabledTooltip": {
+    "message": "Domain Patterns are disabled when URL Pattern is used"
+  },
+  "customRulesEditor_urlPatternOrDomainPatternsRequired": {
+    "message": "Either URL Pattern or Domain Patterns is required"
+  },
+  "customRulesEditor_urlPatternAndDomainPatternsExclusive": {
+    "message": "URL Pattern and Domain Patterns cannot be used together"
+  },
+  "customRulesEditor_emptyDomainPattern": {
+    "message": "Domain patterns cannot be empty"
+  },
+  "customRulesEditor_invalidDomainPattern": {
+    "message": "Invalid domain pattern: {0}"
+  },
+  "customRulesEditor_urlPatternRequiredForCreation": {
+    "message": "URL Pattern is required when creating a provider. You can add Domain Patterns later in the editor."
+  },
+  "customRulesEditor_providerNameRequired": {
+    "message": "Provider name is required"
+  },
+  "customRulesEditor_patternType": {
+    "message": "Pattern Type"
+  },
+  "customRulesEditor_urlPatternOption": {
+    "message": "URL Pattern (Regex)"
+  },
+  "customRulesEditor_domainPatternsOption": {
+    "message": "Domain Patterns"
+  },
+  "customRulesEditor_patternTypeHelp": {
+    "message": "Choose how to match URLs for this provider"
+  },
+  "customRulesEditor_domainPatternsPlaceholder": {
+    "message": "||example.com^\n||*.subdomain.com^\n"
+  },
+  "customRulesEditor_domainPatternsRequired": {
+    "message": "At least one domain pattern is required"
+  },
+  "customRulesEditor_patternTypeRequired": {
+    "message": "Please select a pattern type"
+  },
+  "customRulesEditor_completeProvider": {
+    "message": "Complete Provider (blocks entire domain)"
+  },
+  "customRulesEditor_forceRedirection": {
+    "message": "Force Redirection"
+  },
+  "customRulesEditor_resourceTypes": {
+    "message": "Resource Types"
+  },
+  "customRulesEditor_resourceTypesPlaceholder": {
+    "message": "main_frame\nsub_frame\nscript\nimage\nstylesheet"
+  },
+  "customRulesEditor_resourceTypesHelp": {
+    "message": "List of resource types to apply rules to (one per line). Leave empty to apply to all types."
+  },
+  "customRulesEditor_httpMethods": {
+    "message": "HTTP Methods",
+    "description": "Label for HTTP methods field"
+  },
+  "customRulesEditor_httpMethodsPlaceholder": {
+    "message": "GET\nPOST\nPUT\nDELETE",
+    "description": "Placeholder text for HTTP methods field"
+  },
+  "customRulesEditor_httpMethodsHelp": {
+    "message": "Specify which HTTP methods this provider applies to (one per line). Leave empty to apply to all methods.",
+    "description": "Help text for HTTP methods field"
+  },
+  "customRulesEditor_saveProvider": {
+    "message": "Save Provider"
+  },
+  "customRulesEditor_editing": {
+    "message": "Editing: $1"
+  },
+  "customRulesEditor_basicSettings": {
+    "message": "Basic Settings"
+  },
+  "customRulesEditor_advancedSettings": {
+    "message": "Advanced Settings"
+  },
+  "customRulesEditor_rules": {
+    "message": "Rules (URL parameters to remove)"
+  },
+  "customRulesEditor_parameterPatterns": {
+    "message": "Parameter patterns"
+  },
+  "customRulesEditor_referralMarketing": {
+    "message": "Referral Marketing"
+  },
+  "customRulesEditor_referralParameters": {
+    "message": "Referral parameters"
+  },
+  "customRulesEditor_rawRules": {
+    "message": "Raw Rules (regex patterns)"
+  },
+  "customRulesEditor_rawRegexPatterns": {
+    "message": "Raw regex patterns"
+  },
+  "customRulesEditor_exceptions": {
+    "message": "Exceptions (URLs to exclude)"
+  },
+  "customRulesEditor_exceptionPatterns": {
+    "message": "Exception patterns"
+  },
+  "customRulesEditor_redirections": {
+    "message": "Redirections (redirect patterns)"
+  },
+  "customRulesEditor_redirectPatterns": {
+    "message": "Redirect patterns"
+  },
+  "customRulesEditor_advancedJsonEditor": {
+    "message": "Advanced JSON Editor"
+  },
+  "customRulesEditor_updateFromForm": {
+    "message": "Update from Form"
+  },
+  "customRulesEditor_jsonPlaceholder": {
+    "message": "JSON will appear here..."
+  },
+  "customRulesEditor_noItems": {
+    "message": "No items"
+  },
+  "customRulesEditor_jsonError": {
+    "message": "JSON Error: $1"
+  },
+  "customRulesEditor_enterPattern": {
+    "message": "Enter $1 pattern..."
+  },
+  "customRulesEditor_unsavedChanges": {
+    "message": "You have unsaved changes. Continue without saving?"
+  },
+  "customRulesEditor_urlPatternRequired": {
+    "message": "URL Pattern is required"
+  },
+  "customRulesEditor_invalidUrlPattern": {
+    "message": "Invalid URL Pattern regex: $1"
+  },
+  "customRulesEditor_confirmDelete": {
+    "message": "Are you sure you want to delete the provider \"$1\"?"
+  },
+  "customRulesEditor_selectProviderTitle": {
+    "message": "Select a Provider"
+  },
+  "customRulesEditor_selectProviderDescription": {
+    "message": "Choose a provider from the sidebar to start editing."
+  },
+  "customRulesEditor_addAnother": {
+    "message": "Add Another Provider"
+  },
+  "customRulesEditor_providerNameUrlRequired": {
+    "message": "Provider name and URL pattern are required"
+  },
+  "customRulesEditor_providerNameExists": {
+    "message": "A provider with this name already exists"
+  },
+  "customRulesEditor_failedToSaveProvider": {
+    "message": "Failed to save provider"
+  },
+  "customRulesEditor_copy": {
+    "message": "copy"
+  },
+  "customRulesEditor_exportFailed": {
+    "message": "Failed to export rules"
+  },
+  "customRulesEditor_invalidFileStructure": {
+    "message": "Invalid file structure: missing providers object"
+  },
+  "customRulesEditor_noProvidersInFile": {
+    "message": "No providers found in file"
+  },
+  "customRulesEditor_providerMissingUrlPattern": {
+    "message": "Provider \"$1\" is missing urlPattern"
+  },
+  "customRulesEditor_providerMissingUrlPatternOrDomainPatterns": {
+    "message": "Provider \"$1\" must have either urlPattern or domainPatterns"
+  },
+  "customRulesEditor_providerHasBothPatternTypes": {
+    "message": "Provider \"$1\" cannot have both urlPattern and domainPatterns"
+  },
+  "customRulesEditor_providerHasEmptyDomainPattern": {
+    "message": "Provider \"$1\" has empty domain patterns"
+  },
+  "customRulesEditor_importConfirm": {
+    "message": "This will replace all existing custom rules. Continue?"
+  },
+  "customRulesEditor_importFailed": {
+    "message": "Failed to import rules: $1"
+  },
+  "customRulesEditor_editName": {
+    "message": "Edit name"
+  },
+  "customRulesEditor_duplicate": {
+    "message": "Duplicate"
+  },
+  "button_toggleTheme": {
+    "message": "Toggle theme"
+  },
+  "button_save": {
+    "message": "Save"
+  },
+  "button_delete": {
+    "message": "Delete"
+  },
+  "button_cancel": {
+    "message": "Cancel"
+  },
+  "button_add": {
+    "message": "Add"
+  },
+  "button_remove": {
+    "message": "Remove"
+  },
+  "status_loading": {
+    "message": "Loading..."
+  },
+  "status_valid": {
+    "message": "Valid"
+  },
+  "status_saveFailed": {
+    "message": "Save failed"
+  },
+  "status_deleteFailed": {
+    "message": "Delete failed"
+  },
+  "status_validJson": {
+    "message": "Valid JSON"
+  },
+  "status_validJsonUnsaved": {
+    "message": "Valid JSON - Unsaved"
+  },
+  "status_invalidJson": {
+    "message": "Invalid JSON"
+  },
+  "status_unsavedChanges": {
+    "message": "Unsaved changes"
+  },
+  "status_builtinOnly": {
+    "message": "Built-in rules only"
+  },
+  "status_customMerged": {
+    "message": "Custom rules merged (defult + custom)"
+  },
+  "status_customFailed": {
+    "message": "Custom rules failed"
+  },
+  "status_usingCached": {
+    "message": "concerning bundled rule may have been corrupted or not loaded properly. Fallback rules have been loaded instead and merged with custom rules."
+  },
+  "status_usingFallback": {
+    "message": "Using fallback rules"
+  },
+  "status_unknown": {
+    "message": "Unknown"
+  },
+  "status_unavailable": {
+    "message": "Status unavailable"
+  },
+  "customrules":{
+    "message": "Custom Rules"
+  },
+
+  "popup_html_page_title": {
+    "message": "Linkumori",
+    "description": "Main page title for the extension popup"
+  },
+  "popup_html_menu_title": {
+    "message": "Menu",
+    "description": "Title for the hamburger menu"
+  },
+  "popup_html_feature_toggles_title": {
+    "message": "Feature Controls",
+    "description": "Title for the feature toggles section"
+  },
+  "popup_html_menu_home": {
+    "message": "Home",
+    "description": "Menu item for home page"
+  },
+  "popup_html_menu_settings": {
+    "message": "Settings",
+    "description": "Menu item for settings page"
+  },
+  "popup_html_menu_custom_rules": {
+    "message": "Custom Rules",
+    "description": "Menu item for custom rules page"
+  },
+  "popup_html_menu_cleaning_tools": {
+    "message": "Cleaning Tools",
+    "description": "Menu item for cleaning tools page"
+  },
+  "popup_html_menu_license": {
+    "message": "License",
+    "description": "Menu item for license information"
+  },
+ 
+  "popup_html_configs_switch_filter_description": {
+    "message": "Enable or disable tracking parameter removal from URLs",
+    "description": "Description for URL filtering toggle"
+  },
+
+  "popup_html_configs_switch_badges_description": {
+    "message": "Show blocked element count on extension icon",
+    "description": "Description for badge counter toggle"
+  },
+
+  "popup_html_configs_switch_log_description": {
+    "message": "Track and log filtered URLs for review",
+    "description": "Description for activity logging toggle"
+  },
+  "popup_html_domain_blocking_enabled": {
+    "message": "Domain Blocking",
+    "description": "Toggle label for domain blocking feature"
+  },
+  "popup_html_domain_blocking_enabled_description": {
+    "message": "Block requests to tracking and analytics domains",
+    "description": "Description for domain blocking toggle"
+  },
+  "popup_html_local_hosts_skipping": {
+    "message": "Local Hosts Skipping",
+    "description": "Toggle label for local hosts skipping feature"
+  },
+  "popup_html_local_hosts_skipping_description": {
+    "message": "Skip filtering for localhost and local network addresses",
+    "description": "Description for local hosts skipping toggle"
+  },
+  "popup_html_history_listener_enabled": {
+    "message": "History Listener",
+    "description": "Toggle label for history listener feature"
+  },
+  "popup_html_history_listener_enabled_description": {
+    "message": "Monitor and clean URLs added to browser history",
+    "description": "Description for history listener toggle"
+  },
+  "popup_html_referral_marketing_enabled": {
+    "message": "Referral Marketing",
+    "description": "Toggle label for referral marketing feature"
+  },
+  "popup_html_referral_marketing_enabled_description": {
+    "message": "Remove referral and affiliate marketing parameters",
+    "description": "Description for referral marketing toggle"
+  },
+  "popup_html_ping_blocking_enabled": {
+    "message": "Ping Blocking",
+    "description": "Toggle label for ping blocking feature"
+  },
+  "popup_html_ping_blocking_enabled_description": {
+    "message": "Block ping requests used for tracking",
+    "description": "Description for ping blocking toggle"
+  },
+  "popup_html_eTag_filtering_enabled": {
+    "message": "ETag Filtering",
+    "description": "Toggle label for ETag filtering feature"
+  },
+  "popup_html_eTag_filtering_enabled_description": {
+    "message": "Remove ETag headers used for tracking",
+    "description": "Description for ETag filtering toggle"
+  },
+  "popup_html_license_title": {
+    "message": "License Information",
+    "description": "Title for the license section"
+  },
+  "popup_html_name_license": {
+    "message": "Linkumori",
+    "description": "Extension name in license section"
+  },
+  "popup_html_license_version": {
+    "message": "v1.27.4",
+    "description": "Version number in license section"
+  },
+  "popup_html_license_links_title": {
+    "message": "Links",
+    "description": "Title for the license links section"
+  },
+  "popup_html_save_settings": {
+    "message": "Save Settings",
+    "description": "Text for the save settings button"
+  },
+  "popup_html_saved": {
+    "message": "✓ Saved!",
+    "description": "Success message when settings are saved"
+  },
+  "popup_html_error": {
+    "message": "❌ Error",
+    "description": "Error message when saving fails"
+  },
+  "popup_html_saving": {
+    "message": "Saving...",
+    "description": "Loading message while saving settings"
+  },
+  "popup_html_loading": {
+    "message": "Loading...",
+    "description": "Loading message while initializing"
+  },
+  "popup_html_statistics": {
+    "message": "Statistics",
+    "description": "Toggle label for statistics feature"
+  },
+  "popup_html_statistics_description": {
+    "message": "Collect and display usage statistics",
+    "description": "Description for statistics toggle"
+  },
+  "faq_title": {
+    "message": "FAQ",
+    "description": "FAQ button text and modal title"
+  },
+  "faq_section_basics": {
+    "message": "Basics",
+    "description": "FAQ section title for basic questions"
+  },
+  "faq_section_properties": {
+    "message": "Provider Properties",
+    "description": "FAQ section title for provider properties"
+  },
+  "faq_section_examples": {
+    "message": "Examples",
+    "description": "FAQ section title for examples"
+  },
+  "faq_section_tips": {
+    "message": "Tips & Best Practices",
+    "description": "FAQ section title for tips and best practices"
+  },
+  "faq_section_advanced": {
+    "message": "Advanced Features",
+    "description": "FAQ section title for advanced features"
+  },
+  "faq_what_is_custom_rules": {
+    "message": "What are custom rules?",
+    "description": "FAQ question about custom rules"
+  },
+  "faq_what_is_custom_rules_answer": {
+    "message": "Custom rules allow you to create your own URL cleaning patterns for websites that aren't covered by the built-in rules. They follow the same structure as the main catalog but are managed separately.",
+    "description": "FAQ answer explaining custom rules"
+  },
+  "faq_custom_rules_note": {
+    "message": "Custom rules are merged with built-in rules",
+    "description": "Note about custom rules precedence"
+  },
+  "faq_how_providers_work": {
+    "message": "How do providers work?",
+    "description": "FAQ question about how providers work"
+  },
+  "faq_providers_explanation": {
+    "message": "Providers are logical units that group multiple rules under the same URL pattern. Each provider targets a specific website or service and contains all the rules needed to clean URLs from that source.",
+    "description": "FAQ answer explaining providers"
+  },
+  "faq_provider_example": {
+    "message": "For example, a \"Google\" provider would handle all Google services with rules to remove tracking parameters from search results, YouTube links, etc.",
+    "description": "FAQ example of provider usage"
+  },
+  "faq_url_pattern": {
+    "message": "What is urlPattern?",
+    "description": "FAQ question about urlPattern"
+  },
+  "faq_url_pattern_explanation": {
+    "message": "The urlPattern is a regular expression that must match every URL that should be affected by the provider's rules. It defines which websites this provider should handle.",
+    "description": "FAQ answer explaining urlPattern"
+  },
+  "faq_url_pattern_structure": {
+    "message": "The typical structure covers: protocol + subdomain + domain + TLD + directories + parameters",
+    "description": "FAQ explanation of urlPattern structure"
+  },
+  "faq_url_pattern_tip": {
+    "message": "Use online regex testers to validate your patterns before adding them.",
+    "description": "FAQ tip for testing urlPattern"
+  },
+  "faq_complete_provider": {
+    "message": "What does completeProvider do?",
+    "description": "FAQ question about completeProvider"
+  },
+  "faq_complete_provider_explanation": {
+    "message": "When set to true, completeProvider blocks all URLs matching the urlPattern completely. When false, it allows you to specify individual rules, exceptions, and redirections.",
+    "description": "FAQ answer explaining completeProvider"
+  },
+  "faq_complete_provider_warning": {
+    "message": "Setting this to true will block access to the entire website!",
+    "description": "FAQ warning about completeProvider"
+  },
+  "faq_complete_provider_usage": {
+    "message": "Most custom rules should set this to false and use specific parameter removal rules instead.",
+    "description": "FAQ guidance on completeProvider usage"
+  },
+  "faq_rules_vs_raw": {
+    "message": "What's the difference between rules and rawRules?",
+    "description": "FAQ question about rules vs rawRules"
+  },
+  "faq_rules_title": {
+    "message": "Rules:",
+    "description": "FAQ section title for rules explanation"
+  },
+  "faq_rules_explanation": {
+    "message": "Simple parameter names that get automatically converted to regex patterns. Best for standard URL parameters.",
+    "description": "FAQ explanation of rules"
+  },
+  "faq_rules_converted": {
+    "message": "These get converted to patterns like: (?:&|[/?#&])(?:utm_source=[^&]*)",
+    "description": "FAQ example of how rules are converted"
+  },
+  "faq_raw_rules_title": {
+    "message": "Raw Rules:",
+    "description": "FAQ section title for rawRules explanation"
+  },
+  "faq_raw_rules_explanation": {
+    "message": "Direct regex patterns applied to the entire URL. Use for complex patterns that don't fit the standard parameter format.",
+    "description": "FAQ explanation of rawRules"
+  },
+  "faq_raw_rules_usage": {
+    "message": "Use rawRules for fragments, path segments, or complex parameter patterns.",
+    "description": "FAQ guidance on rawRules usage"
+  },
+  "faq_referral_marketing": {
+    "message": "What is referralMarketing?",
+    "description": "FAQ question about referralMarketing"
+  },
+  "faq_referral_explanation": {
+    "message": "Referral marketing parameters help content creators earn commissions. These parameters are only removed when the user has disabled referral marketing support in settings.",
+    "description": "FAQ explanation of referralMarketing"
+  },
+  "faq_referral_default": {
+    "message": "Referral marketing is disabled by default, so these parameters will be removed unless explicitly allowed by the user.",
+    "description": "FAQ note about referralMarketing default behavior"
+  },
+  "faq_exceptions": {
+    "message": "How do exceptions work?",
+    "description": "FAQ question about exceptions"
+  },
+  "faq_exceptions_explanation": {
+    "message": "Exceptions are regex patterns that match URLs where no processing should occur. If a URL matches an exception, all other rules are ignored.",
+    "description": "FAQ explanation of exceptions"
+  },
+  "faq_exceptions_usage": {
+    "message": "Use exceptions to protect login pages, API endpoints, or other sensitive URLs from being modified.",
+    "description": "FAQ guidance on exceptions usage"
+  },
+  "faq_redirections": {
+    "message": "How do redirections work?",
+    "description": "FAQ question about redirections"
+  },
+  "faq_redirections_explanation": {
+    "message": "Redirections extract the real destination URL from redirect services. The first capture group in the regex becomes the new URL.",
+    "description": "FAQ explanation of redirections"
+  },
+  "faq_redirections_process": {
+    "message": "The captured URL is automatically decoded with decodeURIComponent() and replaces the original URL.",
+    "description": "FAQ explanation of redirection processing"
+  },
+  "faq_redirections_example": {
+    "message": "https://redirect.com?url=https%3A//target.com becomes https://target.com",
+    "description": "FAQ example of redirection process"
+  },
+  "faq_force_redirection": {
+    "message": "When should I use forceRedirection?",
+    "description": "FAQ question about forceRedirection"
+  },
+  "faq_force_redirection_explanation": {
+    "message": "Some websites manipulate links through JavaScript, preventing normal redirections. forceRedirection writes the URL directly to the browser's main frame.",
+    "description": "FAQ explanation of forceRedirection"
+  },
+  "faq_force_redirection_usage": {
+    "message": "Enable this for websites like Google that use onClick handlers instead of direct href attributes.",
+    "description": "FAQ guidance on forceRedirection usage"
+  },
+  "faq_force_redirection_warning": {
+    "message": "Only use when normal redirections fail, as this method is more intrusive.",
+    "description": "FAQ warning about forceRedirection"
+  },
+  "faq_simple_example": {
+    "message": "Show me a simple provider example",
+    "description": "FAQ question requesting simple example"
+  },
+  "faq_simple_example_intro": {
+    "message": "Here's a basic provider that removes tracking parameters from a fictional shopping site:",
+    "description": "FAQ intro to simple example"
+  },
+  "faq_simple_example_explanation": {
+    "message": "This removes Facebook click IDs and UTM parameters, but preserves affiliate links if the user allows referral marketing.",
+    "description": "FAQ explanation of simple example"
+  },
+  "faq_complex_example": {
+    "message": "Show me a complex provider example",
+    "description": "FAQ question requesting complex example"
+  },
+  "faq_complex_example_intro": {
+    "message": "Here's an advanced provider with redirections and exceptions:",
+    "description": "FAQ intro to complex example"
+  },
+  "faq_complex_example_explanation": {
+    "message": "This provider removes tracking parameters and fragments, handles redirects, but protects API, login, and checkout pages from modification.",
+    "description": "FAQ explanation of complex example"
+  },
+  "faq_testing_tips": {
+    "message": "How should I test my custom rules?",
+    "description": "FAQ question about testing tips"
+  },
+  "faq_test_regex": {
+    "message": "Test regex patterns using online tools like regex101.com",
+    "description": "FAQ tip about testing regex patterns"
+  },
+  "faq_test_small": {
+    "message": "Start with simple rules and gradually add complexity",
+    "description": "FAQ tip about starting small"
+  },
+  "faq_test_exceptions": {
+    "message": "Always add exceptions for critical pages (login, checkout, API)",
+    "description": "FAQ tip about adding exceptions"
+  },
+  "faq_test_backup": {
+    "message": "Export your rules before making major changes",
+    "description": "FAQ tip about backing up rules"
+  },
+  "faq_test_reload": {
+    "message": "Use the \"Enforce Rules\" button to reload changes without restarting the browser",
+    "description": "FAQ tip about enforcing rules"
+  },
+  "faq_common_mistakes": {
+    "message": "What are common mistakes to avoid?",
+    "description": "FAQ question about common mistakes"
+  },
+  "faq_mistake_broad": {
+    "message": "Making urlPattern too broad (matching unintended sites)",
+    "description": "FAQ common mistake about broad patterns"
+  },
+  "faq_mistake_complete": {
+    "message": "Setting completeProvider to true unless you really want to block the site",
+    "description": "FAQ common mistake about completeProvider"
+  },
+  "faq_mistake_escape": {
+    "message": "Forgetting to escape special regex characters in patterns",
+    "description": "FAQ common mistake about escaping regex"
+  },
+  "faq_mistake_exceptions": {
+    "message": "Not adding exceptions for important functionality",
+    "description": "FAQ common mistake about missing exceptions"
+  },
+  "faq_mistake_testing": {
+    "message": "Not testing rules thoroughly before deploying",
+    "description": "FAQ common mistake about insufficient testing"
+  },
+  "faq_performance_tips": {
+    "message": "How can I optimize performance?",
+    "description": "FAQ question about performance optimization"
+  },
+  "faq_perf_specific": {
+    "message": "Make urlPattern as specific as possible",
+    "description": "FAQ performance tip about specific patterns"
+  },
+  "faq_perf_simple": {
+    "message": "Use simple rules instead of complex rawRules when possible",
+    "description": "FAQ performance tip about simple rules"
+  },
+  "faq_perf_combine": {
+    "message": "Combine multiple similar patterns into one regex",
+    "description": "FAQ performance tip about combining patterns"
+  },
+  "faq_perf_limit": {
+    "message": "Limit the number of providers to what you actually need",
+    "description": "FAQ performance tip about limiting providers"
+  },
+  "faq_perf_review": {
+    "message": "Regularly review and clean up unused rules",
+    "description": "FAQ performance tip about regular review"
+  },
+  "faq_note": {
+    "message": "Note:",
+    "description": "Label for important notes in FAQ"
+  },
+  "faq_tip": {
+    "message": "Tip:",
+    "description": "Label for tips in FAQ"
+  },
+  "faq_warning": {
+    "message": "Warning:",
+    "description": "Label for warnings in FAQ"
+  },
+  "faq_caution": {
+    "message": "Caution:",
+    "description": "Label for cautions in FAQ"
+  },
+  "faq_example": {
+    "message": "Example:",
+    "description": "Label for examples in FAQ"
+  },
+  "faq_default_note": {
+    "message": "Default:",
+    "description": "Label for default behavior notes in FAQ"
+  },
+  "faq_domain_patterns": {
+    "message": "Domain Patterns vs URL Patterns",
+    "description": "FAQ question about domain patterns vs URL patterns"
+  },
+  "faq_domain_patterns_explanation": {
+    "message": "Domain Patterns provide a simpler alternative to URL patterns. Instead of complex regex, you can specify domains directly:",
+    "description": "FAQ explanation of domain patterns"
+  },
+  "faq_url_patterns_explanation": {
+    "message": "URL Patterns use full regex for precise control over which URLs match:",
+    "description": "FAQ explanation of URL patterns"
+  },
+  "faq_pattern_exclusive_note": {
+    "message": "You can only use either Domain Patterns OR URL Pattern, not both in the same provider.",
+    "description": "FAQ note about pattern exclusivity"
+  },
+  "faq_domain_pattern_types": {
+    "message": "Domain Pattern Types:",
+    "description": "FAQ section title for domain pattern types"
+  },
+  "faq_when_to_use_patterns": {
+    "message": "When to use which:",
+    "description": "FAQ section title for pattern usage guidance"
+  },
+  "faq_use_domain_patterns": {
+    "message": "Use Domain Patterns for simple domain-based rules (easier to manage)",
+    "description": "FAQ guidance for using domain patterns"
+  },
+  "faq_use_url_patterns": {
+    "message": "Use URL Patterns for complex matching (specific paths, query parameters, etc.)",
+    "description": "FAQ guidance for using URL patterns"
+  },
+  "faq_provider_import": {
+    "message": "How do I import providers from rules?",
+    "description": "FAQ question about provider import feature"
+  },
+  "faq_provider_import_explanation": {
+    "message": "The Provider Import feature allows you to quickly add providers from the built-in rule catalog. Click the 'Import from Rules' button to browse and select providers.",
+    "description": "FAQ explanation of provider import feature"
+  },
+  "faq_provider_import_benefits": {
+    "message": "Benefits of importing:",
+    "description": "FAQ section title for import benefits"
+  },
+  "faq_import_benefit_quick": {
+    "message": "Quick setup - no need to manually create complex patterns",
+    "description": "FAQ benefit of quick setup via import"
+  },
+  "faq_import_benefit_tested": {
+    "message": "Pre-tested rules that are known to work correctly",
+    "description": "FAQ benefit of tested rules via import"
+  },
+  "faq_import_benefit_updates": {
+    "message": "Easy to keep rules updated with new providers",
+    "description": "FAQ benefit of easy updates via import"
+  },
+  "faq_import_benefit_search": {
+    "message": "Search and filter to find exactly what you need",
+    "description": "FAQ benefit of search functionality"
+  },
+  "faq_provider_list": {
+    "message": "How do I manage my providers efficiently?",
+    "description": "FAQ question about provider list management"
+  },
+  "faq_provider_list_explanation": {
+    "message": "The Provider List modal gives you a quick overview of all your custom providers. You can search, edit, duplicate, or delete providers without opening each one individually.",
+    "description": "FAQ explanation of provider list feature"
+  },
+  "faq_provider_list_features": {
+    "message": "Provider List features:",
+    "description": "FAQ section title for provider list features"
+  },
+  "faq_list_feature_overview": {
+    "message": "Quick overview of all providers with key statistics",
+    "description": "FAQ feature of provider overview"
+  },
+  "faq_list_feature_search": {
+    "message": "Search providers by name to find specific ones quickly",
+    "description": "FAQ feature of provider search"
+  },
+  "faq_list_feature_actions": {
+    "message": "Edit, duplicate, or delete providers with single clicks",
+    "description": "FAQ feature of quick actions"
+  },
+  "faq_list_feature_stats": {
+    "message": "See rule counts and pattern types at a glance",
+    "description": "FAQ feature of statistics display"
+  },
+  "faq_resource_types": {
+    "message": "What are Resource Types?",
+    "description": "FAQ question about resource types"
+  },
+  "faq_resource_types_explanation": {
+    "message": "Resource Types allow you to apply rules only to specific types of web requests (images, scripts, main pages, etc.). This gives you fine-grained control over when rules are applied.",
+    "description": "FAQ explanation of resource types"
+  },
+  "faq_resource_types_common": {
+    "message": "Common resource types:",
+    "description": "FAQ section title for common resource types"
+  },
+  "faq_rt_main_frame": {
+    "message": "main_frame - The main webpage",
+    "description": "FAQ resource type main_frame"
+  },
+  "faq_rt_sub_frame": {
+    "message": "sub_frame - Embedded iframes",
+    "description": "FAQ resource type sub_frame"
+  },
+  "faq_rt_script": {
+    "message": "script - JavaScript files",
+    "description": "FAQ resource type script"
+  },
+  "faq_rt_image": {
+    "message": "image - Images and pictures",
+    "description": "FAQ resource type image"
+  },
+  "faq_rt_xmlhttprequest": {
+    "message": "xmlhttprequest - AJAX requests",
+    "description": "FAQ resource type xmlhttprequest"
+  },
+  "faq_rt_font": {
+    "message": "font - Web fonts (.woff, .ttf, etc.)",
+    "description": "FAQ resource type font"
+  },
+  "faq_rt_imageset": {
+    "message": "imageset - Image sets for responsive images",
+    "description": "FAQ resource type imageset"
+  },
+  "faq_rt_media": {
+    "message": "media - Audio and video files",
+    "description": "FAQ resource type media"
+  },
+  "faq_rt_object": {
+    "message": "object - Embedded objects (Flash, plugins)",
+    "description": "FAQ resource type object"
+  },
+  "faq_rt_object_subrequest": {
+    "message": "object_subrequest - Requests made by embedded objects",
+    "description": "FAQ resource type object_subrequest"
+  },
+  "faq_rt_other": {
+    "message": "other - Other types not covered above",
+    "description": "FAQ resource type other"
+  },
+  "faq_rt_stylesheet": {
+    "message": "stylesheet - CSS files",
+    "description": "FAQ resource type stylesheet"
+  },
+  "faq_rt_websocket": {
+    "message": "websocket - WebSocket connections",
+    "description": "FAQ resource type websocket"
+  },
+  "faq_rt_xml_dtd": {
+    "message": "xml_dtd - XML Document Type Definitions",
+    "description": "FAQ resource type xml_dtd"
+  },
+  "faq_rt_xslt": {
+    "message": "xslt - XSLT transformation files",
+    "description": "FAQ resource type xslt"
+  },
+  "faq_domain_exceptions": {
+    "message": "What are Domain Exceptions?",
+    "description": "FAQ question about domain exceptions"
+  },
+  "faq_domain_exceptions_explanation": {
+    "message": "Domain Exceptions work like regular exceptions but use the simpler domain pattern format instead of regex. They allow you to exclude specific domains or subdomains from processing.",
+    "description": "FAQ explanation of domain exceptions"
+  },
+  "faq_domain_redirections": {
+    "message": "What are Domain Redirections?",
+    "description": "FAQ question about domain redirections"
+  },
+  "faq_domain_redirections_explanation": {
+    "message": "Domain Redirections use domain patterns to detect redirect URLs and extract the target destination. They support the special $redirect= syntax for simple redirect mapping.",
+    "description": "FAQ explanation of domain redirections"
+  },
+  "faq_section_new_features": {
+    "message": "Advanced Features",
+    "description": "FAQ section title for advanced features"
+  },
+  "faq_domain_exceptions_tip": {
+    "message": "Domain exceptions use the same patterns as Domain Patterns but simpler than regex exceptions.",
+    "description": "FAQ tip about domain exceptions"
+  },
+  "faq_domain_redirections_example": {
+    "message": "redirect.example.com$redirect=https://target.com will redirect all URLs from redirect.example.com to https://target.com",
+    "description": "FAQ example of domain redirections"
+  },
+  "faq_resource_types_tip": {
+    "message": "Leave empty to apply to all resource types, or specify only the types you want to target.",
+    "description": "FAQ tip about resource types"
+  },
+  "faq_http_methods": {
+    "message": "What are HTTP Methods?",
+    "description": "FAQ question about HTTP methods"
+  },
+  "faq_http_methods_explanation": {
+    "message": "HTTP Methods allow you to apply rules only to specific types of HTTP requests (GET, POST, PUT, DELETE, etc.). This gives you control over which request methods trigger your rules.",
+    "description": "FAQ explanation of HTTP methods"
+  },
+  "faq_http_methods_common": {
+    "message": "Common HTTP methods:",
+    "description": "FAQ section title for common HTTP methods"
+  },
+  "faq_http_methods_tip": {
+    "message": "Leave empty to apply to all HTTP methods, or specify only the methods you want to target.",
+    "description": "FAQ tip about HTTP methods"
+  },
+
+
+
+
+  "faq_domain_path_patterns": {
+    "message": "Domain+Path Patterns (||example.com/path)",
+    "description": "FAQ explanation of domain+path patterns"
+  },
+  "faq_domain_path_patterns_explanation": {
+    "message": "Match specific paths on domains: ||example.com/api matches only URLs starting with /api on example.com",
+    "description": "FAQ explanation of how domain+path patterns work"
+  },
+  "faq_provider_import_tip": {
+    "message": "You can import multiple providers at once by selecting them and clicking Import.",
+    "description": "FAQ tip about provider import"
+  },
+  "faq_provider_list_tip": {
+    "message": "Click the \"Provider List\" button in the sidebar to open this feature.",
+    "description": "FAQ tip about provider list"
+  },
+  "faq_domain_pattern_basic": {
+    "message": "example.com - Matches example.com and all subdomains",
+    "description": "FAQ explanation of basic domain pattern"
+  },
+  "faq_domain_pattern_wildcard": {
+    "message": "*.example.com - Matches all subdomains of example.com",
+    "description": "FAQ explanation of wildcard domain pattern"
+  },
+  "faq_domain_pattern_adblock": {
+    "message": "||example.com^ - AdBlock-style exact domain matching",
+    "description": "FAQ explanation of AdBlock domain pattern"
+  },
+  "faq_domain_pattern_adblock_wildcard": {
+    "message": "||*.example.com^ - AdBlock-style subdomain wildcard",
+    "description": "FAQ explanation of AdBlock wildcard pattern"
+  },
+
+  "faq_domain_pattern_full_wildcard": {
+    "message": "||*.example.*^ - Matches subdomains with any TLD",
+    "description": "FAQ explanation of full wildcard pattern"
+  },
+  "button_close": {
+    "message": "Close",
+    "description": "Close button text for FAQ modal"
+  },
+
+  "log_html_show_entries": {
+    "message": "Show entries",
+    "description": "Label for the dropdown to select how many entries to show per page"
+  },
+  "log_html_show_all": {
+    "message": "All",
+    "description": "Option in entries dropdown to show all entries"
+  },
+  "log_html_search": {
+    "message": "Search",
+    "description": "Label for the search input field"
+  },
+  "log_html_search_placeholder": {
+    "message": "Search logs...",
+    "description": "Placeholder text in the search input field"
+  },
+
+  "log_html_reset_confirm": {
+    "message": "Are you sure you want to reset the log? This action cannot be undone.",
+    "description": "Confirmation dialog when user clicks reset button"
+  },
+  "log_html_import_error": {
+    "message": "Error importing log file:",
+    "description": "Error message prefix when import fails"
+  },
+  "log_html_import_error_invalid_format": {
+    "message": "Invalid log file format.",
+    "description": "Error message when imported file is not valid JSON log format"
+  },
+  "datatable_showing_entries": {
+    "message": "Showing $1 to $2 of $3 entries",
+    "description": "Pagination info showing current range. $1=start, $2=end, $3=total"
+  },
+  "datatable_showing_all": {
+    "message": "Showing all $1 entries",
+    "description": "Info message when showing all entries. $1=total count"
+  },
+
+  "pagination_first": {
+    "message": "First",
+    "description": "Button text to go to first page"
+  },
+  "pagination_previous": {
+    "message": "Previous", 
+    "description": "Button text to go to previous page"
+  },
+  "pagination_next": {
+    "message": "Next",
+    "description": "Button text to go to next page"
+  },
+  "pagination_last": {
+    "message": "Last",
+    "description": "Button text to go to last page"
+  },
+
+  "pagination_first_aria": {
+    "message": "First page",
+    "description": "Screen reader label for first page button"
+  },
+  "pagination_previous_aria": {
+    "message": "Previous page",
+    "description": "Screen reader label for previous page button"
+  },
+  "pagination_next_aria": {
+    "message": "Next page", 
+    "description": "Screen reader label for next page button"
+  },
+  "pagination_last_aria": {
+    "message": "Last page",
+    "description": "Screen reader label for last page button"
+  },
+  "pagination_page_aria": {
+    "message": "Page $1",
+    "description": "Screen reader label for numbered page buttons. $1=page number"
+  },
+  "pagination_current_page_aria": {
+    "message": "Current page, page $1",
+    "description": "Screen reader label for current active page. $1=page number"
+  },
+
+  "error_rendering_table": {
+    "message": "Error rendering table data",
+    "description": "Error message when table fails to render"
+  },
+  "error_loading_data": {
+    "message": "Failed to load log data. Please refresh the page.",
+    "description": "Error message when log data cannot be loaded from storage"
+  },
+  "color_picker_save": {
+    "message": "Save",
+    "description": "Save button in color picker"
+  },
+  "color_picker_cancel": {
+    "message": "Cancel",
+    "description": "Cancel button in color picker"
+  },
+  "color_picker_clear": {
+    "message": "Clear",
+    "description": "Clear button in color picker"
+  },
+  
+ 
+  "rules_total_providers_label": {
+    "message": "Total Providers:",
+    "description": "Label for the total number of rule providers (bundled + custom)"
+  },
+ 
+  "bundled_providers_section_label": {
+    "message": "Bundled Providers:",
+    "description": "Section header for bundled provider information"
+  },
+  "bundled_providers_count_label": {
+    "message": "Bundled Providers:",
+    "description": "Label for the count of bundled providers"
+  },
+  "bundled_rules_count_label": {
+    "message": "Bundled Rules:",
+    "description": "Label for the count of bundled rules"
+  },
+  "rules_metadata_section": {
+    "message": "Rules Information:",
+    "description": "Section header for rules metadata information"
+  },
+  "rules_name_label": {
+    "message": "Rules Name:",
+    "description": "Label for the name of the rules dataset"
+  },
+  "rules_version_label": {
+    "message": "Rules Version:",
+    "description": "Label for the version of the rules dataset"
+  },
+  "rules_license_label": {
+    "message": "License:",
+    "description": "Label for the license of the rules dataset"
+  },
+  "rules_author_label": {
+    "message": "Author:",
+    "description": "Label for the author of the rules dataset"
+  },
+  "rules_last_updated_label": {
+    "message": "Last Updated:",
+    "description": "Label for the last update date of the rules dataset"
+  },
+  "rules_hash_status_label": {
+    "message": "Load Status:",
+    "description": "Label for the current loading status of the rules"
+  },
+  "security_confirmation_session_success": {
+    "message": "Security confirmation successful",
+    "description": "Message shown when security confirmation is successful"
+  },
+  "hash_status_bundled_loaded": {
+    "message": "Bundled Rules Loaded",
+    "description": "Status text when only bundled rules are loaded successfully"
+  },
+  "hash_status_custom_merged": {
+    "message": "Custom Rules and Bundled Rules Merged",
+    "description": "Status text when custom rules have been successfully merged with bundled rules"
+  },
+  "hash_status_cached_used": {
+    "message": "Cached Rules Used",
+    "description": "Status text when previously cached rules are being used"
+  },
+  "hash_status_fallback_used": {
+    "message": "Fallback Rules Used",
+    "description": "Status text when minimal fallback rules are being used due to loading issues"
+  },
+  "hash_status_custom_failed": {
+    "message": "Custom Rules Failed",
+    "description": "Status text when custom rules failed to load properly"
+  },
+  "custom_rules_section_label": {
+    "message": "Custom Rules:",
+    "description": "Section header for custom rules information"
+  },
+  "custom_providers_count_label": {
+    "message": "Custom Providers:",
+    "description": "Label for the count of custom providers"
+  },
+  "custom_rules_count_label": {
+    "message": "Custom Rules:",
+    "description": "Label for the count of custom rules"
+  },
+  "security_modal_title": {
+    "message": "Remote Rules Security Warning",
+    "description": "Title for the security disclaimer modal"
+  },
+  "security_modal_advanced_warning": {
+    "message": "WARNING: Advanced Feature Intended Only for Self-Hosted Servers",
+    "description": "Main warning banner text in security modal"
+  },
+  "security_modal_main_warning": {
+    "message": "This remote rules feature is designed exclusively for advanced users who know what they are doing. If you do not have an idea of what this means, please do not use this feature.",
+    "description": "Main warning text explaining the purpose and risks"
+  },
+  "security_modal_recommendation": {
+    "message": "Instead use for built-in rules only solution like built-in rules additionally you can create custom rules manually.",
+    "description": "Recommendation to use built-in rules instead"
+  },
+  "security_modal_privacy_title": {
+    "message": "warning notice:",
+    "description": "Header for privacy notice section"
+  },
+ "security_modal_privacy_text": {
+  "message": "If you add a URL to this software for fetching a JSON file and hash file, the extension will connect to your designated URL to fetch the remote rule JSON file or hash file every time this extension is enabled and loaded in your browser. Each time it fetches files based on your defined URL, the server hosting files like the JSON and hash files will receive your IP address as well as general information such as your extension version, browser, and browser version. This data is subject to the privacy policy of the website or web server (where hosted those files) in question.",
+    "description": "Privacy notice explaining data collection policy"
+},
+  "security_modal_risks_title": {
+    "message": "Security Risks:",
+    "description": "Header for security risks section"
+  },
+  "security_modal_risk_1": {
+    "message": "Your IP address and browser information will be exposed to the configured servers",
+    "description": "First security risk point"
+  },
+  "security_modal_risk_2": {
+    "message": "If the rule source is compromised, malicious rules could be served to your browser",
+    "description": "Second security risk point"
+  },
+  "security_modal_risk_3": {
+    "message": "Hash verification only protects against transmission tampering, not malicious rule sources",
+    "description": "Third security risk point"
+  },
+  "security_modal_risk_4": {
+    "message": "If both rule source and hash file of json files are compromised, you have no protection",
+    "description": "Fourth security risk point"
+  },
+  "security_modal_final_warning": {
+    "message": "you should reconsider using this feature if you do not fully understand the implications and risks involved.",
+    "description": "Final warning message in security modal"
+  },
+  "security_modal_cancel": {
+    "message": "I Donot want to proceed - Cancel",
+    "description": "Cancel button text in security modal"
+  },
+  "security_modal_continue": {
+    "message": "I Understand the Risks - Continue",
+    "description": "Continue button text in security modal"
+  },
+  "confirmation_modal_title": {
+    "message": "Confirm Your Understanding",
+    "description": "Title for confirmation modal"
+  },
+  "confirmation_modal_text": {
+    "message": "To proceed, please type the following confirmation phrase exactly as shown:",
+    "description": "Instruction text for confirmation modal"
+  },
+  "confirmation_input_label": {
+    "message": "Type the phrase here:",
+    "description": "Label for confirmation input field"
+  },
+  "confirmation_error_text": {
+    "message": "Phrase does not match. Please type exactly: \"I accept full responsibility\"",
+    "description": "Error message for incorrect confirmation phrase"
+  },
+  "confirmation_error_template": {
+    "message": "Phrase does not match. Please type exactly: \"%s\"",
+    "description": "Template for error message with placeholder for localized phrase"
+  },
+
+"confirmation_final_text": {
+    "message": "I confirm I own/control these servers and accept all responsibility for their use. This feature is provided \"as is\" without warranty. I am legally able to consent to this agreement.",
+    "description": "Final warning text in confirmation modal"
+},
+  "confirmation_modal_cancel": {
+    "message": "Cancel",
+    "description": "Cancel button text in confirmation modal"
+  },
+  "confirmation_modal_confirm": {
+    "message": "Confirm & Enable Remote URLs",
+    "description": "Confirm button text in confirmation modal"
+  },
+  "security_confirmation_phrase": {
+    "message": "I accept full responsibility",
+    "description": "The exact phrase users must type to confirm (can be localized)"
+  },
+  "security_modal_cancelled": {
+    "message": "Remote URL configuration cancelled for security",
+    "description": "Status message when user cancels security modal"
+  },
+  "security_confirmation_cancelled": {
+    "message": "Security confirmation cancelled",
+    "description": "Status message when user cancels confirmation modal"
+  },
+  "security_confirmation_success": {
+    "message": "Remote URL configuration enabled. You can now configure remote rule sources.",
+    "description": "Success message when user completes confirmation"
+  },
+  "security_confirmation_reset": {
+    "message": "Security confirmation has been reset",
+    "description": "Status message when security confirmation is reset"
+  },
+  "url_validation_remote_security": {
+    "message": "Remote URLs require security confirmation",
+    "description": "Validation message for URLs entered without confirmation"
+  },
+  "setting_rule_url_mandatory_hash": {
+    "message": "Note: Hash URL is mandatory when using remote rules for security verification.",
+    "description": "Note about mandatory hash URL requirement"
+  },
+  "setting_hash_url_mandatory": {
+    "message": "Required for remote rule verification. Must match the rules file for security.",
+    "description": "Description for hash URL field explaining it's mandatory"
+  },
+  "remote_rules_security_notice": {
+    "message": "Security Notice: Only use URLs you own and control",
+    "description": "Small security notice near URL fields"
+  },
+  "security_confirmation_required_placeholder": {
+    "message": "Security confirmation required",
+    "description": "Placeholder text shown in URL fields before security confirmation"
+  },
+  "remote_rules_restriction_notice": {
+    "message": "Remote rules are restricted to self-hosted servers only. Do not use third-party URLs.",
+    "description": "Notice explaining remote rules restrictions"
+  },
+  "rule_url_placeholder": {
+    "message": "https://example.com/rules.json",
+    "description": "Placeholder text for rule URL field after confirmation"
+  },
+  "hash_url_placeholder": {
+    "message": "https://example.com/hash.txt", 
+    "description": "Placeholder text for hash URL field after confirmation"
+  },
+  "security_confirmation_tooltip": {
+    "message": "Security confirmation required - click to begin",
+    "description": "Tooltip text for the security confirmation icon next to remote URLs"
+  },
+   "_locale_info": {
+    "message": "English",
+    "description": "Name of this locale in its own language"
+  },
+  
+ 
+  
+  "language_selector_label": {
+    "message": "Interface Language",
+    "description": "Label for language selector dropdown"
+  },
+  
+  "language_selector_description": {
+    "message": "Choose your preferred language for the interface. and click save and reload.(number are not translated)",
+    "description": "Description text for language selector"
+  },
+  
+  "tempLanguageSelectorTitle": {
+    "message": "Change language (temporary)"
+  },
+  
+  "language_loading": {
+    "message": "Loading languages...",
+    "description": "Text shown while loading language options"
+  },
+  
+
+  
+  "console_available_languages": {
+    "message": "Available languages: $1",
+    "description": "Console message showing available languages. $1 is the comma-separated list of languages"
+  },
+  
+  
+  
+  "status_language_changed_success": {
+    "message": "Language changed to $1 successfully",
+    "description": "Success message when language is changed. $1 is the native language name"
+  },
+  
+
+  "language_selector_disabled_loading": {
+    "message": "Loading...",
+    "description": "Text shown in language selector while loading"
+  },
+  
+  "accessibility_language_selector": {
+    "message": "Select interface language",
+    "description": "Aria label for language selector"
+  },
+  
+  "accessibility_save_button": {
+    "message": "Save all settings",
+    "description": "Aria label for save button"
+  },
+  
+  "accessibility_export_button": {
+    "message": "Export settings to file",
+    "description": "Aria label for export button"
+  },
+  
+  "accessibility_import_button": {
+    "message": "Import settings from file",
+    "description": "Aria label for import button"
+  },
+  
+  "accessibility_reset_button": {
+    "message": "Reset all settings to default",
+    "description": "Aria label for reset button"
+  },
+  
+  "tooltip_language_selector": {
+    "message": "Change the interface language for this extension",
+    "description": "Tooltip for language selector"
+  },
+  
+  "tooltip_save_settings": {
+    "message": "Save all current settings",
+    "description": "Tooltip for save settings button"
+  },
+  
+  "tooltip_export_settings": {
+    "message": "Export your settings to a JSON file",
+    "description": "Tooltip for export settings button"
+  },
+  
+  "tooltip_import_settings": {
+    "message": "Import settings from a JSON file",
+    "description": "Tooltip for import settings button"
+  },
+  
+  "tooltip_reset_settings": {
+    "message": "Reset all settings to their default values",
+    "description": "Tooltip for reset settings button"
+  },
+  
+  "notification_settings_saved": {
+    "message": "Settings saved successfully",
+    "description": "Notification when settings are saved"
+  },
+  
+  "notification_settings_exported": {
+    "message": "Settings exported successfully",
+    "description": "Notification when settings are exported"
+  },
+  
+  "notification_settings_imported": {
+    "message": "Settings imported successfully",
+    "description": "Notification when settings are imported"
+  },
+  
+  "notification_settings_reset": {
+    "message": "Settings reset to defaults",
+    "description": "Notification when settings are reset"
+  },
+  
+  "error_settings_save_failed": {
+    "message": "Failed to save settings",
+    "description": "Error message when settings save fails"
+  },
+  
+  "error_settings_export_failed": {
+    "message": "Failed to export settings",
+    "description": "Error message when settings export fails"
+  },
+  
+  "error_settings_import_failed": {
+    "message": "Failed to import settings",
+    "description": "Error message when settings import fails"
+  },
+  
+  "error_settings_reset_failed": {
+    "message": "Failed to reset settings",
+    "description": "Error message when settings reset fails"
+  },
+  
+  "validation_invalid_file_format": {
+    "message": "Invalid file format. Please select a valid JSON file.",
+    "description": "Error message for invalid import file format"
+  },
+  
+  "validation_file_too_large": {
+    "message": "File is too large. Maximum size is $1MB.",
+    "description": "Error message for oversized import file. $1 is the size limit"
+  },
+  
+  "validation_corrupted_settings": {
+    "message": "Settings file appears to be corrupted or invalid.",
+    "description": "Error message for corrupted settings file"
+  },
+  
+  "confirmation_reset_settings": {
+    "message": "Are you sure you want to reset all settings to their default values? This action cannot be undone.",
+    "description": "Confirmation dialog text for resetting settings"
+  },
+  
+  "confirmation_import_settings": {
+    "message": "Importing settings will overwrite your current configuration. Do you want to continue?",
+    "description": "Confirmation dialog text for importing settings"
+  },
+  
+  "button_confirm": {
+    "message": "Confirm",
+    "description": "Confirm button text"
+  },
+  
+
+  
+  "button_ok": {
+    "message": "OK",
+    "description": "OK button text"
+  },
+  
+  "placeholder_search_languages": {
+    "message": "Search languages...",
+    "description": "Placeholder text for language search input"
+  },
+  
+  "text_no_languages_found": {
+    "message": "No languages found matching your search.",
+    "description": "Text shown when language search returns no results"
+  },
+  
+  "text_language_pack_version": {
+    "message": "Language pack version: $1",
+    "description": "Text showing language pack version. $1 is the version number"
+  },
+  
+  "text_total_translations": {
+    "message": "Total translations: $1",
+    "description": "Text showing total number of translations. $1 is the count"
+  },
+  
+  "text_translation_completeness": {
+    "message": "Translation completeness: $1%",
+    "description": "Text showing translation completeness percentage. $1 is the percentage"
+  },
+ 
+  "month_1": {
+    "message": "January",
+    "description": "Month name for January"
+  },
+  "month_2": {
+    "message": "February",
+    "description": "Month name for February"
+  },
+  "month_3": {
+    "message": "March",
+    "description": "Month name for March"
+  },
+  "month_4": {
+    "message": "April",
+    "description": "Month name for April"
+  },
+  "month_5": {
+    "message": "May",
+    "description": "Month name for May"
+  },
+  "month_6": {
+    "message": "June",
+    "description": "Month name for June"
+  },
+  "month_7": {
+    "message": "July",
+    "description": "Month name for July"
+  },
+  "month_8": {
+    "message": "August",
+    "description": "Month name for August"
+  },
+  "month_9": {
+    "message": "September",
+    "description": "Month name for September"
+  },
+  "month_10": {
+    "message": "October",
+    "description": "Month name for October"
+  },
+  "month_11": {
+    "message": "November",
+    "description": "Month name for November"
+  },
+  "month_12": {
+    "message": "December",
+    "description": "Month name for December"
+  },
+
+  "day_0": {
+    "message": "Sunday",
+    "description": "Day name for Sunday"
+  },
+  "day_1": {
+    "message": "Monday",
+    "description": "Day name for Monday"
+  },
+  "day_2": {
+    "message": "Tuesday",
+    "description": "Day name for Tuesday"
+  },
+  "day_3": {
+    "message": "Wednesday",
+    "description": "Day name for Wednesday"
+  },
+  "day_4": {
+    "message": "Thursday",
+    "description": "Day name for Thursday"
+  },
+  "day_5": {
+    "message": "Friday",
+    "description": "Day name for Friday"
+  },
+  "day_6": {
+    "message": "Saturday",
+    "description": "Day name for Saturday"
+  },
+
+  "number_0": {
+    "message": "0",
+    "description": "Number zero"
+  },
+  "number_1": {
+    "message": "1",
+    "description": "Number one"
+  },
+  "number_2": {
+    "message": "2",
+    "description": "Number two"
+  },
+  "number_3": {
+    "message": "3",
+    "description": "Number three"
+  },
+  "number_4": {
+    "message": "4",
+    "description": "Number four"
+  },
+  "number_5": {
+    "message": "5",
+    "description": "Number five"
+  },
+  "number_6": {
+    "message": "6",
+    "description": "Number six"
+  },
+  "number_7": {
+    "message": "7",
+    "description": "Number seven"
+  },
+  "number_8": {
+    "message": "8",
+    "description": "Number eight"
+  },
+  "number_9": {
+    "message": "9",
+    "description": "Number nine"
+  },
+  "percentage_symbol": {
+    "message": "%",
+    "description": "Symbol used for percentages in this language"
+  },
+   "thousand_separator": { "message": "," },
+    "decimal_separator": { "message": "." },
+    "settings_import_confirm": {
+    "message": "Are you sure you want to import settings? This will overwrite your current"
+    },
+    "settings_imported": {
+    "message": "Settings imported successfully"
+    
+    },
+    "fallback_rules_loaded":{
+    "message": "concerning bundled rule may have been corrupted or not loaded properly. Fallback rules have been loaded instead."
+    },
+    "time_am": {"message": "AM"},
+"time_pm": {"message": "PM"},
+"customrules_title":{
+  "message": "Custom Rules",
+  "description": "Title for the custom rules section"
+},
+  "button_exit": {
+    "message": "Exit",
+    "description": "Button text for exiting the editor"
+  },
+  "customRulesEditor_exitTooltip": {
+    "message": "Exit editor and return to provider list",
+    "description": "Tooltip text for the exit button in the custom rules editor"
+  },
+  "customRulesEditor_exitWithUnsavedWarning": {
+    "message": "Exit editor (unsaved changes will be lost)",
+    "description": "Warning tooltip when exiting with unsaved changes"
+  },
+  "customRulesEditor_unsavedChangesTitle": {
+    "message": "Unsaved Changes",
+    "description": "Title for unsaved changes dialog"
+  },
+  "customRulesEditor_unsavedChangesMessage": {
+    "message": "You have unsaved changes that will be lost if you exit. What would you like to do?",
+    "description": "Message asking user what to do with unsaved changes"
+  },
+  "button_stay": {
+    "message": "Stay",
+    "description": "Button to stay in the current editor"
+  },
+  "button_discardChanges": {
+    "message": "Discard Changes",
+    "description": "Button to discard unsaved changes"
+  },
+  "button_saveAndExit": {
+    "message": "Save & Exit",
+    "description": "Button to save changes and exit editor"
+  },
+  "customRulesEditor_invalidUrlPatternOnExit": {
+    "message": "Invalid URL pattern: $1",
+    "description": "Error message for invalid URL pattern when exiting",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Unclosed group"
+      }
+    }
+  },
+  "customRulesEditor_exitWithErrorsConfirm": {
+    "message": "Do you still want to exit without saving?",
+    "description": "Confirmation message when exiting with validation errors"
+  },
+  "providerImport_title": {
+    "message": "Import Providers from Rules",
+    "description": "Title of the provider import modal dialog."
+  },
+  "providerImport_sources": {
+    "message": "Rule Sources",
+    "description": "Heading for the sidebar that lists available rule sources."
+  },
+  "providerImport_bundledRules": {
+    "message": "Bundled Rules/Remote Rules",
+    "description": "Sidebar option for rules that are shipped with the extension/app."
+  },
+  "providerImport_remoteRules": {
+    "message": "Remote Rules",
+    "description": "Sidebar option for rules loaded from a remote source (like an online ruleset)."
+  },
+  "providerImport_currentMerged": {
+    "message": "Current Active Rules",
+    "description": "Sidebar option for the rules currently active after merging custom and bundled rules."
+  },
+  "providerImport_searchPlaceholder": {
+    "message": "Search providers...",
+    "description": "Placeholder text in the search input field to filter providers."
+  },
+  "providerImport_selectAll": {
+    "message": "Select All",
+    "description": "Button text to select all providers in the list/grid."
+  },
+  "providerImport_clearSelection": {
+    "message": "Clear",
+    "description": "Button text to clear all selected providers."
+  },
+  "providerImport_loading": {
+    "message": "Loading providers...",
+    "description": "Displayed while providers are being loaded into the grid."
+  },
+  
+  
+  "providerImport_existsInCustom": {
+    "message": "(exists in custom)"
+  },
+  "providerImport_noUrlPattern": {
+    "message": "No URL pattern"
+  },
+  "providerImport_totalRules": {
+    "message": "Total rules"
+  },
+  "providerImport_rules": {
+    "message": "rules"
+  },
+  "providerImport_exceptions": {
+    "message": "Exceptions"
+  },
+  "providerImport_exceptionsAbbr": {
+    "message": "exc"
+  },
+  "providerImport_redirections": {
+    "message": "Redirections"
+  },
+  "providerImport_redirectionsAbbr": {
+    "message": "red"
+  },
+  "providerImport_completeProvider": {
+    "message": "Complete provider"
+  },
+  "providerImport_complete": {
+    "message": "Complete"
+  },
+  "providerImport_forceRedirection": {
+    "message": "Force redirection"
+  },
+  "providerImport_force": {
+    "message": "Force"
+  },
+  "providerImport_noProvidersAvailable": {
+    "message": "No providers available for $1 rules"
+  },
+  "providerImport_noProvidersFound": {
+    "message": "No providers found in $1 rules"
+  },
+  "providerImport_importing": {
+    "message": "Importing..."
+  },
+  "providerImport_noRulesAvailable": {
+    "message": "No rules available for import"
+  },
+  "providerImport_completed": {
+    "message": "Import completed!"
+  },
+  "providerImport_importedCount": {
+    "message": "Imported: $1 providers"
+  },
+  "providerImport_overwrittenCount": {
+    "message": "Overwritten: $1 providers"
+  },
+  "providerImport_skippedCount": {
+    "message": "Skipped: $1 providers"
+  },
+  "providerImport_failed": {
+    "message": "Failed to import providers: $1"
+  },
+  "providerImport_import": {
+    "message": "Import Selected"
+  },
+  "providerImport_selectedCount": {
+    "message": "$1 selected"
+  },
+  "providerImport_button": {
+    "message": "Import bundle rule/remote rule for editing",
+    "description": "Button text to import selected providers"
+  },
+  "providerImport_rulesAbbr": {
+    "message": "Rules",
+    "description": "Abbreviation for rules count in provider cards"
+  },
+  "providerImport_rawRulesAbbr": {
+    "message": "Raw",
+    "description": "Abbreviation for raw rules count in provider cards"
+  },
+  "providerImport_referralAbbr": {
+    "message": "Ref",
+    "description": "Abbreviation for referral marketing count in provider cards"
+  },
+  "providerImport_domainPatterns": {
+    "message": "Domain Patterns",
+    "description": "Full text for domain patterns tooltip in provider cards"
+  },
+  "providerImport_domainPatternsAbbr": {
+    "message": "DP",
+    "description": "Abbreviation for domain patterns count in provider cards"
+  },
+  "providerImport_domainExceptions": {
+    "message": "Domain Exceptions",
+    "description": "Full text for domain exceptions tooltip in provider cards"
+  },
+  "providerImport_domainExceptionsAbbr": {
+    "message": "DE",
+    "description": "Abbreviation for domain exceptions count in provider cards"
+  },
+  "providerImport_domainRedirections": {
+    "message": "Domain Redirections",
+    "description": "Full text for domain redirections tooltip in provider cards"
+  },
+  "providerImport_domainRedirectionsAbbr": {
+    "message": "DR",
+    "description": "Abbreviation for domain redirections count in provider cards"
+  },
+  "providerImport_rawRules": {
+    "message": "Raw Rules",
+    "description": "Full text for raw rules tooltip in provider cards"
+  },
+  "providerImport_referralMarketing": {
+    "message": "Referral Marketing",
+    "description": "Full text for referral marketing tooltip in provider cards"
+  },
+  "hashStatus_bundled_rules_pending": {
+    "message": "Loading rules...",
+    "description": "Status when extension is starting up and waiting to load rules"
+  },
+  "hashStatus_remote_verified": {
+    "message": "Remote rules verified",
+    "description": "Status when remote rules have been successfully verified"
+  },
+  "hashStatus_remote_failed": {
+    "message": "Remote rules failed",
+    "description": "Status when remote rules failed verification or loading"
+  },
+  "hashStatus_hash_url_missing": {
+    "message": "Hash URL required",
+    "description": "Status when remote URL is configured but hash URL is missing"
+  },
+  "hashStatus_bundled_rules_fallback": {
+    "message": "Using built-in rules (fallback)",
+    "description": "Status when fell back to bundled rules after remote failure"
+  },
+  "hashStatus_fallback_rules_used_after_remote_failure": {
+    "message": "Using minimal rules (remote failed)",
+    "description": "Status when using fallback rules after remote failure"
+  },
+  "hashStatus_bundled_fallback_loaded": {
+    "message": "Built-in rules loaded (hash missing)",
+    "description": "Status when bundled rules loaded after hash URL was missing"
+  },
+  "hashStatus_cache_remote_rules_no_hashurl": {
+    "message": "Cached remote rules (no hash URL)",
+    "description": "Status when using cached remote rules because hash URL is missing"
+  },
+  "hashStatus_cache_remote_rules_after_remote_failure": {
+    "message": "Cached remote rules (remote failed)",
+    "description": "Status when using cached remote rules after current remote fetch failed"
+  },
+  "hashStatus_cache_remote_rules_after_bundled_failure": {
+    "message": "Cached remote rules (bundled failed)",
+    "description": "Status when using cached remote rules after bundled rules failed"
+  },
+  "hashStatus_cache_remote_custom_rules_no_hashurl": {
+    "message": "Cached remote + custom rules (no hash URL)",
+    "description": "Status when using cached remote rules with custom rules, hash URL missing"
+  },
+  "hashStatus_cache_remote_custom_rules_after_remote_failure": {
+    "message": "Cached remote + custom rules (remote failed)",
+    "description": "Status when using cached remote rules with custom rules after remote failure"
+  },
+  "hashStatus_cache_remote_custom_rules_after_bundled_failure": {
+    "message": "Cached remote + custom rules (bundled failed)",
+    "description": "Status when using cached remote rules with custom rules after bundled failure"
+  },
+  
+  "providerList_button": {
+    "message": "List All custom Providers and search",
+    "description": "Button text to open the provider list modal"
+  },
+  "providerList_title": {
+    "message": "All Providers",
+    "description": "Title of the provider list modal"
+  },
+  "providerList_searchPlaceholder": {
+    "message": "Search providers...",
+    "description": "Placeholder text for the provider search input"
+  },
+  "providerList_rules": {
+    "message": "Rules",
+    "description": "Label for rules count in provider statistics"
+  },
+  "providerList_rawRules": {
+    "message": "Raw Rules",
+    "description": "Label for raw rules count in provider statistics"
+  },
+  "providerList_referral": {
+    "message": "Referral",
+    "description": "Label for referral marketing count in provider statistics"
+  },
+  "providerList_exceptions": {
+    "message": "Exceptions",
+    "description": "Label for exceptions count in provider statistics"
+  },
+  "providerList_redirections": {
+    "message": "Redirections",
+    "description": "Label for redirections count in provider statistics"
+  },
+  "providerList_complete": {
+    "message": "Complete",
+    "description": "Label indicating a provider is a complete provider"
+  },
+  "providerList_noUrlPattern": {
+    "message": "No URL pattern",
+    "description": "Text shown when a provider has no URL pattern defined"
+  },
+  "providerList_edit": {
+    "message": "Edit",
+    "description": "Button text to edit a provider"
+  },
+  "providerList_duplicate": {
+    "message": "Copy",
+    "description": "Button text to duplicate/copy a provider"
+  },
+  "providerList_delete": {
+    "message": "Delete",
+    "description": "Button text to delete a provider"
+  },
+  "providerList_editTooltip": {
+    "message": "Edit Provider",
+    "description": "Tooltip text for the edit provider button"
+  },
+  "providerList_duplicateTooltip": {
+    "message": "Duplicate Provider",
+    "description": "Tooltip text for the duplicate provider button"
+  },
+  "providerList_deleteTooltip": {
+    "message": "Delete Provider",
+    "description": "Tooltip text for the delete provider button"
+  },
+  "providerList_noProvidersFound": {
+    "message": "No custom providers found.",
+    "description": "Message shown when there are no custom providers to display"
+  },
+  "providerList_createFirst": {
+    "message": "Create First Provider",
+    "description": "Button text to create the first provider when none exist"
+  },
+  "providerList_confirmDelete": {
+    "message": "Are you sure you want to delete provider \"$1\"?",
+    "description": "Confirmation message when deleting a provider",
+    "placeholders": {
+      "providerName": {
+        "content": "$1",
+        "example": "Google"
+      }
+    }
+  },
+  "providerList_deleteFailed": {
+    "message": "Failed to delete provider. Please try again.",
+    "description": "Error message when provider deletion fails"
+  },
+  "providerList_copySuffix": {
+    "message": "Copy",
+    "description": "Suffix added to provider names when duplicating (e.g., 'Google_Copy')"
+  },
+  "url_validation_invalid": {
+    "message": "Invalid URL format.",
+    "description": "Error message displayed when the URL format is invalid"
+  },
+  "remote_rules_enabled": {
+    "message": "Enable Remote Rules",
+    "description": "Label for the toggle that enables or disables remote rule fetching"
+  },
+  "remote_rules_enabled_description": {
+    "message": "Allow the extension to fetch rules from remote servers. When disabled, only bundled rules will be used.",
+    "description": "Description for the remote rules enabled toggle"
+  },
+  "remote_rules_disabled_placeholder": {
+    "message": "Remote rules disabled - toggle below to enable",
+    "description": "Placeholder text shown when remote rules are disabled"
+  },
+  "remote_rules_disabled_description": {
+    "message": "Remote rules are disabled. Enable the toggle below to configure remote rule URLs.",
+    "description": "Description shown when remote rules are disabled"
+  },
+  "remote_rules_master_toggle_warning": {
+    "message": "Remote rule fetching is disabled. Enable 'Remote Rules' toggle to use custom rule URLs.",
+    "description": "Warning message shown when remote rules are disabled and user tries to configure remote URLs"
+  },
+  "aboutPageTitle": {
+    "message": "Linkumori - About",
+    "description": "Title for the about/legal page"
+  },
+  "headerTitle": {
+    "message": "Linkumori",
+    "description": "Header title for the extension"
+  },
+  "privacyPolicySection": {
+    "message": "Privacy Policy",
+    "description": "Section header for privacy policy"
+  },
+  "privacyDescription": {
+    "message": "Please review our privacy policy below.",
+    "description": "Description text for privacy policy section"
+  },
+  "licenseSection": {
+    "message": "License Information",
+    "description": "Section header for license information"
+  },
+  "licenseDescription": {
+    "message": "This extension is open source and licensed under the GNU Lesser General Public License.",
+    "description": "Description text for license section"
+  },
+  "copyText": {
+    "message": "Copy",
+    "description": "Button text for copy action"
+  },
+  "downloadText": {
+    "message": "Download",
+    "description": "Button text for download action"
+  },
+  "grantPermissions": {
+    "message": "Grant Permissions",
+    "description": "Button text for granting permissions"
+  },
+  "revokePermissions": {
+    "message": "Revoke Permissions",
+    "description": "Button text for revoking permissions"
+  },
+  "loadingPrivacyPolicy": {
+    "message": "Loading privacy policy...",
+    "description": "Loading text for privacy policy content"
+  },
+  "loadingLicense": {
+    "message": "Loading license...",
+    "description": "Loading text for license content"
+  },
+  "checkingPermissions": {
+    "message": "Checking permissions...",
+    "description": "Status text when checking permissions"
+  },
+  "allPermissionsGranted": {
+    "message": "All required permissions optional granted.",
+    "description": "Status text when all permissions are granted"
+  },
+  "permissionsMissing": {
+    "message": "Some permissions are missing. Please grant the required permissions. by clicking the grant permissions button.",
+    "description": "Status text when some permissions are missing"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,375 @@
+<!-- clearURLs
+ * Copyright (c) 2017-2025 Kevin Röbert
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Modified Version:
+ * @author      Subham Mahesh (c) 2025
+ * @license     LGPL-3.0-or-later
+ * @repository  https://github.com/linkumori/linkumori
+ * 
+ 
+ * 
+ * Modifications include:
+ * - new css 
+ * - new header with svg logo
+  * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!--
+   * first modified:  Jun 14, 2025  by Subham Mahesh
+
+
+  Due to constraints, subsequent modifications are not visible inline.
+  To view the full modification history, run:
+
+    node linkumori-cli-tool.js
+
+  Then select "Generate Commit History". This will create a Markdown file
+  where you can browse who modified which files and on what date.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+     <link rel="icon" sizes="any" type="image/svg+xml" href="/img/linkumori_icons.svg">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="cleanUrlsToolTitle"></title>
+    <style>
+           @font-face {
+            font-family: 'Old-Country-Nobility';
+            src: url('../Old-Country-Nobility/Old-Country-Nobility.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+         :root[data-theme="dark"] {
+            /* Primary Background Colors - Default Dark Theme */
+            --bg-primary: #0f172a;      
+            --bg-secondary: #1e293b;    
+            --bg-tertiary: #334155;     
+            --button-primary: #2563eb;  
+            --button-hover: #3b82f6;    
+            --logo-bg: #ffffff;          
+            --logo-accent: #2563eb; 
+            --text-button-primary: #ffffff;
+            --text-primary: #f8fafc;     
+            --text-secondary: #cbd5e1;  
+            --text-muted: #94a3b8;      
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.25);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: #3b82f6;
+        }
+
+        /* Light theme */
+        :root[data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f1f5f9;
+            --bg-tertiary: #2563eb;
+            --text-primary: #334155;
+            --text-button-primary: #ffffff;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --input-bg: rgba(0, 0, 0, 0.05);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --button-primary: #2563eb;
+            --button-hover: #1e40af;      
+            --input-focus: #1e3a8a;
+            --logo-bg: #2563eb;          
+            --logo-accent: #f1f5f9;
+        }
+
+        /* Midnight Blue theme */
+        :root[data-theme="midnight"] {
+            --bg-primary: #0c1524;
+            --bg-secondary: #1a2332;
+            --bg-tertiary: #2d3748;
+            --button-primary: #4299e1;
+            --button-hover: #63b3ed;
+            --logo-bg: #ffffff;
+            --logo-accent: #4299e1;
+            --text-button-primary: #ffffff;
+            --text-primary: #e2e8f0;
+            --text-secondary: #cbd5e1;
+            --text-muted: #a0aec0;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.25);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: #63b3ed;
+        }
+
+        /* Forest Green theme */
+        :root[data-theme="forest"] {
+            --bg-primary: #0f1814;
+            --bg-secondary: #1a2520;
+            --bg-tertiary: #2d4a3a;
+            --button-primary: #48bb78;
+            --button-hover: #68d391;
+            --logo-bg: #ffffff;
+            --logo-accent: #48bb78;
+            --text-button-primary: #ffffff;
+            --text-primary: #e6fffa;
+            --text-secondary: #b2dfdb;
+            --text-muted: #81c784;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.25);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: #68d391;
+        }
+
+        /* Sunset Orange theme */
+       :root[data-theme="sunset"] {
+    --bg-primary: #1a1320;
+    --bg-secondary: #241829;
+    --bg-tertiary: #3d2c47;
+    --button-primary: #8b5cf6;
+    --button-hover: #a78bfa;
+    --logo-bg: #ffffff;
+    --logo-accent: #8b5cf6;
+    --text-button-primary: #ffffff;
+    --text-primary: #f3f0ff;
+    --text-secondary: #e0d4fd;
+    --text-muted: #c4b5fd;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.25);
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-border: rgba(255, 255, 255, 0.1);
+    --input-focus: #a78bfa;
+}
+        body {
+            margin: 0;
+            font-family: "Old-Country-Nobility";
+            background: var(--bg-primary);
+            transition: background-color 0.2s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            width: 24px;
+            height: 24px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle-btn {
+            background: var(--bg-secondary);
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 28px;
+            height: 28px;
+            transition: all 0.2s;
+        }
+        .theme-toggle-btn:hover {
+            background: var(--bg-tertiary);
+        }
+        .theme-toggle-btn img {
+            width: 14px;
+            height: 14px;
+            transition: opacity 0.2s;
+        }
+        .sun-icon {
+            opacity: 0;
+            position: absolute;
+        }
+        .moon-icon {
+            opacity: 1;
+        }
+        :root[data-theme="light"] .sun-icon { opacity: 1; }
+        :root[data-theme="light"] .moon-icon { opacity: 0; }
+
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .section-title {
+            color: var(--text-secondary);
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 18px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .section-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .url-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+        }
+
+        .url-textarea:focus {
+            outline: none;
+            border-color: var(--input-focus);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            padding: 8px 12px;
+            background: var(--button-primary);
+            color: var(--text-button-primary);
+            border: none;
+            font-family: "Old-Country-Nobility";
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: var(--button-hover);
+        }
+
+        .copy-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            font-size: 13px;
+        }
+
+        /* Add smooth transitions for theme changes */
+        body * {
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">             
+            <circle cx="50" cy="50" r="45" fill="var(--logo-bg)"/>             
+            <path d="M35 50 Q35 35, 50 35 L65 35 Q80 35, 80 50 Q80 65, 65 65 L60 65" 
+                  fill="none" 
+                  stroke="var(--logo-accent)" 
+                  stroke-width="8" 
+                  stroke-linecap="round"/>             
+            <path d="M65 50 Q65 65, 50 65 L35 65 Q20 65, 20 50 Q20 35, 35 35 L40 35" 
+                  fill="none" 
+                  stroke="var(--logo-accent)" 
+                  stroke-width="8" 
+                  stroke-linecap="round"/>             
+            <polygon points="75,20 78,28 86,31 78,34 75,42 72,34 64,31 72,28" 
+                     fill="var(--logo-accent)"/>         
+        </svg>
+        <div style="display: flex; flex-direction: column;">
+            <h1 id="headerTitle" style="color: var(--text-secondary); font-size: 16px; margin: 0;"></h1>
+            <span class="version" id="version"style="color: var(--text-secondary); font-size: 12px;"></span>
+        </div>
+        <div style="display: flex; gap: 10px; margin-left: auto;">
+
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle theme" data-i18n-aria="themeToggleAriaLabel">
+                <img src="sun.svg" alt="sun icon" width="16" height="16" class="sun-icon">
+                <img src="moon.svg" alt="moon icon" width="16" height="16" class="moon-icon">
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="section">
+            <h2 id="inputUrlsTitle" class="section-title"></h2>
+            <p id="inputUrlsDescription" class="section-description"></p>
+            <textarea id="inputUrls" class="url-textarea"></textarea>
+        </div>
+    
+        <div class="section">
+            <h2 id="cleanedUrlsTitle" class="section-title"></h2>
+            <textarea id="outputUrls" class="url-textarea" readonly></textarea>
+            <div class="button-group">
+                <button id="cleanUrlsButton"></button>
+                <button id="copyUrlsButton"></button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="copyStatus" class="copy-status"></div>
+
+    <script src="../core_js/cleaning_tool.js"></script>
+        <script src="../external_js/linkumori-i18n.js"></script>
+    <script src="../core_js/write_version.js"></script>
+
+
+</body>
+</html>
