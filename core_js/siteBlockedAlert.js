@@ -57,6 +57,13 @@ function translate(string) {
     }
 }
 
+function setHTMLContent(element, html) {
+    if (!element) return;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<!doctype html><body>${html || ''}</body>`, 'text/html');
+    element.replaceChildren(...Array.from(doc.body.childNodes));
+}
+
 /**
  * Set translated text content for page elements
  */
@@ -66,12 +73,12 @@ function setText() {
         
         const titleElement = document.getElementById('title');
         if (titleElement) {
-            titleElement.textContent = translate('blocked_html_title');
+            setHTMLContent(titleElement, translate('blocked_html_title'));
         }
         
         const bodyElement = document.getElementById('body');
         if (bodyElement) {
-            bodyElement.textContent = translate('blocked_html_body');
+            setHTMLContent(bodyElement, translate('blocked_html_body'));
         }
         
         const pageElement = document.getElementById('page');
