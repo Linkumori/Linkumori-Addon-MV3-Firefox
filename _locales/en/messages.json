@@ -544,6 +544,124 @@
         "message": "Hash file URL for rule verification:",
         "description": "Description for the custom hash URL input field"
       },
+    "setting_remote_rule_sets_label": {
+        "message": "Additional Remote Rule Sets",
+        "description": "Label for additional remote rule+hash URL pairs."
+    },
+    "setting_remote_rule_sets_description": {
+        "message": "Additional remote sources merged together. Use one per line: <code>ruleURL | hashURL</code>",
+        "description": "Description for additional remote rule+hash URL pairs."
+    },
+    "setting_remote_rule_sets_placeholder": {
+        "message": "https://example.com/rules-2.json | https://example.com/hash-2.txt",
+        "description": "Placeholder for additional remote rule set entries."
+    },
+    "save_primary_remote_pair_required": {
+        "message": "Primary remote rule and hash URLs must both be provided",
+        "description": "Validation message when only one of primary rule/hash URL is set."
+    },
+    "save_primary_rule_https_required": {
+        "message": "Primary rule URL must use HTTPS",
+        "description": "Validation message when primary rule URL is not HTTPS."
+    },
+    "save_primary_hash_https_required": {
+        "message": "Primary hash URL must use HTTPS",
+        "description": "Validation message when primary hash URL is not HTTPS."
+    },
+    "save_invalid_rule_url": {
+        "message": "Invalid rule URL format",
+        "description": "Validation message when primary rule URL is not a valid URL."
+    },
+    "save_invalid_hash_url": {
+        "message": "Invalid hash URL format",
+        "description": "Validation message when primary hash URL is not a valid URL."
+    },
+    "url_validation_https_recommended": {
+        "message": "HTTPS is recommended for security",
+        "description": "Warning shown when URL is valid but does not use HTTPS."
+    },
+    "url_field_editable_tooltip": {
+        "message": "Field is editable",
+        "description": "Tooltip shown when security confirmation is already satisfied."
+    },
+    "remote_rule_sets_error_expected_pair": {
+        "message": "Line $LINE$: expected \"ruleURL | hashURL\"",
+        "description": "Validation message when an additional remote rule set line is malformed.",
+        "placeholders": {
+            "line": {
+                "content": "$1",
+                "example": "2"
+            }
+        }
+    },
+    "remote_rule_sets_error_invalid_rule_url": {
+        "message": "Line $LINE$: invalid HTTPS rule URL",
+        "description": "Validation message when additional remote rule URL is invalid.",
+        "placeholders": {
+            "line": {
+                "content": "$1",
+                "example": "2"
+            }
+        }
+    },
+    "remote_rule_sets_error_invalid_hash_url": {
+        "message": "Line $LINE$: invalid HTTPS hash URL",
+        "description": "Validation message when additional remote hash URL is invalid.",
+        "placeholders": {
+            "line": {
+                "content": "$1",
+                "example": "2"
+            }
+        }
+    },
+    "hashStatus_remote_partially_verified": {
+        "message": "Remote rules partially verified (merged available sources)",
+        "description": "Status message when some remote rule sources verify and others fail."
+    },
+    "hashStatus_remote_rules_merged": {
+        "message": "Multiple remote rule sources verified and merged",
+        "description": "Status when two or more remote sources were successfully merged."
+    },
+    "hashStatus_remote_rules_partially_merged": {
+        "message": "Multiple remote sources merged (some sources failed)",
+        "description": "Status when multiple remote sources are merged but one or more failed."
+    },
+    "rules_metadata_name_remote_merged": {
+        "message": "Merged Remote Rules",
+        "description": "Display name for merged remote rules metadata in settings."
+    },
+    "settings_import_invalid_file": {
+        "message": "Invalid file selected",
+        "description": "Shown when imported settings file is invalid."
+    },
+    "settings_import_invalid_format": {
+        "message": "Invalid settings format",
+        "description": "Shown when imported settings data cannot be parsed as expected."
+    },
+    "settings_import_wrong_extension": {
+        "message": "Please select a JSON file",
+        "description": "Shown when imported file extension is not JSON."
+    },
+    "settings_import_no_file": {
+        "message": "No file selected",
+        "description": "Shown when import is triggered without selecting a file."
+    },
+    "settings_import_no_data": {
+        "message": "No importable settings found in file",
+        "description": "Shown when parsed file has no supported settings keys."
+    },
+    "settings_import_read_error": {
+        "message": "Failed to read settings file",
+        "description": "Shown when browser cannot read the selected file."
+    },
+    "settings_import_parse_error": {
+        "message": "Failed to parse settings file",
+        "description": "Shown when JSON parsing fails for imported file."
+    },
+    "settings_import_incomplete_metadata": {
+        "message": "Import metadata is incomplete",
+        "description": "Shown when import metadata is present but missing expected fields."
+    },
   "whitelist_section_title": {
     "message": "Domain Whitelist",
     "description": "Title for the whitelist settings section"
@@ -2304,6 +2422,58 @@
     "message": "Load Status:",
     "description": "Label for the current loading status of the rules"
   },
+  "rules_source_label": {
+    "message": "Source:",
+    "description": "Label for current active rules source."
+  },
+  "rules_source_remote": {
+    "message": "Remote",
+    "description": "Source text when remote rules are active."
+  },
+  "rules_source_bundled": {
+    "message": "Bundled",
+    "description": "Source text when bundled rules are active."
+  },
+  "rules_source_bundled_fallback": {
+    "message": "Bundled Fallback",
+    "description": "Source text when bundled fallback rules are active."
+  },
+  "rules_source_fallback": {
+    "message": "Fallback",
+    "description": "Source text when minimal fallback rules are active."
+  },
+  "rules_composition_label": {
+    "message": "Provider Composition:",
+    "description": "Section label for provider composition details."
+  },
+  "active_remote_providers_label": {
+    "message": "Active Remote Providers:",
+    "description": "Label for active remote providers count."
+  },
+  "active_bundled_providers_label": {
+    "message": "Active Bundled Providers:",
+    "description": "Label for active bundled providers count."
+  },
+  "custom_providers_label": {
+    "message": "Custom Providers:",
+    "description": "Label for custom providers count."
+  },
+  "overridden_providers_label": {
+    "message": "overridden:",
+    "description": "Inline label for overridden provider count."
+  },
+  "new_custom_providers_label": {
+    "message": "new:",
+    "description": "Inline label for new custom provider count."
+  },
+  "overridden_providers_list_label": {
+    "message": "Overridden Providers:",
+    "description": "Label for overridden provider names list."
+  },
+  "composition_breakdown_label": {
+    "message": "Composition:",
+    "description": "Label for bundled vs custom percentage breakdown."
+  },
   "security_confirmation_session_success": {
     "message": "Security confirmation successful",
     "description": "Message shown when security confirmation is successful"
@@ -3252,9 +3422,6 @@
     "description": "Status text when some permissions are missing"
   }
 }
-
-
-
 
 
 

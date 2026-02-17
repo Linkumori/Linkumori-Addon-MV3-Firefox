@@ -72,7 +72,8 @@ let securityModalState = {
     // NEW: Track initial saved values to avoid blocking existing URLs
     initialValues: {
         ruleURL: '',
-        hashURL: ''
+        hashURL: '',
+        remoteRuleSets: ''
     },
     hasExistingValues: false
 };
@@ -217,6 +218,7 @@ function initializeSecurityModals() {
         // Apply security styling to URL fields only if no existing values
         const ruleURLInput = document.getElementById('ruleURL');
         const hashURLInput = document.getElementById('hashURL');
+        const remoteRuleSetsInput = document.getElementById('remoteRuleSets');
         
         if (ruleURLInput) {
             if (!securityModalState.hasExistingValues || !ruleURLInput.value.trim()) {
@@ -226,6 +228,11 @@ function initializeSecurityModals() {
         if (hashURLInput) {
             if (!securityModalState.hasExistingValues || !hashURLInput.value.trim()) {
                 hashURLInput.classList.add('security-confirmation-required');
+            }
+        }
+        if (remoteRuleSetsInput) {
+            if (!securityModalState.hasExistingValues || !remoteRuleSetsInput.value.trim()) {
+                remoteRuleSetsInput.classList.add('security-confirmation-required');
             }
         }
         
@@ -239,7 +246,7 @@ function initializeSecurityModals() {
  */
 async function checkExistingURLValues() {
     try {
-        const [ruleURLResponse, hashURLResponse] = await Promise.all([
+        const [ruleURLResponse, hashURLResponse, remoteRuleSetsResponse] = await Promise.all([
             browser.runtime.sendMessage({
                 function: "getData",
                 params: ["ruleURL"]
@@ -247,22 +254,33 @@ async function checkExistingURLValues() {
             browser.runtime.sendMessage({
                 function: "getData", 
                 params: ["hashURL"]
+            }),
+            browser.runtime.sendMessage({
+                function: "getData",
+                params: ["remoteRuleSets"]
             })
         ]);
         
         const savedRuleURL = ruleURLResponse.response || '';
         const savedHashURL = hashURLResponse.response || '';
+        const savedRemoteRuleSets = formatAdditionalRemoteRuleSets(remoteRuleSetsResponse.response);
         
         // Store initial values
         securityModalState.initialValues.ruleURL = savedRuleURL;
         securityModalState.initialValues.hashURL = savedHashURL;
+        securityModalState.initialValues.remoteRuleSets = savedRemoteRuleSets;
         
         // If there are existing valid URLs, allow editing without immediate confirmation
-        securityModalState.hasExistingValues = !!(savedRuleURL.trim() || savedHashURL.trim());
+        securityModalState.hasExistingValues = !!(
+            savedRuleURL.trim() ||
+            savedHashURL.trim() ||
+            savedRemoteRuleSets.trim()
+        );
         
         console.log('Existing URL values found:', {
             ruleURL: savedRuleURL,
             hashURL: savedHashURL,
+            remoteRuleSets: savedRemoteRuleSets,
             hasExistingValues: securityModalState.hasExistingValues
         });
         
@@ -509,7 +527,7 @@ function handleConfirmationModalConfirm() {
                 
                 // Re-validate the field
                 setTimeout(() => {
-                    if (fieldInput.value.trim()) {
+                    if (fieldInput.value.trim() && securityModalState.pendingField !== 'remoteRuleSets') {
                         validateURLField(securityModalState.pendingField);
                     }
                 }, 100);
@@ -519,6 +537,7 @@ function handleConfirmationModalConfirm() {
         // Update styling for all URL fields (remove security confirmation required class)
         const ruleURLInput = document.getElementById('ruleURL');
         const hashURLInput = document.getElementById('hashURL');
+        const remoteRuleSetsInput = document.getElementById('remoteRuleSets');
         
         if (ruleURLInput) {
             ruleURLInput.classList.remove('security-confirmation-required');
@@ -527,6 +546,10 @@ function handleConfirmationModalConfirm() {
         if (hashURLInput) {
             hashURLInput.classList.remove('security-confirmation-required');  
             hashURLInput.placeholder = translate('hash_url_placeholder');
+        }
+        if (remoteRuleSetsInput) {
+            remoteRuleSetsInput.classList.remove('security-confirmation-required');
+            remoteRuleSetsInput.placeholder = translate('setting_remote_rule_sets_placeholder');
         }
         
         // Update description text to remove restriction notice
@@ -738,6 +761,7 @@ function resetSecurityConfirmation() {
     // Re-apply security restrictions to URL fields
     const ruleURLInput = document.getElementById('ruleURL');
     const hashURLInput = document.getElementById('hashURL');
+    const remoteRuleSetsInput = document.getElementById('remoteRuleSets');
     
     if (ruleURLInput) {
         ruleURLInput.classList.add('security-confirmation-required');
@@ -748,6 +772,11 @@ function resetSecurityConfirmation() {
         hashURLInput.classList.add('security-confirmation-required');
         hashURLInput.placeholder = translate('security_confirmation_required_placeholder');
         hashURLInput.value = ''; // Clear any values
+    }
+    if (remoteRuleSetsInput) {
+        remoteRuleSetsInput.classList.add('security-confirmation-required');
+        remoteRuleSetsInput.placeholder = translate('security_confirmation_required_placeholder');
+        remoteRuleSetsInput.value = '';
     }
     
     showStatus(translate('security_confirmation_reset'), 'info');
@@ -1069,7 +1098,8 @@ function setupEventHandlers() {
 function setupEnhancedURLValidation() {
     const ruleURLInput = document.getElementById('ruleURL');
     const hashURLInput = document.getElementById('hashURL');
-    const urlInputs = [ruleURLInput, hashURLInput];
+    const remoteRuleSetsInput = document.getElementById('remoteRuleSets');
+    const urlInputs = [ruleURLInput, hashURLInput, remoteRuleSetsInput];
 
     urlInputs.forEach((input) => {
         if (!input) return;
@@ -1168,13 +1198,15 @@ function setupEnhancedURLValidation() {
                     e.target.placeholder = translate('rule_url_placeholder');
                 } else if (fieldId === 'hashURL') {
                     e.target.placeholder = translate('hash_url_placeholder');
+                } else if (fieldId === 'remoteRuleSets') {
+                    e.target.placeholder = translate('setting_remote_rule_sets_placeholder');
                 }
             }
         });
 
         // Validate URL on blur after confirmation
         input.addEventListener('blur', () => {
-            if (!needsSecurityConfirmation()) {
+            if (!needsSecurityConfirmation() && fieldId !== 'remoteRuleSets') {
                 validateURLField(fieldId);
             }
         });
@@ -1288,6 +1320,66 @@ function isValidURL(url) {
     } catch (error) {
         return false;
     }
+}
+
+function parseRemoteRuleSetsFromText(textValue) {
+    const remoteRuleSets = [];
+    const errors = [];
+    const seen = new Set();
+
+    if (!textValue || typeof textValue !== 'string') {
+        return { remoteRuleSets, errors };
+    }
+
+    const lines = textValue
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line !== '');
+
+    lines.forEach((line, index) => {
+        const separator = line.indexOf('|');
+        if (separator === -1) {
+            const template = translate('remote_rule_sets_error_expected_pair');
+            errors.push(template.replace('$LINE$', String(index + 1)));
+            return;
+        }
+
+        const ruleURL = line.slice(0, separator).trim();
+        const hashURL = line.slice(separator + 1).trim();
+
+        if (!isValidURL(ruleURL) || !ruleURL.startsWith('https://')) {
+            const template = translate('remote_rule_sets_error_invalid_rule_url');
+            errors.push(template.replace('$LINE$', String(index + 1)));
+            return;
+        }
+
+        if (!isValidURL(hashURL) || !hashURL.startsWith('https://')) {
+            const template = translate('remote_rule_sets_error_invalid_hash_url');
+            errors.push(template.replace('$LINE$', String(index + 1)));
+            return;
+        }
+
+        const key = `${ruleURL}|||${hashURL}`;
+        if (seen.has(key)) {
+            return;
+        }
+
+        seen.add(key);
+        remoteRuleSets.push({ ruleURL, hashURL });
+    });
+
+    return { remoteRuleSets, errors };
+}
+
+function formatAdditionalRemoteRuleSets(remoteRuleSets) {
+    if (!Array.isArray(remoteRuleSets) || remoteRuleSets.length <= 1) {
+        return '';
+    }
+
+    return remoteRuleSets
+        .slice(1)
+        .map(set => `${set.ruleURL} | ${set.hashURL}`)
+        .join('\n');
 }
 
 /**
@@ -1934,6 +2026,7 @@ function save() {
     const logLimitValue = Math.max(0, Math.min(5000, parseInt(document.querySelector('input[name=logLimit]').value) || 1000));
     const ruleURLValue = document.querySelector('input[name=ruleURL]').value.trim();
     const hashURLValue = document.querySelector('input[name=hashURL]').value.trim();
+    const remoteRuleSetsTextValue = document.querySelector('textarea[name=remoteRuleSets]').value.trim();
     
     // Validate URLs before saving
     let urlValidationPassed = true;
@@ -1947,12 +2040,50 @@ function save() {
         showStatus(translate('save_invalid_hash_url'), 'error');
         urlValidationPassed = false;
     }
+
+    if ((ruleURLValue && !hashURLValue) || (!ruleURLValue && hashURLValue)) {
+        showStatus(translate('save_primary_remote_pair_required'), 'error');
+        urlValidationPassed = false;
+    }
+
+    if (ruleURLValue && !ruleURLValue.startsWith('https://')) {
+        showStatus(translate('save_primary_rule_https_required'), 'error');
+        urlValidationPassed = false;
+    }
+
+    if (hashURLValue && !hashURLValue.startsWith('https://')) {
+        showStatus(translate('save_primary_hash_https_required'), 'error');
+        urlValidationPassed = false;
+    }
+
+    const parsedRemoteSets = parseRemoteRuleSetsFromText(remoteRuleSetsTextValue);
+    if (parsedRemoteSets.errors.length > 0) {
+        showStatus(parsedRemoteSets.errors[0], 'error');
+        urlValidationPassed = false;
+    }
     
     if (!urlValidationPassed) {
         saveBtn.textContent = originalText;
         saveBtn.parentElement.disabled = false;
         return;
     }
+
+    const remoteRuleSetsToSave = [];
+    const dedupe = new Set();
+
+    if (ruleURLValue && hashURLValue) {
+        const primaryKey = `${ruleURLValue}|||${hashURLValue}`;
+        dedupe.add(primaryKey);
+        remoteRuleSetsToSave.push({ ruleURL: ruleURLValue, hashURL: hashURLValue });
+    }
+
+    parsedRemoteSets.remoteRuleSets.forEach(set => {
+        const key = `${set.ruleURL}|||${set.hashURL}`;
+        if (!dedupe.has(key)) {
+            dedupe.add(key);
+            remoteRuleSetsToSave.push(set);
+        }
+    });
     
     // Get current color from picker or fallback to saved value
     let currentColor = settings["badged_color"] || '#FFA500';
@@ -1969,13 +2100,15 @@ function save() {
         saveData("types", typesValue),
         saveData("logLimit", logLimitValue),
         saveData("ruleURL", ruleURLValue),
-        saveData("hashURL", hashURLValue)
+        saveData("hashURL", hashURLValue),
+        saveData("remoteRuleSets", remoteRuleSetsToSave)
     ])
         .then(() => {
             // Update the settings object and UI
             settings["badged_color"] = currentColor;
             settings["ruleURL"] = ruleURLValue;
             settings["hashURL"] = hashURLValue;
+            settings["remoteRuleSets"] = remoteRuleSetsToSave;
             updateBadgePreview(currentColor);
             updateColorValue(currentColor);
             return browser.runtime.sendMessage({
@@ -2037,7 +2170,29 @@ async function getData() {
         await loadData("logLimit");
         await loadData("ruleURL");
         await loadData("hashURL");
+        await loadData("remoteRuleSets");
         await loadData("remoteRulesEnabled");
+
+        if (Array.isArray(settings.remoteRuleSets) && settings.remoteRuleSets.length > 0) {
+            const firstSet = settings.remoteRuleSets[0];
+            const ruleInput = document.querySelector('input[name=ruleURL]');
+            const hashInput = document.querySelector('input[name=hashURL]');
+            const setsInput = document.querySelector('textarea[name=remoteRuleSets]');
+
+            if (ruleInput) {
+                ruleInput.value = firstSet.ruleURL || '';
+                settings.ruleURL = firstSet.ruleURL || settings.ruleURL || '';
+            }
+
+            if (hashInput) {
+                hashInput.value = firstSet.hashURL || '';
+                settings.hashURL = firstSet.hashURL || settings.hashURL || '';
+            }
+
+            if (setsInput) {
+                setsInput.value = formatAdditionalRemoteRuleSets(settings.remoteRuleSets);
+            }
+        }
 
         
         // Load color picker value first (but don't apply to DOM yet)
@@ -2212,19 +2367,39 @@ function displayBundledRulesInfo() {
                 // Note: When there are no custom rules, we don't show additional breakdown
                 // since "Total Providers" already shows the bundled provider count
                 
-                // Add metadata info if available with proper spacing
-                if (metadata && metadata.name) {
+                // Add metadata info. For merged remote rules, show merged name even if
+                // upstream metadata is missing.
+                const isMergedRemoteMetadata =
+                    hashStatus === 'remote_rules_merged' ||
+                    hashStatus === 'remote_rules_partially_merged' ||
+                    hashStatus === 'remote_custom_rules_merged' ||
+                    sourceInfo.source === 'remote_merged' ||
+                    (metadata && metadata.source === 'remote_merged') ||
+                    (metadata && typeof metadata.mergedSourceCount === 'number' && metadata.mergedSourceCount > 1) ||
+                    (Array.isArray(settings.remoteRuleSets) &&
+                        settings.remoteRuleSets.length > 1 &&
+                        (String(hashStatus || '').startsWith('remote_') || sourceInfo.source === 'remote')) ||
+                    (metadata && metadata.name === 'Merged Remote Rules');
+                const hasMetadataName = !!(metadata && metadata.name);
+
+                if (hasMetadataName || isMergedRemoteMetadata) {
                     const rulesNameLabel = translate('rules_name_label');
                     const rulesVersionLabel = translate('rules_version_label');
                     const rulesLicenseLabel = translate('rules_license_label');
                     const rulesAuthorLabel = translate('rules_author_label');
                     const rulesLastUpdatedLabel = translate('rules_last_updated_label');
+                    const unknownText = translate('status_unknown');
+                    const displayedMetadataName = isMergedRemoteMetadata
+                        ? translate('rules_metadata_name_remote_merged')
+                        : (metadata?.name || unknownText);
                     
                     html += `<br><br><strong>${translate('rules_metadata_section')}</strong><br>`;
-                    html += `<strong>${rulesNameLabel}</strong> ${metadata.name}<br>`;
-                    html += `<strong>${rulesVersionLabel}</strong> ${metadata.version || 'Unknown'}<br>`;
+                    html += `<strong>${rulesNameLabel}</strong> ${displayedMetadataName}<br>`;
+                    if (!isMergedRemoteMetadata) {
+                        html += `<strong>${rulesVersionLabel}</strong> ${metadata.version || unknownText}<br>`;
+                    }
                     
-                    if (metadata.license) {
+                    if (!isMergedRemoteMetadata && metadata.license) {
                         html += `<strong>${rulesLicenseLabel}</strong> ${metadata.license}<br>`;
                     }
                     if (metadata.author) {
@@ -2354,9 +2529,13 @@ async function loadData(name) {
             settings[name] = data.response;
             
             // Update input elements
-            const inputElement = document.querySelector(`input[name=${name}]`);
+            const inputElement = document.querySelector(`input[name=${name}], textarea[name=${name}]`);
             if (inputElement) {
-                inputElement.value = data.response || '';
+                if (name === 'remoteRuleSets') {
+                    inputElement.value = formatAdditionalRemoteRuleSets(data.response);
+                } else {
+                    inputElement.value = data.response || '';
+                }
             }
             
             resolve(data);
@@ -2463,31 +2642,39 @@ function updateRemoteRulesFieldsVisibility() {
     const remoteRulesEnabled = settings.remoteRulesEnabled;
     const ruleURLInput = document.getElementById('ruleURL');
     const hashURLInput = document.getElementById('hashURL');
+    const remoteRuleSetsInput = document.getElementById('remoteRuleSets');
     const ruleURLLabel = document.getElementById('ruleURL_label');
     const hashURLLabel = document.getElementById('hashURL_label');
+    const remoteRuleSetsLabel = document.getElementById('remoteRuleSets_label');
     const ruleURLDescription = document.getElementById('ruleURL_description');
     const hashURLDescription = document.getElementById('hashURL_description');
+    const remoteRuleSetsDescription = document.getElementById('remoteRuleSets_description');
     
-    [ruleURLInput, hashURLInput].forEach(input => {
+    [ruleURLInput, hashURLInput, remoteRuleSetsInput].forEach(input => {
         if (input) {
             input.disabled = !remoteRulesEnabled;
             input.style.opacity = remoteRulesEnabled ? '1' : '0.5';
             if (!remoteRulesEnabled) {
-                input.value = '';
                 input.placeholder = translate('remote_rules_disabled_placeholder');
             }
         }
     });
     
-    [ruleURLLabel, hashURLLabel].forEach(label => {
+    [ruleURLLabel, hashURLLabel, remoteRuleSetsLabel].forEach(label => {
         if (label) {
             label.style.opacity = remoteRulesEnabled ? '1' : '0.5';
         }
     });
     
-    [ruleURLDescription, hashURLDescription].forEach(desc => {
+    [ruleURLDescription, hashURLDescription, remoteRuleSetsDescription].forEach(desc => {
         if (desc) {
             if (remoteRulesEnabled) {
+                if (desc.id === 'remoteRuleSets_description') {
+                    setHTMLContent(desc, translate('setting_remote_rule_sets_description'));
+                    desc.style.opacity = '1';
+                    return;
+                }
+
                 // Show normal descriptions
                 const basicText = desc.id === 'ruleURL_description' ? 
                     translate('setting_rule_url_description') : 
@@ -2536,16 +2723,22 @@ setElementText('remote_rules_enabled_description', 'remote_rules_enabled_descrip
     setElementText('ruleURL_description', 'setting_rule_url_description');
     setElementText('hashURL_label', 'setting_hash_url_label');
     setElementText('hashURL_description', 'setting_hash_url_description');
+    setElementText('remoteRuleSets_label', 'setting_remote_rule_sets_label');
+    setElementHTML('remoteRuleSets_description', 'setting_remote_rule_sets_description');
     
     // Set appropriate placeholders - always locked initially (never persisted)
     const ruleURLInput = document.getElementById('ruleURL');
     const hashURLInput = document.getElementById('hashURL');
+    const remoteRuleSetsInput = document.getElementById('remoteRuleSets');
     
     if (ruleURLInput) {
         ruleURLInput.placeholder = translate('security_confirmation_required_placeholder');
     }
     if (hashURLInput) {
         hashURLInput.placeholder = translate('security_confirmation_required_placeholder');
+    }
+    if (remoteRuleSetsInput) {
+        remoteRuleSetsInput.placeholder = translate('security_confirmation_required_placeholder');
     }
     
     // Enhanced URL field descriptions with security notice - always locked initially

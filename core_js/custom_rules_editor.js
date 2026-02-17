@@ -1012,12 +1012,11 @@ async function confirmProviderImport() {
             // Check if provider already exists
             if (customRules.providers[providerName]) {
                 overwrittenCount++;
-            } else {
-                importedCount++;
             }
             
             // Import the provider (deep copy to avoid reference issues)
             customRules.providers[providerName] = JSON.parse(JSON.stringify(provider));
+            importedCount++;
         }
         
         // Save the updated custom rules
@@ -1030,10 +1029,20 @@ async function confirmProviderImport() {
         hideProviderImportModal();
         
         // Show success message
-        const message = i18n('providerImport_completed') + '\n' +
-                       i18n('providerImport_importedCount', importedCount) + '\n' +
-                       i18n('providerImport_overwrittenCount', overwrittenCount) + '\n' +
-                       i18n('providerImport_skippedCount', skippedCount);
+        const messageLines = [
+            i18n('providerImport_completed'),
+            i18n('providerImport_importedCount', importedCount)
+        ];
+
+        if (overwrittenCount > 0) {
+            messageLines.push(i18n('providerImport_overwrittenCount', overwrittenCount));
+        }
+
+        if (skippedCount > 0) {
+            messageLines.push(i18n('providerImport_skippedCount', skippedCount));
+        }
+
+        const message = messageLines.join('\n');
         
         alert(message);
         
