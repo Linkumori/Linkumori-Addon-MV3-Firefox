@@ -379,6 +379,20 @@
         <div class="toggle-description" id="remote_rules_enabled_description"></div>
     </div>
 </div>
+<div class="toggle-container">
+    <div class="toggle-switch" id="builtInRulesEnabled"></div>
+    <div class="toggle-content">
+        <div class="toggle-title" id="built_in_rules_enabled"></div>
+        <div class="toggle-description" id="built_in_rules_enabled_description"></div>
+    </div>
+</div>
+<div class="toggle-container">
+    <div class="toggle-switch" id="overloadModeEnabled"></div>
+    <div class="toggle-content">
+        <div class="toggle-title" id="overload_mode_enabled"></div>
+        <div class="toggle-description" id="overload_mode_enabled_description"></div>
+    </div>
+</div>
             <div class="toggle-container">
                 <div class="toggle-switch" id="eTagFiltering"></div>
                 <div class="toggle-content">
@@ -549,11 +563,10 @@
         </div>
     </div>
 
-    <!-- Scripts - Load in proper order -->
-    <script src="../external_js/linkumori-pickr.js"></script>
+    <!-- Scripts -->
+    <script defer src="../external_js/linkumori-i18n.js"></script>
+    <script defer src="../external_js/linkumori-pickr.js"></script>
+    <script defer src="../core_js/write_version.js"></script>
     <script type="module" src="../core_js/settings.js"></script>
-        <script src="../external_js/linkumori-i18n.js"></script>
-
-    <script src="../core_js/write_version.js"></script>
 </body>
 </html>

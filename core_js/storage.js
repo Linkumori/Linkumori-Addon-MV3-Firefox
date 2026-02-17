@@ -314,6 +314,33 @@ function mergeRemoteRulesSources(successfulSources, failedSources = []) {
     return mergedRules;
 }
 
+function mergeRemoteWithBundledRules(remoteRules, bundledRules) {
+    const remoteProviders = remoteRules?.providers || {};
+    const bundledProviders = bundledRules?.providers || {};
+    const primaryProviderNames = new Set(Object.keys(remoteProviders));
+    const combinedProviders = {
+        ...bundledProviders,
+        ...remoteProviders
+    };
+    const mergedProviders = mergeRemoteProvidersByUrlPattern(combinedProviders, primaryProviderNames);
+    const mergedProviderCount = Object.keys(mergedProviders).length;
+
+    const remoteMetadata = (remoteRules?.metadata && typeof remoteRules.metadata === 'object' && !Array.isArray(remoteRules.metadata))
+        ? remoteRules.metadata
+        : null;
+
+    const metadata = remoteMetadata ? { ...remoteMetadata } : {};
+    metadata.name = 'Merged Remote + Built-in Rules';
+    metadata.source = 'remote_built_in_merged';
+    metadata.sourceURL = 'multiple';
+    metadata.providerCount = mergedProviderCount;
+
+    return {
+        metadata,
+        providers: mergedProviders
+    };
+}
+
 function areValidRemoteURLsPresent() {
 
      if (!storage.remoteRulesEnabled) {
@@ -729,12 +756,50 @@ function fetchRemoteHash(hashUrl) {
     });
 }
 
+async function fetchBundledRulesRaw() {
+    const rulesURL = browser.runtime.getURL('data/linkumori-clearurls-min.json');
+    const response = await fetch(rulesURL);
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - Rules file not accessible`);
+    }
+
+    const data = await response.text();
+    if (!data || data.trim().length === 0) {
+        throw new Error('Rules file is empty or contains no data');
+    }
+
+    const rawRulesData = JSON.parse(data);
+    if (!rawRulesData || typeof rawRulesData !== 'object') {
+        throw new Error('Rules file does not contain a valid object');
+    }
+    if (!rawRulesData.providers || typeof rawRulesData.providers !== 'object') {
+        throw new Error('Rules file missing providers object');
+    }
+    if (Object.keys(rawRulesData.providers).length === 0) {
+        throw new Error('No providers found in rules file');
+    }
+
+    return rawRulesData;
+}
+
 function loadBundledRules() {
+    if (storage.builtInRulesEnabled === false && !storage.remoteRulesEnabled) {
+        storage.hashStatus = "custom_only_loaded";
+        storage.hashValidationStatus = 'not_applicable';
+        tempVerificationCache.isRemoteVerified = false;
+        return loadCustomOnlyRules();
+    }
+
     if (!areValidRemoteURLsPresent()) {
         storage.hashStatus = "no_remote_urls";
         storage.hashValidationStatus = 'not_applicable';
         tempVerificationCache.isRemoteVerified = false;
-        
+
+        if (storage.builtInRulesEnabled === false) {
+            storage.hashStatus = "custom_only_loaded";
+            return loadCustomOnlyRules();
+        }
+
         return loadBundledRulesInternal(false);
     }
 
@@ -744,7 +809,12 @@ function loadBundledRules() {
         storage.hashStatus = "invalid_remote_urls";
         storage.hashValidationStatus = 'failed_validation';
         tempVerificationCache.isRemoteVerified = false;
-        
+
+        if (storage.builtInRulesEnabled === false) {
+            storage.hashStatus = "custom_only_loaded";
+            return loadCustomOnlyRules();
+        }
+
         return loadBundledRulesInternal(false);
     }
 
@@ -759,7 +829,7 @@ function loadBundledRules() {
     });
 
     return Promise.allSettled(fetchJobs)
-        .then(results => {
+        .then(async results => {
             const successful = [];
             const failed = [];
 
@@ -781,23 +851,38 @@ function loadBundledRules() {
             }
 
             const mergedRemoteRules = mergeRemoteRulesSources(successful, failed);
-            storage.rulesMetadata = mergedRemoteRules.metadata;
+            let finalRules = mergedRemoteRules;
+
+            if (storage.overloadModeEnabled === true && storage.builtInRulesEnabled !== false) {
+                try {
+                    const bundledRules = await fetchBundledRulesRaw();
+                    finalRules = mergeRemoteWithBundledRules(mergedRemoteRules, bundledRules);
+                } catch (e) {
+                }
+            }
+
+            storage.rulesMetadata = finalRules.metadata;
             storage.hashFailureReason = failed.length > 0
                 ? failed.map(item => item.error).join('; ')
                 : null;
 
-            if (successful.length > 1 && failed.length === 0) {
-                storage.hashStatus = "remote_rules_merged";
-                storage.hashValidationStatus = 'verified';
-            } else if (successful.length > 1 && failed.length > 0) {
-                storage.hashStatus = "remote_rules_partially_merged";
-                storage.hashValidationStatus = 'partially_verified';
-            } else if (successful.length === 1 && failed.length > 0) {
-                storage.hashStatus = "remote_partially_verified";
-                storage.hashValidationStatus = 'partially_verified';
+            if (storage.overloadModeEnabled === true && storage.builtInRulesEnabled !== false) {
+                storage.hashStatus = "remote_built_in_merged";
+                storage.hashValidationStatus = failed.length > 0 ? 'partially_verified' : 'verified';
             } else {
-                storage.hashStatus = "remote_verified";
-                storage.hashValidationStatus = 'verified';
+                if (successful.length > 1 && failed.length === 0) {
+                    storage.hashStatus = "remote_rules_merged";
+                    storage.hashValidationStatus = 'verified';
+                } else if (successful.length > 1 && failed.length > 0) {
+                    storage.hashStatus = "remote_rules_partially_merged";
+                    storage.hashValidationStatus = 'partially_verified';
+                } else if (successful.length === 1 && failed.length > 0) {
+                    storage.hashStatus = "remote_partially_verified";
+                    storage.hashValidationStatus = 'partially_verified';
+                } else {
+                    storage.hashStatus = "remote_verified";
+                    storage.hashValidationStatus = 'verified';
+                }
             }
 
             tempVerificationCache.isRemoteVerified = true;
@@ -809,7 +894,7 @@ function loadBundledRules() {
                 timestamp: new Date().toISOString()
             });
 
-            return mergeCustomRules(mergedRemoteRules);
+            return mergeCustomRules(finalRules);
         })
         .catch(() => {
             storage.hashValidationStatus = 'failed';
@@ -820,12 +905,22 @@ function loadBundledRules() {
                 storage.hashValidationStatus = 'cache_used_after_remote_failure';
                 return mergeCustomRules(cacheRules);
             }
-            
+
+            if (storage.builtInRulesEnabled === false) {
+                storage.hashStatus = "custom_only_loaded";
+                return loadCustomOnlyRules();
+            }
+
             return loadBundledRulesInternal(true);
         });
 }
 
 function loadBundledRulesInternal(isFallback = false) {
+    if (storage.builtInRulesEnabled === false) {
+        storage.hashStatus = "custom_only_loaded";
+        return loadCustomOnlyRules();
+    }
+
     const rulesURL = browser.runtime.getURL('data/linkumori-clearurls-min.json');
     
     return fetch(rulesURL)
@@ -889,7 +984,12 @@ function loadBundledRulesInternal(isFallback = false) {
                 storage.hashStatus = "cached_rules_used";
                 return storage.ClearURLsData;
             }
-            
+
+            if (storage.builtInRulesEnabled === false) {
+                storage.hashStatus = "custom_only_loaded";
+                return loadCustomOnlyRules();
+            }
+
             const fallbackRules = getEnhancedFallbackRules();
             if (isFallback) {
                 storage.hashStatus = "fallback_rules_used_after_remote_failure";
@@ -965,6 +1065,83 @@ function getEnhancedFallbackRules() {
     };
 }
 
+function loadCustomOnlyRules() {
+    return new Promise(async (resolve) => {
+        try {
+            const result = await browser.storage.local.get(['custom_rules']);
+            let customRules = null;
+
+            if (result.custom_rules) {
+                if (typeof result.custom_rules === 'string') {
+                    customRules = JSON.parse(result.custom_rules);
+                } else {
+                    customRules = result.custom_rules;
+                }
+            }
+
+            if (customRules && typeof customRules === 'object' && !customRules.providers) {
+                customRules = { providers: customRules };
+            }
+
+            const providers = (customRules && customRules.providers && typeof customRules.providers === 'object')
+                ? customRules.providers
+                : {};
+            const providerCount = Object.keys(providers).length;
+
+            storage.rulesMetadata = {
+                name: 'Custom Rules Only',
+                source: 'custom_only',
+                providerCount
+            };
+
+            storage.ClearURLsData = {
+                metadata: storage.rulesMetadata,
+                providers
+            };
+
+            storage.mergeStats = {
+                bundledProviders: 0,
+                customProviders: providerCount,
+                overriddenProviders: 0,
+                totalProviders: providerCount,
+                overriddenProviderNames: [],
+                filteredBundledProviders: 0,
+                newCustomProviders: providerCount
+            };
+
+            storage.hashStatus = providerCount > 0 ? 'custom_only_loaded' : 'custom_only_no_rules';
+            storage.dataHash = await sha256(JSON.stringify(storage.ClearURLsData, Object.keys(storage.ClearURLsData).sort()));
+
+            saveOnDisk(['ClearURLsData', 'dataHash', 'hashStatus', 'mergeStats']);
+            resolve(storage.ClearURLsData);
+        } catch (error) {
+            storage.rulesMetadata = {
+                name: 'Custom Rules Only',
+                source: 'custom_only',
+                providerCount: 0
+            };
+            storage.ClearURLsData = {
+                metadata: storage.rulesMetadata,
+                providers: {}
+            };
+            storage.mergeStats = {
+                bundledProviders: 0,
+                customProviders: 0,
+                overriddenProviders: 0,
+                totalProviders: 0,
+                overriddenProviderNames: [],
+                filteredBundledProviders: 0,
+                newCustomProviders: 0,
+                error: error.message
+            };
+            storage.hashStatus = 'custom_only_no_rules';
+            storage.dataHash = "custom-only-fallback-" + Date.now();
+            saveOnDisk(['ClearURLsData', 'dataHash', 'hashStatus', 'mergeStats']);
+            resolve(storage.ClearURLsData);
+        }
+    });
+}
+
 function mergeCustomRules(bundledRules) {
     return new Promise(async (resolve) => {
         try {
@@ -1002,6 +1179,7 @@ function mergeCustomRules(bundledRules) {
             if (!customRules || customProviderCount === 0) {
                 storage.ClearURLsData = bundledRules;
                 storage.mergeStats = {
+                    source: bundledRules?.metadata?.source || 'bundled',
                     bundledProviders: Object.keys(bundledRules.providers || {}).length,
                     customProviders: 0,
                     overriddenProviders: 0,
@@ -1012,8 +1190,12 @@ function mergeCustomRules(bundledRules) {
                 const ruleString = JSON.stringify(bundledRules, Object.keys(bundledRules).sort());
                 const hash = await sha256(ruleString);
                 storage.dataHash = hash;
+                const isOverloadStatus = typeof storage.hashStatus === 'string' &&
+                    storage.hashStatus.startsWith('remote_built_in_');
                 
                 if (storage.hashStatus && storage.hashStatus.startsWith('cache_remote_rules_')) {
+                } else if (isOverloadStatus) {
+                    storage.hashStatus = "remote_built_in_merged";
                 } else if (tempVerificationCache.isRemoteVerified) {
                     storage.hashStatus = "remote_rules_loaded";
                 } else if (storage.hashStatus === "hash_url_missing") {
@@ -1054,6 +1236,7 @@ function mergeCustomRules(bundledRules) {
                 }
                 
                 storage.mergeStats = {
+                    source: bundledRules?.metadata?.source || 'bundled',
                     bundledProviders: bundledProviderNames.length,
                     customProviders: customProviderNames.length,
                     overriddenProviders: overriddenProviders.length,
@@ -1073,9 +1256,13 @@ function mergeCustomRules(bundledRules) {
                 const ruleStringmerge = JSON.stringify(mergedRules, Object.keys(mergedRules).sort());
                 const hashmerge = await sha256(ruleStringmerge);
                 storage.dataHash = hashmerge;
+                const isOverloadStatus = typeof storage.hashStatus === 'string' &&
+                    storage.hashStatus.startsWith('remote_built_in_');
                 
                 if (storage.hashStatus && storage.hashStatus.startsWith('cache_remote_rules_')) {
                     storage.hashStatus = storage.hashStatus.replace('cache_remote_rules_', 'cache_remote_custom_rules_');
+                } else if (isOverloadStatus) {
+                    storage.hashStatus = "remote_built_in_merged_custom";
                 } else if (tempVerificationCache.isRemoteVerified) {
                     storage.hashStatus = "remote_custom_rules_merged";
                 } else {
@@ -1091,6 +1278,7 @@ function mergeCustomRules(bundledRules) {
             storage.dataHash = "bundled-fallback-" + Date.now();
             storage.hashStatus = "custom_rules_failed";
             storage.mergeStats = {
+                source: bundledRules?.metadata?.source || 'bundled',
                 bundledProviders: Object.keys(bundledRules.providers || {}).length,
                 customProviders: 0,
                 overriddenProviders: 0,
@@ -1304,6 +1492,11 @@ function setData(key, value) {
         case "logLimit":
             storage[key] = Math.max(0, Number(value));
             break;
+        case "remoteRulesEnabled":
+        case "overloadModeEnabled":
+        case "builtInRulesEnabled":
+            storage[key] = value === true || value === "true";
+            break;
         case "globalurlcounter":
             storage["totalCounter"] = value;
             delete storage[key];
@@ -1350,7 +1543,9 @@ function initStorage(items) {
 function initSettings() {
     storage.ClearURLsData = [];
     storage.dataHash = "";
+    storage.builtInRulesEnabled = true;
     storage.remoteRulesEnabled = false;
+    storage.overloadModeEnabled = false;
     storage.rulesMetadata = null;
     storage.badgedStatus = true;
     storage.globalStatus = true;

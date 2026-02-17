@@ -1436,6 +1436,8 @@ async function updateRulesStatus() {
             
             const statusMap = {
                 'remote_verified': i18n('hashStatus_remote_verified'),
+                'remote_built_in_merged': i18n('hashStatus_remote_built_in_merged'),
+                'remote_built_in_merged_custom': i18n('hashStatus_remote_built_in_merged_custom'),
                 'remote_failed': i18n('hashStatus_remote_failed'),
                 'hash_url_missing': i18n('hashStatus_hash_url_missing'),
                 'remote_rules_loaded': i18n('remote_rules_loaded'),

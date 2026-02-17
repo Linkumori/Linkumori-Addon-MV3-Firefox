@@ -62,6 +62,7 @@ import punycode from '../external_js/light-punycode.js';
 
 var settings = [];
 let linkumoriPicker = null; // Initialize as null first
+let themeHandlersBound = false;
 
 // Security Modal State Management
 let securityModalState = {
@@ -981,70 +982,40 @@ function initializeTheme() {
     try {
         const themeToggle = document.getElementById('themeToggle');
         const savedTheme = localStorage.getItem('linkumori-theme') || 'dark';
-        
-        // Apply saved theme
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        // Initialize theme cards
-        const themeCards = document.querySelectorAll('.theme-card');
-        
-        if (themeCards.length > 0) {
-            themeCards.forEach(card => {
-                // Set active card
-                if (card.dataset.theme === savedTheme) {
-                    card.classList.add('active');
-                } else {
-                    card.classList.remove('active');
-                }
-                
-                // Add click handler
-                card.addEventListener('click', () => {
-                    const newTheme = card.dataset.theme;
-                    
-                    // Update active state
-                    themeCards.forEach(c => c.classList.remove('active'));
-                    card.classList.add('active');
-                    
-                    // Apply theme
-                    document.documentElement.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('linkumori-theme', newTheme);
-                    browser.storage.local.set({'linkumori-theme': newTheme});
-                });
-            });
-        }
-        
-        // Theme toggle handler (cycles between light and last used dark theme)
-        if (themeToggle) {
-            themeToggle.onclick = () => {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                let newTheme;
-                
-                if (currentTheme === 'light') {
-                    // Switch to last used dark theme or default dark
-                    newTheme = localStorage.getItem('linkumori-last-dark-theme') || 'dark';
-                } else {
-                    // Save current dark theme and switch to light
-                    localStorage.setItem('linkumori-last-dark-theme', currentTheme);
-                    newTheme = 'light';
-                }
-                
-                // Apply theme
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('linkumori-theme', newTheme);
-                browser.storage.local.set({'linkumori-theme': newTheme});
-                
-                // Update active card if available
-                const currentThemeCards = document.querySelectorAll('.theme-card');
-                if (currentThemeCards.length > 0) {
-                    currentThemeCards.forEach(card => {
-                        if (card.dataset.theme === newTheme) {
-                            card.classList.add('active');
-                        } else {
-                            card.classList.remove('active');
-                        }
+
+        // Apply saved theme and sync UI state.
+        applyTheme(savedTheme);
+
+        if (!themeHandlersBound) {
+            const themeCards = document.querySelectorAll('.theme-card');
+            if (themeCards.length > 0) {
+                themeCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        applyTheme(card.dataset.theme, true);
                     });
-                }
-            };
+                });
+            }
+
+            // Theme toggle handler (cycles between light and last used dark theme)
+            if (themeToggle) {
+                themeToggle.onclick = () => {
+                    const currentTheme = document.documentElement.getAttribute('data-theme');
+                    let newTheme;
+
+                    if (currentTheme === 'light') {
+                        // Switch to last used dark theme or default dark
+                        newTheme = localStorage.getItem('linkumori-last-dark-theme') || 'dark';
+                    } else {
+                        // Save current dark theme and switch to light
+                        localStorage.setItem('linkumori-last-dark-theme', currentTheme);
+                        newTheme = 'light';
+                    }
+
+                    applyTheme(newTheme, true);
+                };
+            }
+
+            themeHandlersBound = true;
         }
     } catch (error) {
         console.error('Theme initialization failed:', error);
@@ -1057,14 +1028,27 @@ browser.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
         // Check for theme changes
         if (changes['linkumori-theme']) {
-            initializeTheme();
-        }
-        
-        if (changes['globalStatus']) {
-            initializeTheme();
+            applyTheme(changes['linkumori-theme'].newValue || 'dark');
         }
     }
 });
+
+function applyTheme(theme, persist = false) {
+    const selectedTheme = theme || 'dark';
+    document.documentElement.setAttribute('data-theme', selectedTheme);
+
+    const cards = document.querySelectorAll('.theme-card');
+    if (cards.length > 0) {
+        cards.forEach(card => {
+            card.classList.toggle('active', card.dataset.theme === selectedTheme);
+        });
+    }
+
+    if (persist) {
+        localStorage.setItem('linkumori-theme', selectedTheme);
+        browser.storage.local.set({ 'linkumori-theme': selectedTheme });
+    }
+}
 
 // ============================================================================
 // EVENT HANDLER SETUP
@@ -1394,7 +1378,9 @@ function setupToggleSwitches() {
         { id: 'referralMarketing', storageKey: 'referralMarketing' },
         { id: 'pingBlocking', storageKey: 'pingBlocking' },
         { id: 'eTagFiltering', storageKey: 'eTagFiltering' },
-        { id: 'remoteRulesEnabled', storageKey: 'remoteRulesEnabled' }  // NEW
+        { id: 'remoteRulesEnabled', storageKey: 'remoteRulesEnabled' },
+        { id: 'builtInRulesEnabled', storageKey: 'builtInRulesEnabled' },
+        { id: 'overloadModeEnabled', storageKey: 'overloadModeEnabled' }
 
     ];
     
@@ -2165,13 +2151,16 @@ function showStatus(message, type = 'info') {
  */
 async function getData() {
     try {
-        // Load input field values - UPDATED to include URL fields
-        await loadData("types");
-        await loadData("logLimit");
-        await loadData("ruleURL");
-        await loadData("hashURL");
-        await loadData("remoteRuleSets");
-        await loadData("remoteRulesEnabled");
+        // Load core input fields in parallel to reduce init latency.
+        await Promise.all([
+            loadData("types"),
+            loadData("logLimit"),
+            loadData("ruleURL"),
+            loadData("hashURL"),
+            loadData("remoteRuleSets"),
+            loadData("remoteRulesEnabled"),
+            loadData("overloadModeEnabled")
+        ]);
 
         if (Array.isArray(settings.remoteRuleSets) && settings.remoteRuleSets.length > 0) {
             const firstSet = settings.remoteRuleSets[0];
@@ -2213,17 +2202,18 @@ async function getData() {
             logLimitLabel.textContent = translate('setting_log_limit_label_with_range');
         }
         
-        // Load toggle settings
-        await loadData("contextMenuEnabled");
-        await loadData("historyListenerEnabled");
-        await loadData("localHostsSkipping");
-        await loadData("referralMarketing");
-        await loadData("domainBlocking");
-        await loadData("pingBlocking");
-        await loadData("eTagFiltering");
-        
-        // Load whitelist data
-        await loadData("userWhitelist");
+        // Load feature toggles + whitelist in parallel.
+        await Promise.all([
+            loadData("contextMenuEnabled"),
+            loadData("historyListenerEnabled"),
+            loadData("localHostsSkipping"),
+            loadData("referralMarketing"),
+            loadData("domainBlocking"),
+            loadData("pingBlocking"),
+            loadData("eTagFiltering"),
+            loadData("builtInRulesEnabled"),
+            loadData("userWhitelist")
+        ]);
         
         // Check browser for ETag support and remove context menu on Android
        const info = await browser.runtime.getPlatformInfo();
@@ -2311,6 +2301,10 @@ function displayBundledRulesInfo() {
                                 html += `<br><strong>${sourceLabel}</strong> ${sourceText}`;
                             }
                             break;
+                        case 'remote_built_in_merged':
+                            sourceText = translate('rules_source_remote_built_in_merged');
+                            html += `<br><strong>${sourceLabel}</strong> ${sourceText}`;
+                            break;
                         case 'bundled':
                             sourceText = translate('rules_source_bundled');
                             html += `<br><strong>${sourceLabel}</strong> ${sourceText}`;
@@ -2334,7 +2328,10 @@ function displayBundledRulesInfo() {
                     html += `<br><br><strong>${compositionLabel}</strong><br>`;
                     
                     // Base providers (bundled/remote active after filtering)
-                    const baseProvidersLabel = mergeStats.source === 'remote' ? 
+                    const isRemoteBase =
+                        mergeStats.source === 'remote' ||
+                        mergeStats.source === 'remote_built_in_merged';
+                    const baseProvidersLabel = isRemoteBase ? 
                         (translate('active_remote_providers_label')) :
                         (translate('active_bundled_providers_label'));
                     html += `<strong>${baseProvidersLabel}</strong> ${getLocalizedNumber(mergeStats.filteredBundledProviders || 0)}<br>`;
@@ -2372,14 +2369,9 @@ function displayBundledRulesInfo() {
                 const isMergedRemoteMetadata =
                     hashStatus === 'remote_rules_merged' ||
                     hashStatus === 'remote_rules_partially_merged' ||
-                    hashStatus === 'remote_custom_rules_merged' ||
                     sourceInfo.source === 'remote_merged' ||
                     (metadata && metadata.source === 'remote_merged') ||
-                    (metadata && typeof metadata.mergedSourceCount === 'number' && metadata.mergedSourceCount > 1) ||
-                    (Array.isArray(settings.remoteRuleSets) &&
-                        settings.remoteRuleSets.length > 1 &&
-                        (String(hashStatus || '').startsWith('remote_') || sourceInfo.source === 'remote')) ||
-                    (metadata && metadata.name === 'Merged Remote Rules');
+                    (metadata && typeof metadata.mergedSourceCount === 'number' && metadata.mergedSourceCount > 1);
                 const hasMetadataName = !!(metadata && metadata.name);
 
                 if (hasMetadataName || isMergedRemoteMetadata) {
@@ -2420,6 +2412,12 @@ function displayBundledRulesInfo() {
                     case 'remote_verified':
                         statusText = translate('hashStatus_remote_verified');
                         break;
+                    case 'remote_built_in_merged':
+                        statusText = translate('hashStatus_remote_built_in_merged');
+                        break;
+                    case 'remote_built_in_merged_custom':
+                        statusText = translate('hashStatus_remote_built_in_merged_custom');
+                        break;
                     case 'remote_failed':
                         statusText = translate('hashStatus_remote_failed');
                         break;
@@ -2439,6 +2437,12 @@ function displayBundledRulesInfo() {
                         break;
                     case 'bundled_rules_fallback':
                         statusText = translate('hashStatus_bundled_rules_fallback');
+                        break;
+                    case 'custom_only_loaded':
+                        statusText = translate('hashStatus_custom_only_loaded');
+                        break;
+                    case 'custom_only_no_rules':
+                        statusText = translate('hashStatus_custom_only_no_rules');
                         break;
                     case 'bundled_fallback_loaded':
                         statusText = translate('hashStatus_bundled_fallback_loaded');
@@ -2801,6 +2805,10 @@ setElementHTML('whitelist_examples_text', 'whitelist_examples_text');
     setElementText('ping_blocking_enabled_description', 'ping_blocking_enabled_description');
     setElementText('eTag_filtering_enabled', 'eTag_filtering_enabled');
     setElementText('eTag_filtering_enabled_description', 'eTag_filtering_enabled_description');
+    setElementText('built_in_rules_enabled', 'built_in_rules_enabled');
+    setElementText('built_in_rules_enabled_description', 'built_in_rules_enabled_description');
+    setElementText('overload_mode_enabled', 'overload_mode_enabled');
+    setElementText('overload_mode_enabled_description', 'overload_mode_enabled_description');
     
     // Whitelist section
     setElementText('whitelist_section_title', 'whitelist_section_title');

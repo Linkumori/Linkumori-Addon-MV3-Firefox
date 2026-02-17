@@ -2430,6 +2430,10 @@
     "message": "Remote",
     "description": "Source text when remote rules are active."
   },
+  "rules_source_remote_built_in_merged": {
+    "message": "Remote + Built-in (Merged)",
+    "description": "Source text when remote and built-in rules are merged."
+  },
   "rules_source_bundled": {
     "message": "Bundled",
     "description": "Source text when bundled rules are active."
@@ -3202,6 +3206,18 @@
     "message": "Remote rules verified",
     "description": "Status when remote rules have been successfully verified"
   },
+  "hashStatus_remote_built_in_merged": {
+    "message": "Remote + built-in rules merged",
+    "description": "Status when remote and built-in rules are merged successfully"
+  },
+  "hashStatus_remote_built_in_merged_custom": {
+    "message": "Remote + built-in rules merged with custom rules",
+    "description": "Status when overload mode is active and custom rules are merged"
+  },
+  "hashStatus_remote_built_in_partially_merged": {
+    "message": "Remote + built-in rules partially merged",
+    "description": "Status when merged mode is active and some remote sources fail"
+  },
   "hashStatus_remote_failed": {
     "message": "Remote rules failed",
     "description": "Status when remote rules failed verification or loading"
@@ -3245,6 +3261,14 @@
   "hashStatus_cache_remote_custom_rules_after_bundled_failure": {
     "message": "Cached remote + custom rules (bundled failed)",
     "description": "Status when using cached remote rules with custom rules after bundled failure"
+  },
+  "hashStatus_custom_only_loaded": {
+    "message": "Using custom rules only",
+    "description": "Status when built-in rules are disabled and only custom rules are active"
+  },
+  "hashStatus_custom_only_no_rules": {
+    "message": "Built-in rules disabled and no custom rules found",
+    "description": "Status when built-in rules are disabled and there are no custom rules to load"
   },
   
   "providerList_button": {
@@ -3349,6 +3373,22 @@
     "message": "Allow the extension to fetch rules from remote servers. When disabled, only bundled rules will be used.",
     "description": "Description for the remote rules enabled toggle"
   },
+  "built_in_rules_enabled": {
+    "message": "Enable Built-in Rules",
+    "description": "Label for the toggle that enables or disables bundled built-in rules"
+  },
+  "built_in_rules_enabled_description": {
+    "message": "Use the bundled Linkumori/ClearURLs rules. Disable this to run with remote rules and/or custom rules only.",
+    "description": "Description for the toggle that controls bundled built-in rules"
+  },
+  "overload_mode_enabled": {
+    "message": "Enable Overload Mode",
+    "description": "Label for toggle that merges built-in and remote rules together"
+  },
+  "overload_mode_enabled_description": {
+    "message": "When enabled, built-in and remote rules are loaded together and merged before custom rules are applied.",
+    "description": "Description for overload mode toggle"
+  },
   "remote_rules_disabled_placeholder": {
     "message": "Remote rules disabled - toggle below to enable",
     "description": "Placeholder text shown when remote rules are disabled"
@@ -3422,9 +3462,6 @@
     "description": "Status text when some permissions are missing"
   }
 }
-
-
-
 
 
 
