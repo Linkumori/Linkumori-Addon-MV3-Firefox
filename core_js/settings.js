@@ -2367,22 +2367,36 @@ function displayBundledRulesInfo() {
                 // Note: When there are no custom rules, we don't show additional breakdown
                 // since "Total Providers" already shows the bundled provider count
                 
-                // Add metadata info if available with proper spacing
-                if (metadata && metadata.name) {
+                // Add metadata info. For merged remote rules, show merged name even if
+                // upstream metadata is missing.
+                const isMergedRemoteMetadata =
+                    hashStatus === 'remote_rules_merged' ||
+                    hashStatus === 'remote_rules_partially_merged' ||
+                    hashStatus === 'remote_custom_rules_merged' ||
+                    sourceInfo.source === 'remote_merged' ||
+                    (metadata && metadata.source === 'remote_merged') ||
+                    (metadata && typeof metadata.mergedSourceCount === 'number' && metadata.mergedSourceCount > 1) ||
+                    (Array.isArray(settings.remoteRuleSets) &&
+                        settings.remoteRuleSets.length > 1 &&
+                        (String(hashStatus || '').startsWith('remote_') || sourceInfo.source === 'remote')) ||
+                    (metadata && metadata.name === 'Merged Remote Rules');
+                const hasMetadataName = !!(metadata && metadata.name);
+
+                if (hasMetadataName || isMergedRemoteMetadata) {
                     const rulesNameLabel = translate('rules_name_label');
                     const rulesVersionLabel = translate('rules_version_label');
                     const rulesLicenseLabel = translate('rules_license_label');
                     const rulesAuthorLabel = translate('rules_author_label');
                     const rulesLastUpdatedLabel = translate('rules_last_updated_label');
-                    const isMergedRemoteMetadata = metadata.source === 'remote_merged' || metadata.name === 'Merged Remote Rules';
+                    const unknownText = translate('status_unknown');
                     const displayedMetadataName = isMergedRemoteMetadata
                         ? translate('rules_metadata_name_remote_merged')
-                        : metadata.name;
+                        : (metadata?.name || unknownText);
                     
                     html += `<br><br><strong>${translate('rules_metadata_section')}</strong><br>`;
                     html += `<strong>${rulesNameLabel}</strong> ${displayedMetadataName}<br>`;
                     if (!isMergedRemoteMetadata) {
-                        html += `<strong>${rulesVersionLabel}</strong> ${metadata.version || 'Unknown'}<br>`;
+                        html += `<strong>${rulesVersionLabel}</strong> ${metadata.version || unknownText}<br>`;
                     }
                     
                     if (!isMergedRemoteMetadata && metadata.license) {
