@@ -544,6 +544,76 @@
         "message": "Hash file URL for rule verification:",
         "description": "Description for the custom hash URL input field"
       },
+    "setting_remote_rule_sets_label": {
+        "message": "Additional Remote Rule Sets",
+        "description": "Label for additional remote rule+hash URL pairs."
+    },
+    "setting_remote_rule_sets_description": {
+        "message": "Additional remote sources merged together. Use one per line: <code>ruleURL | hashURL</code>",
+        "description": "Description for additional remote rule+hash URL pairs."
+    },
+    "setting_remote_rule_sets_placeholder": {
+        "message": "https://example.com/rules-2.json | https://example.com/hash-2.txt",
+        "description": "Placeholder for additional remote rule set entries."
+    },
+    "save_primary_remote_pair_required": {
+        "message": "Primary remote rule and hash URLs must both be provided",
+        "description": "Validation message when only one of primary rule/hash URL is set."
+    },
+    "save_primary_rule_https_required": {
+        "message": "Primary rule URL must use HTTPS",
+        "description": "Validation message when primary rule URL is not HTTPS."
+    },
+    "save_primary_hash_https_required": {
+        "message": "Primary hash URL must use HTTPS",
+        "description": "Validation message when primary hash URL is not HTTPS."
+    },
+    "remote_rule_sets_error_expected_pair": {
+        "message": "Line $LINE$: expected \"ruleURL | hashURL\"",
+        "description": "Validation message when an additional remote rule set line is malformed.",
+        "placeholders": {
+            "line": {
+                "content": "$1",
+                "example": "2"
+            }
+        }
+    },
+    "remote_rule_sets_error_invalid_rule_url": {
+        "message": "Line $LINE$: invalid HTTPS rule URL",
+        "description": "Validation message when additional remote rule URL is invalid.",
+        "placeholders": {
+            "line": {
+                "content": "$1",
+                "example": "2"
+            }
+        }
+    },
+    "remote_rule_sets_error_invalid_hash_url": {
+        "message": "Line $LINE$: invalid HTTPS hash URL",
+        "description": "Validation message when additional remote hash URL is invalid.",
+        "placeholders": {
+            "line": {
+                "content": "$1",
+                "example": "2"
+            }
+        }
+    },
+    "hashStatus_remote_partially_verified": {
+        "message": "Remote rules partially verified (merged available sources)",
+        "description": "Status message when some remote rule sources verify and others fail."
+    },
+    "hashStatus_remote_rules_merged": {
+        "message": "Multiple remote rule sources verified and merged",
+        "description": "Status when two or more remote sources were successfully merged."
+    },
+    "hashStatus_remote_rules_partially_merged": {
+        "message": "Multiple remote sources merged (some sources failed)",
+        "description": "Status when multiple remote sources are merged but one or more failed."
+    },
+    "rules_metadata_name_remote_merged": {
+        "message": "Merged Remote Rules",
+        "description": "Display name for merged remote rules metadata in settings."
+    },
   "whitelist_section_title": {
     "message": "Domain Whitelist",
     "description": "Title for the whitelist settings section"
@@ -3252,8 +3322,6 @@
     "description": "Status text when some permissions are missing"
   }
 }
-
-
 
 
 
