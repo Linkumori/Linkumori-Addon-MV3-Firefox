@@ -75,6 +75,10 @@ function normalizeRemoteRuleSetEntry(entry) {
 }
 
 function getConfiguredRemoteRuleSets() {
+    if (!storage.remoteRulesEnabled) {
+        return [];
+    }
+
     const dedupe = new Set();
     const remoteRuleSets = [];
 
@@ -288,7 +292,23 @@ function mergeRemoteRulesSources(successfulSources, failedSources = []) {
             }))
         };
     } else {
-        mergedRules.metadata = {};
+        mergedRules.metadata = {
+            source: successfulSources.length > 1 ? 'remote_merged' : 'remote',
+            sourceURL: successfulSources.length > 1 ? 'multiple' : successfulSources[0].ruleURL,
+            providerCount: mergedProviderCount,
+            mergedSourceCount: successfulSources.length,
+            failedSourceCount: failedSources.length,
+            remoteSources: successfulSources.map(source => ({
+                ruleURL: source.ruleURL,
+                hashURL: source.hashURL,
+                providerCount: Object.keys(source.rules?.providers || {}).length
+            })),
+            failedSources: failedSources.map(source => ({
+                ruleURL: source.ruleURL,
+                hashURL: source.hashURL,
+                error: source.error
+            }))
+        };
     }
 
     return mergedRules;
@@ -567,6 +587,11 @@ function loadRemoteRulesFromCache(expectedHash = null, cacheReason = 'cache_used
 
 function fetchRemoteRules(url, expectedHash = null) {
     return new Promise((resolve, reject) => {
+        if (!storage.remoteRulesEnabled) {
+            reject(new Error('Remote rules are disabled'));
+            return;
+        }
+
         if (!areValidRemoteURLsPresent()) {
             reject(new Error('SECURITY BLOCK: Network calls require both valid ruleURL and hashURL'));
             return;
@@ -661,6 +686,11 @@ function fetchRemoteRules(url, expectedHash = null) {
 
 function fetchRemoteHash(hashUrl) {
     return new Promise((resolve, reject) => {
+        if (!storage.remoteRulesEnabled) {
+            reject(new Error('Remote rules are disabled'));
+            return;
+        }
+
         if (!areValidRemoteURLsPresent()) {
             reject(new Error('SECURITY BLOCK: Network calls require both valid ruleURL and hashURL'));
             return;
