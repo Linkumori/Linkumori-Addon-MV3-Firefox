@@ -2579,32 +2579,32 @@ function updateEditorStatus(type, message) {
  * Setup theme toggle functionality
  */
 function initializeTheme() {
-   const themeToggle = document.getElementById('themeToggle');
-        const savedTheme = localStorage.getItem('linkumori-theme') || 'dark';
-        
-        // Apply saved theme
-        document.documentElement.setAttribute('data-theme', savedTheme);
+    const themeToggle = document.getElementById('theme-toggle') || document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('linkumori-theme') || 'dark';
+
+    // Apply saved theme
+    document.documentElement.setAttribute('data-theme', savedTheme);
     
     // Apply saved theme
-   if (themeToggle) {
-            themeToggle.onclick = () => {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                let newTheme;
-                
-                if (currentTheme === 'light') {
-                    // Switch to last used dark theme or default dark
-                    newTheme = localStorage.getItem('linkumori-last-dark-theme') || 'dark';
-                } else {
-                    // Save current dark theme and switch to light
-                    localStorage.setItem('linkumori-last-dark-theme', currentTheme);
-                    newTheme = 'light';
-                }
-                
-                // Apply theme
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('linkumori-theme', newTheme);
-                browser.storage.local.set({'linkumori-theme': newTheme});
-            };
+    if (themeToggle) {
+        themeToggle.onclick = () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            let newTheme;
+
+            if (currentTheme === 'light') {
+                // Switch to last used dark theme or default dark
+                newTheme = localStorage.getItem('linkumori-last-dark-theme') || 'dark';
+            } else {
+                // Save current dark theme and switch to light
+                localStorage.setItem('linkumori-last-dark-theme', currentTheme);
+                newTheme = 'light';
+            }
+
+            // Apply theme
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('linkumori-theme', newTheme);
+            browser.storage.local.set({'linkumori-theme': newTheme});
+        };
     }
 }
 /**
