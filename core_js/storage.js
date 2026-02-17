@@ -59,25 +59,248 @@ var tempVerificationCache = {
     isCacheUsed: false
 };
 
+function normalizeRemoteRuleSetEntry(entry) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+        return null;
+    }
+
+    const ruleURL = typeof entry.ruleURL === 'string' ? entry.ruleURL.trim() : '';
+    const hashURL = typeof entry.hashURL === 'string' ? entry.hashURL.trim() : '';
+
+    if (!isValidRuleURL(ruleURL) || !isValidRuleURL(hashURL)) {
+        return null;
+    }
+
+    return { ruleURL, hashURL };
+}
+
+function getConfiguredRemoteRuleSets() {
+    const dedupe = new Set();
+    const remoteRuleSets = [];
+
+    const primaryRuleURL = typeof storage.ruleURL === 'string' ? storage.ruleURL.trim() : '';
+    const primaryHashURL = typeof storage.hashURL === 'string' ? storage.hashURL.trim() : '';
+    const hasPrimary = isValidRuleURL(primaryRuleURL) && isValidRuleURL(primaryHashURL);
+
+    if (hasPrimary) {
+        const key = `${primaryRuleURL}|||${primaryHashURL}`;
+        dedupe.add(key);
+        remoteRuleSets.push({ ruleURL: primaryRuleURL, hashURL: primaryHashURL });
+    }
+
+    if (Array.isArray(storage.remoteRuleSets)) {
+        storage.remoteRuleSets.forEach(entry => {
+            const normalized = normalizeRemoteRuleSetEntry(entry);
+            if (!normalized) {
+                return;
+            }
+
+            const key = `${normalized.ruleURL}|||${normalized.hashURL}`;
+            if (dedupe.has(key)) {
+                return;
+            }
+
+            dedupe.add(key);
+            remoteRuleSets.push(normalized);
+        });
+    }
+
+    return remoteRuleSets;
+}
+
+function mergeRemoteProviderGroup(providerGroup) {
+    const merged = {
+        urlPattern: providerGroup[0].data?.urlPattern,
+        rules: [],
+        rawRules: [],
+        referralMarketing: [],
+        exceptions: [],
+        redirections: [],
+        domainPatterns: [],
+        domainExceptions: [],
+        domainRedirections: [],
+        methods: [],
+        resourceTypes: [],
+        completeProvider: false,
+        forceRedirection: false
+    };
+
+    providerGroup.forEach(provider => {
+        const data = provider.data || {};
+
+        if (Array.isArray(data.rules)) {
+            merged.rules = [...new Set([...merged.rules, ...data.rules])];
+        }
+        if (Array.isArray(data.rawRules)) {
+            merged.rawRules = [...new Set([...merged.rawRules, ...data.rawRules])];
+        }
+        if (Array.isArray(data.referralMarketing)) {
+            merged.referralMarketing = [...new Set([...merged.referralMarketing, ...data.referralMarketing])];
+        }
+        if (Array.isArray(data.exceptions)) {
+            merged.exceptions = [...new Set([...merged.exceptions, ...data.exceptions])];
+        }
+        if (Array.isArray(data.redirections)) {
+            merged.redirections = [...new Set([...merged.redirections, ...data.redirections])];
+        }
+        if (Array.isArray(data.domainPatterns)) {
+            merged.domainPatterns = [...new Set([...merged.domainPatterns, ...data.domainPatterns])];
+        }
+        if (Array.isArray(data.domainExceptions)) {
+            merged.domainExceptions = [...new Set([...merged.domainExceptions, ...data.domainExceptions])];
+        }
+        if (Array.isArray(data.domainRedirections)) {
+            merged.domainRedirections = [...new Set([...merged.domainRedirections, ...data.domainRedirections])];
+        }
+        if (Array.isArray(data.methods)) {
+            merged.methods = [...new Set([...merged.methods, ...data.methods])];
+        }
+        if (Array.isArray(data.resourceTypes)) {
+            merged.resourceTypes = [...new Set([...merged.resourceTypes, ...data.resourceTypes])];
+        }
+
+        if (data.completeProvider === true) {
+            merged.completeProvider = true;
+        }
+        if (data.forceRedirection === true) {
+            merged.forceRedirection = true;
+        }
+    });
+
+    if (typeof merged.urlPattern !== 'string' || merged.urlPattern.length === 0) {
+        delete merged.urlPattern;
+    }
+
+    if (merged.rules.length === 0) delete merged.rules;
+    if (merged.rawRules.length === 0) delete merged.rawRules;
+    if (merged.referralMarketing.length === 0) delete merged.referralMarketing;
+    if (merged.exceptions.length === 0) delete merged.exceptions;
+    if (merged.redirections.length === 0) delete merged.redirections;
+    if (merged.domainPatterns.length === 0) delete merged.domainPatterns;
+    if (merged.domainExceptions.length === 0) delete merged.domainExceptions;
+    if (merged.domainRedirections.length === 0) delete merged.domainRedirections;
+    if (merged.methods.length === 0) delete merged.methods;
+    if (merged.resourceTypes.length === 0) delete merged.resourceTypes;
+    if (merged.completeProvider !== true) delete merged.completeProvider;
+    if (merged.forceRedirection !== true) delete merged.forceRedirection;
+
+    return merged;
+}
+
+function createMergedRemoteProviderName(providerGroup) {
+    const prioritized = providerGroup.filter(provider => provider.isPrimarySource);
+    if (prioritized.length > 0) {
+        return prioritized[0].name;
+    }
+
+    const names = providerGroup.map(provider => provider.name);
+    names.sort((a, b) => a.length - b.length);
+    return names[0];
+}
+
+function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new Set()) {
+    const urlPatternGroups = {};
+
+    Object.entries(providers || {}).forEach(([providerName, providerData]) => {
+        const pattern = providerData?.urlPattern || `__NO_PATTERN__${providerName}`;
+
+        if (!urlPatternGroups[pattern]) {
+            urlPatternGroups[pattern] = [];
+        }
+
+        urlPatternGroups[pattern].push({
+            name: providerName,
+            data: providerData,
+            isPrimarySource: primaryProviderNames.has(providerName)
+        });
+    });
+
+    const mergedProviders = {};
+
+    Object.values(urlPatternGroups).forEach(providerGroup => {
+        if (providerGroup.length === 1) {
+            const onlyProvider = providerGroup[0];
+            mergedProviders[onlyProvider.name] = onlyProvider.data;
+            return;
+        }
+
+        const mergedProvider = mergeRemoteProviderGroup(providerGroup);
+        const mergedName = createMergedRemoteProviderName(providerGroup);
+        mergedProviders[mergedName] = mergedProvider;
+    });
+
+    return mergedProviders;
+}
+
+function mergeRemoteRulesSources(successfulSources, failedSources = []) {
+    const combinedProviders = {};
+    const primaryProviderNames = new Set();
+    let mergedMetadata = null;
+
+    successfulSources.forEach((source, sourceIndex) => {
+        const providers = source.rules?.providers || {};
+        const providerNames = Object.keys(providers);
+
+        if (sourceIndex === 0) {
+            providerNames.forEach(providerName => primaryProviderNames.add(providerName));
+        }
+
+        providerNames.forEach(providerName => {
+            combinedProviders[providerName] = providers[providerName];
+        });
+
+        if (!mergedMetadata && source.rules?.metadata) {
+            mergedMetadata = { ...source.rules.metadata };
+        }
+    });
+
+    const mergedProviders = mergeRemoteProvidersByUrlPattern(combinedProviders, primaryProviderNames);
+    const mergedRules = { providers: mergedProviders };
+    const mergedProviderCount = Object.keys(mergedProviders).length;
+
+    if (mergedProviderCount === 0) {
+        throw new Error('No providers found after merging remote rule sources');
+    }
+
+    const hasRemoteMetadata = !!(mergedMetadata && typeof mergedMetadata === 'object' && !Array.isArray(mergedMetadata));
+
+    if (hasRemoteMetadata) {
+        const mergedMetadataName = 'Merged Remote Rules';
+        const singleSourceMetadataName = mergedMetadata?.name || 'Remote Rules';
+
+        mergedRules.metadata = {
+            ...(mergedMetadata || {}),
+            name: successfulSources.length > 1 ? mergedMetadataName : singleSourceMetadataName,
+            source: successfulSources.length > 1 ? 'remote_merged' : 'remote',
+            sourceURL: successfulSources.length > 1 ? 'multiple' : successfulSources[0].ruleURL,
+            providerCount: mergedProviderCount,
+            mergedSourceCount: successfulSources.length,
+            failedSourceCount: failedSources.length,
+            remoteSources: successfulSources.map(source => ({
+                ruleURL: source.ruleURL,
+                hashURL: source.hashURL,
+                providerCount: Object.keys(source.rules?.providers || {}).length
+            })),
+            failedSources: failedSources.map(source => ({
+                ruleURL: source.ruleURL,
+                hashURL: source.hashURL,
+                error: source.error
+            }))
+        };
+    } else {
+        mergedRules.metadata = {};
+    }
+
+    return mergedRules;
+}
+
 function areValidRemoteURLsPresent() {
 
      if (!storage.remoteRulesEnabled) {
         return false;
     }
-    const ruleURL = storage.ruleURL;
-    const hashURL = storage.hashURL;
-    
-    const hasValidRuleURL = ruleURL && 
-                           typeof ruleURL === 'string' && 
-                           ruleURL.trim() !== '' &&
-                           ruleURL.startsWith('https://');
-                           
-    const hasValidHashURL = hashURL && 
-                           typeof hashURL === 'string' && 
-                           hashURL.trim() !== '' &&
-                           hashURL.startsWith('https://');
-    
-    return hasValidRuleURL && hasValidHashURL;
+
+    return getConfiguredRemoteRuleSets().length > 0;
 }
 
 function saveOnExit() {
@@ -450,9 +673,7 @@ function fetchRemoteHash(hashUrl) {
 
         fetch(hashUrl, {
             method: 'GET',
-            headers: {
-                'Cache-Control': 'no-cache'
-            }
+            cache: 'no-store'
         })
         .then(response => {
             if (!response.ok) {
@@ -486,39 +707,81 @@ function loadBundledRules() {
         
         return loadBundledRulesInternal(false);
     }
-    
-    const userRuleURL = storage.ruleURL;
-    const userHashURL = storage.hashURL;
-    
-    const hasValidRuleURL = userRuleURL && 
-                           typeof userRuleURL === 'string' && 
-                           userRuleURL.trim() !== '' &&
-                           userRuleURL.startsWith('https://');
-                           
-    const hasValidHashURL = userHashURL && 
-                           typeof userHashURL === 'string' && 
-                           userHashURL.trim() !== '' &&
-                           userHashURL.startsWith('https://');
-    
-    if (!hasValidRuleURL || !hasValidHashURL) {
+
+    const configuredRemoteSets = getConfiguredRemoteRuleSets();
+
+    if (configuredRemoteSets.length === 0) {
         storage.hashStatus = "invalid_remote_urls";
         storage.hashValidationStatus = 'failed_validation';
         tempVerificationCache.isRemoteVerified = false;
         
         return loadBundledRulesInternal(false);
     }
-    
-    return fetchRemoteHash(userHashURL)
-        .then(remoteHash => {
-            return fetchRemoteRules(userRuleURL, remoteHash);
-        })
-        .then(remoteRules => {
-            storage.hashValidationStatus = 'verified';
+
+    const fetchJobs = configuredRemoteSets.map(set => {
+        return fetchRemoteHash(set.hashURL)
+            .then(remoteHash => fetchRemoteRules(set.ruleURL, remoteHash))
+            .then(rules => ({
+                ruleURL: set.ruleURL,
+                hashURL: set.hashURL,
+                rules
+            }));
+    });
+
+    return Promise.allSettled(fetchJobs)
+        .then(results => {
+            const successful = [];
+            const failed = [];
+
+            results.forEach((result, index) => {
+                const set = configuredRemoteSets[index];
+                if (result.status === 'fulfilled') {
+                    successful.push(result.value);
+                } else {
+                    failed.push({
+                        ruleURL: set.ruleURL,
+                        hashURL: set.hashURL,
+                        error: result.reason?.message || 'Unknown remote source error'
+                    });
+                }
+            });
+
+            if (successful.length === 0) {
+                throw new Error(failed.map(item => item.error).join('; ') || 'All remote sources failed');
+            }
+
+            const mergedRemoteRules = mergeRemoteRulesSources(successful, failed);
+            storage.rulesMetadata = mergedRemoteRules.metadata;
+            storage.hashFailureReason = failed.length > 0
+                ? failed.map(item => item.error).join('; ')
+                : null;
+
+            if (successful.length > 1 && failed.length === 0) {
+                storage.hashStatus = "remote_rules_merged";
+                storage.hashValidationStatus = 'verified';
+            } else if (successful.length > 1 && failed.length > 0) {
+                storage.hashStatus = "remote_rules_partially_merged";
+                storage.hashValidationStatus = 'partially_verified';
+            } else if (successful.length === 1 && failed.length > 0) {
+                storage.hashStatus = "remote_partially_verified";
+                storage.hashValidationStatus = 'partially_verified';
+            } else {
+                storage.hashStatus = "remote_verified";
+                storage.hashValidationStatus = 'verified';
+            }
+
             tempVerificationCache.isRemoteVerified = true;
-            
-            return mergeCustomRules(remoteRules);
+            tempVerificationCache.isCacheUsed = false;
+
+            saveRemoteRulesCache(mergedRemoteRules, {
+                sourceCount: successful.length,
+                failedSourceCount: failed.length,
+                timestamp: new Date().toISOString()
+            });
+
+            return mergeCustomRules(mergedRemoteRules);
         })
-        .catch(remoteError => {
+        .catch(() => {
             storage.hashValidationStatus = 'failed';
             tempVerificationCache.isRemoteVerified = false;
             
@@ -970,6 +1233,37 @@ function setData(key, value) {
                 storage[key] = '';
             }
             break;
+        case "remoteRuleSets": {
+            let parsed = value;
+            if (typeof value === 'string') {
+                try {
+                    parsed = JSON.parse(value);
+                } catch (e) {
+                    parsed = [];
+                }
+            }
+
+            if (!Array.isArray(parsed)) {
+                storage[key] = [];
+                break;
+            }
+
+            const dedupe = new Set();
+            storage[key] = parsed
+                .map(normalizeRemoteRuleSetEntry)
+                .filter(entry => {
+                    if (!entry) {
+                        return false;
+                    }
+                    const pairKey = `${entry.ruleURL}|||${entry.hashURL}`;
+                    if (dedupe.has(pairKey)) {
+                        return false;
+                    }
+                    dedupe.add(pairKey);
+                    return true;
+                });
+            break;
+        }
         case "types":
             if (typeof value === 'string') {
                 storage[key] = value.split(',');
@@ -1038,6 +1332,7 @@ function initSettings() {
     storage.statisticsStatus = true;
     storage.badged_color = "#2563eb";
     storage.remoteRulescache = null;
+    storage.remoteRuleSets = [];
     
     storage.hashURL = "";
     storage.ruleURL = "";
@@ -1283,18 +1578,22 @@ function getHashVerificationStatus() {
 }
 
 function getNetworkCallStatus() {
-    const hasValidUrls = areValidRemoteURLsPresent();
+    const configuredRemoteSets = getConfiguredRemoteRuleSets();
+    const hasValidUrls = configuredRemoteSets.length > 0;
+    const firstRemoteSet = configuredRemoteSets[0] || { ruleURL: '', hashURL: '' };
+
     return {
         networkCallsAllowed: hasValidUrls,
-        ruleURL: storage.ruleURL || '',
-        hashURL: storage.hashURL || '',
-        ruleURLValid: isValidRuleURL(storage.ruleURL),
-        hashURLValid: isValidRuleURL(storage.hashURL),
+        ruleURL: firstRemoteSet.ruleURL,
+        hashURL: firstRemoteSet.hashURL,
+        ruleURLValid: isValidRuleURL(firstRemoteSet.ruleURL),
+        hashURLValid: isValidRuleURL(firstRemoteSet.hashURL),
+        configuredRemoteSourceCount: configuredRemoteSets.length,
         hashStatus: storage.hashStatus || 'unknown',
         remoteVerified: tempVerificationCache.isRemoteVerified,
         message: hasValidUrls ? 
-            'Network calls permitted - both URLs valid' : 
-            'Network calls BLOCKED - missing or invalid URLs'
+            `Network calls permitted - ${configuredRemoteSets.length} remote source(s) valid` :
+            'Network calls BLOCKED - missing or invalid remote source pairs'
     };
 }
 
