@@ -1456,7 +1456,8 @@ async function updateRulesStatus() {
                 'cache_remote_custom_rules_after_remote_failure': i18n('hashStatus_cache_remote_custom_rules_after_remote_failure'),
                 'cache_remote_custom_rules_after_bundled_failure': i18n('hashStatus_cache_remote_custom_rules_after_bundled_failure'),
                 'custom_rules_merged': i18n('status_customMerged'),
-                'custom_rules_failed': i18n('status_customFailed')
+                'custom_rules_failed': i18n('status_customFailed'),
+                'custom_only_no_rules': i18n('hashStatus_custom_only_no_rules')
             };
             
             const statusText = statusMap[stats.hashStatus] || stats.hashStatus || i18n('status_unknown');

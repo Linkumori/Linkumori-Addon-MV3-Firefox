@@ -62,7 +62,6 @@ import punycode from '../external_js/light-punycode.js';
 
 var settings = [];
 let linkumoriPicker = null; // Initialize as null first
-let themeHandlersBound = false;
 
 // Security Modal State Management
 let securityModalState = {
@@ -982,40 +981,70 @@ function initializeTheme() {
     try {
         const themeToggle = document.getElementById('themeToggle');
         const savedTheme = localStorage.getItem('linkumori-theme') || 'dark';
-
-        // Apply saved theme and sync UI state.
-        applyTheme(savedTheme);
-
-        if (!themeHandlersBound) {
-            const themeCards = document.querySelectorAll('.theme-card');
-            if (themeCards.length > 0) {
-                themeCards.forEach(card => {
-                    card.addEventListener('click', () => {
-                        applyTheme(card.dataset.theme, true);
-                    });
+        
+        // Apply saved theme
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Initialize theme cards
+        const themeCards = document.querySelectorAll('.theme-card');
+        
+        if (themeCards.length > 0) {
+            themeCards.forEach(card => {
+                // Set active card
+                if (card.dataset.theme === savedTheme) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+                
+                // Add click handler
+                card.addEventListener('click', () => {
+                    const newTheme = card.dataset.theme;
+                    
+                    // Update active state
+                    themeCards.forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    
+                    // Apply theme
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('linkumori-theme', newTheme);
+                    browser.storage.local.set({'linkumori-theme': newTheme});
                 });
-            }
-
-            // Theme toggle handler (cycles between light and last used dark theme)
-            if (themeToggle) {
-                themeToggle.onclick = () => {
-                    const currentTheme = document.documentElement.getAttribute('data-theme');
-                    let newTheme;
-
-                    if (currentTheme === 'light') {
-                        // Switch to last used dark theme or default dark
-                        newTheme = localStorage.getItem('linkumori-last-dark-theme') || 'dark';
-                    } else {
-                        // Save current dark theme and switch to light
-                        localStorage.setItem('linkumori-last-dark-theme', currentTheme);
-                        newTheme = 'light';
-                    }
-
-                    applyTheme(newTheme, true);
-                };
-            }
-
-            themeHandlersBound = true;
+            });
+        }
+        
+        // Theme toggle handler (cycles between light and last used dark theme)
+        if (themeToggle) {
+            themeToggle.onclick = () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                let newTheme;
+                
+                if (currentTheme === 'light') {
+                    // Switch to last used dark theme or default dark
+                    newTheme = localStorage.getItem('linkumori-last-dark-theme') || 'dark';
+                } else {
+                    // Save current dark theme and switch to light
+                    localStorage.setItem('linkumori-last-dark-theme', currentTheme);
+                    newTheme = 'light';
+                }
+                
+                // Apply theme
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('linkumori-theme', newTheme);
+                browser.storage.local.set({'linkumori-theme': newTheme});
+                
+                // Update active card if available
+                const currentThemeCards = document.querySelectorAll('.theme-card');
+                if (currentThemeCards.length > 0) {
+                    currentThemeCards.forEach(card => {
+                        if (card.dataset.theme === newTheme) {
+                            card.classList.add('active');
+                        } else {
+                            card.classList.remove('active');
+                        }
+                    });
+                }
+            };
         }
     } catch (error) {
         console.error('Theme initialization failed:', error);
@@ -1028,27 +1057,14 @@ browser.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local') {
         // Check for theme changes
         if (changes['linkumori-theme']) {
-            applyTheme(changes['linkumori-theme'].newValue || 'dark');
+            initializeTheme();
+        }
+        
+        if (changes['globalStatus']) {
+            initializeTheme();
         }
     }
 });
-
-function applyTheme(theme, persist = false) {
-    const selectedTheme = theme || 'dark';
-    document.documentElement.setAttribute('data-theme', selectedTheme);
-
-    const cards = document.querySelectorAll('.theme-card');
-    if (cards.length > 0) {
-        cards.forEach(card => {
-            card.classList.toggle('active', card.dataset.theme === selectedTheme);
-        });
-    }
-
-    if (persist) {
-        localStorage.setItem('linkumori-theme', selectedTheme);
-        browser.storage.local.set({ 'linkumori-theme': selectedTheme });
-    }
-}
 
 // ============================================================================
 // EVENT HANDLER SETUP
