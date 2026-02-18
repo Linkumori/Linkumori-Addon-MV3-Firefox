@@ -202,17 +202,35 @@ function createMergedRemoteProviderName(providerGroup) {
     return names[0];
 }
 
+/**
+ * Generates a canonical grouping key for a provider based on its matching criteria.
+ * - If urlPattern exists, use it.
+ * - Else if domainPatterns exists, sort and join them to create a key.
+ * - Else fallback to provider name.
+ */
+function getProviderGroupKey(providerName, providerData) {
+    if (providerData?.urlPattern && typeof providerData.urlPattern === 'string') {
+        return providerData.urlPattern;
+    }
+    if (providerData?.domainPatterns && Array.isArray(providerData.domainPatterns) && providerData.domainPatterns.length > 0) {
+        // Sort to ensure order-independent matching
+        const sorted = [...providerData.domainPatterns].sort();
+        return 'DOMAIN_PATTERNS:' + sorted.join('||');
+    }
+    return `__NO_PATTERN__${providerName}`;
+}
+
 function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new Set()) {
-    const urlPatternGroups = {};
+    const patternGroups = {};
 
     Object.entries(providers || {}).forEach(([providerName, providerData]) => {
-        const pattern = providerData?.urlPattern || `__NO_PATTERN__${providerName}`;
+        const key = getProviderGroupKey(providerName, providerData);
 
-        if (!urlPatternGroups[pattern]) {
-            urlPatternGroups[pattern] = [];
+        if (!patternGroups[key]) {
+            patternGroups[key] = [];
         }
 
-        urlPatternGroups[pattern].push({
+        patternGroups[key].push({
             name: providerName,
             data: providerData,
             isPrimarySource: primaryProviderNames.has(providerName)
@@ -221,7 +239,7 @@ function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new 
 
     const mergedProviders = {};
 
-    Object.values(urlPatternGroups).forEach(providerGroup => {
+    Object.values(patternGroups).forEach(providerGroup => {
         if (providerGroup.length === 1) {
             const onlyProvider = providerGroup[0];
             mergedProviders[onlyProvider.name] = onlyProvider.data;
@@ -233,7 +251,34 @@ function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new 
         mergedProviders[mergedName] = mergedProvider;
     });
 
-    return mergedProviders;
+    // --- Disambiguation step: ensure all provider names are unique ---
+    const entries = Object.entries(mergedProviders).sort(([a], [b]) => a.localeCompare(b));
+    const finalProviders = {};
+
+    for (const [name, provider] of entries) {
+        let finalName = name;
+        if (finalProviders.hasOwnProperty(finalName)) {
+            // Name conflict – append a suffix based on the matching type
+            let suffix = '';
+            if (provider.urlPattern) {
+                suffix = ' (urlPattern)';
+            } else if (provider.domainPatterns && provider.domainPatterns.length > 0) {
+                suffix = ' (domainPatterns)';
+            } else {
+                suffix = ' (fallback)';
+            }
+
+            finalName = name + suffix;
+            let counter = 1;
+            while (finalProviders.hasOwnProperty(finalName)) {
+                finalName = name + suffix + ' ' + counter;
+                counter++;
+            }
+        }
+        finalProviders[finalName] = provider;
+    }
+
+    return finalProviders;
 }
 
 function mergeRemoteRulesSources(successfulSources, failedSources = []) {
@@ -1142,6 +1187,12 @@ function loadCustomOnlyRules() {
     });
 }
 
+/**
+ * Merges custom rules with base rules.
+ * Override is based on the canonical matching key (urlPattern or domainPatterns),
+ * not on provider name. This ensures custom rules correctly replace providers
+ * even after disambiguation (suffixes) have been applied.
+ */
 function mergeCustomRules(bundledRules) {
     return new Promise(async (resolve) => {
         try {
@@ -1176,6 +1227,7 @@ function mergeCustomRules(bundledRules) {
                 customRules = { providers: {} };
             }
             
+            // If no custom rules, just use the base rules
             if (!customRules || customProviderCount === 0) {
                 storage.ClearURLsData = bundledRules;
                 storage.mergeStats = {
@@ -1210,47 +1262,69 @@ function mergeCustomRules(bundledRules) {
                     storage.hashStatus = "bundled_rules_loaded";
                 }
             } else {
-                const bundledProviderNames = Object.keys(bundledRules.providers || {});
-                const customProviderNames = Object.keys(customRules.providers || {});
+                // Build match keys for base providers
+                const baseProviders = bundledRules.providers || {};
+                const baseKeys = new Map(); // key -> { name, data }
+                for (const [name, data] of Object.entries(baseProviders)) {
+                    const key = getProviderGroupKey(name, data);
+                    baseKeys.set(key, { name, data });
+                }
                 
-                const overriddenProviders = customProviderNames.filter(name => 
-                    bundledProviderNames.includes(name)
-                );
+                // Build match keys for custom providers
+                const customProviders = customRules.providers || {};
+                const customKeys = new Map(); // key -> { name, data }
+                for (const [name, data] of Object.entries(customProviders)) {
+                    const key = getProviderGroupKey(name, data);
+                    customKeys.set(key, { name, data });
+                }
                 
-                const filteredBundledProviders = {};
-                bundledProviderNames.forEach(providerName => {
-                    if (!overriddenProviders.includes(providerName)) {
-                        filteredBundledProviders[providerName] = bundledRules.providers[providerName];
+                // Determine overridden base providers (those whose keys exist in customKeys)
+                const overriddenKeys = new Set();
+                const overriddenProviderNames = [];
+                for (const key of baseKeys.keys()) {
+                    if (customKeys.has(key)) {
+                        overriddenKeys.add(key);
+                        overriddenProviderNames.push(baseKeys.get(key).name);
                     }
-                });
+                }
+                
+                // Build final providers
+                const finalProviders = {};
+                
+                // Add base providers that are NOT overridden
+                for (const [key, { name, data }] of baseKeys.entries()) {
+                    if (!overriddenKeys.has(key)) {
+                        finalProviders[name] = data;
+                    }
+                }
+                
+                // Add all custom providers (they replace any with same key)
+                for (const [key, { name, data }] of customKeys.entries()) {
+                    finalProviders[name] = data;
+                }
                 
                 const mergedRules = {
-                    providers: {
-                        ...filteredBundledProviders,
-                        ...customRules.providers
-                    }
+                    providers: finalProviders
                 };
                 
                 if (bundledRules.metadata) {
                     mergedRules.metadata = bundledRules.metadata;
                 }
                 
+                // Compute stats
+                const bundledProviderNames = Array.from(baseKeys.values()).map(v => v.name);
+                const customProviderNames = Array.from(customKeys.values()).map(v => v.name);
+                
                 storage.mergeStats = {
                     source: bundledRules?.metadata?.source || 'bundled',
                     bundledProviders: bundledProviderNames.length,
                     customProviders: customProviderNames.length,
-                    overriddenProviders: overriddenProviders.length,
-                    totalProviders: Object.keys(mergedRules.providers).length,
-                    overriddenProviderNames: overriddenProviders,
-                    filteredBundledProviders: Object.keys(filteredBundledProviders).length,
-                    newCustomProviders: customProviderNames.filter(name => 
-                        !bundledProviderNames.includes(name)
-                    ).length
+                    overriddenProviders: overriddenKeys.size,
+                    totalProviders: Object.keys(finalProviders).length,
+                    overriddenProviderNames: overriddenProviderNames,
+                    filteredBundledProviders: bundledProviderNames.length - overriddenKeys.size,
+                    newCustomProviders: customProviderNames.length - overriddenKeys.size
                 };
-                
-                const newCustomProviders = customProviderNames.filter(name => 
-                    !bundledProviderNames.includes(name)
-                );
                 
                 storage.ClearURLsData = mergedRules;
                 const ruleStringmerge = JSON.stringify(mergedRules, Object.keys(mergedRules).sort());
@@ -1574,13 +1648,9 @@ function initSettings() {
     storage.userWhitelist = [];
     storage.custom_rules = { providers: {} };
     
-    if (getBrowser() === "Firefox") {
-        storage.types = ["font", "image", "imageset", "main_frame", "media", "object", "object_subrequest", "other", "script", "stylesheet", "sub_frame", "websocket", "xml_dtd", "xmlhttprequest", "xslt"];
-        storage.pingRequestTypes = ["ping", "beacon"];
-    } else if (getBrowser() === "Chrome") {
-        storage.types = ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "object", "xmlhttprequest", "ping", "csp_report", "media", "websocket", "other"];
-        storage.pingRequestTypes = ["ping"];
-    }
+    // Firefox-specific resource types
+    storage.types = ["font", "image", "imageset", "main_frame", "media", "object", "object_subrequest", "other", "script", "stylesheet", "sub_frame", "websocket", "xml_dtd", "xmlhttprequest", "xslt"];
+    storage.pingRequestTypes = ["ping", "beacon"];
 }
 
 function loadOldDataFromStore() {

@@ -1,5 +1,4 @@
 /**
-
  * 
  * ClearURLs
  * Copyright (c) 2017-2020 Kevin Röbert
@@ -37,6 +36,7 @@
  * 
  * Modifications include:
  * - changed dirtyurl and cleanurl
+ * - watchdog now skips when both remote and built‑in rules are disabled
  * 
 https://gitlab.com/ClearURLs/ClearUrls/-/blob/m3-migration/core_js/watchdog.js?ref_type=heads.
  */
@@ -50,6 +50,7 @@ https://gitlab.com/ClearURLs/ClearUrls/-/blob/m3-migration/core_js/watchdog.js?r
 */
 /**
  * first modified:  Jun 14, 2025  by Subham Mahesh
+ * second modified: Feb 18, 2026  – watchdog now inactive when both remote and built‑in rules are disabled
 
  * Due to constraints, later modifications are not tracked inline.
  * To view the full modification history, run:
@@ -68,6 +69,12 @@ browser.alarms.create("watchdog", {
 
 browser.alarms.onAlarm.addListener(function (alarmInfo) {
     if (alarmInfo.name === "watchdog" && isStorageAvailable() && storage.globalStatus) {
+        // If neither remote nor built‑in rules are enabled, there is no baseline
+        // rule set to test – the watchdog would always fail, so we skip.
+        if (!storage.remoteRulesEnabled && !storage.builtInRulesEnabled) {
+            return;
+        }
+
         if (new URL(pureCleaning(__dirtyURL, true)).toString() !== __cleanURL) {
             storage.watchDogErrorCount += 1;
             console.log(translate('watchdog', storage.watchDogErrorCount));
@@ -79,4 +86,3 @@ browser.alarms.onAlarm.addListener(function (alarmInfo) {
         }
     }
 });
-

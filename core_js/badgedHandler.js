@@ -25,9 +25,7 @@
  * patches taken from https://gitlab.com/ClearURLs/ClearUrls/-/blob/m3-migration/core_js/badgedHandler.js?ref_type=heads 
  * for mv3 migration
  * 
- * Modifications include:
- * - modified checkandroid function to checkOSAndroid 
- This program is free software: you can redistribute it and/or modify
+ * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU Lesser General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
 * (at your option) any later version.
@@ -73,25 +71,23 @@ function increaseBadged(quiet = false, request) {
         badges[tabId].counter += 1;
     }
 
-    checkOSAndroid() 
-            if (storage.badgedStatus) {
-                // Set badge text
-                browser.action.setBadgeText({
-                    text: (badges[tabId]).counter.toString(), 
-                    tabId: tabId
-                }).catch(handleError);
-                
-                // SIMPLE FIX: Just read color from storage and apply it
-                browser.action.setBadgeBackgroundColor({
-                    color: storage.badged_color,
-                    tabId: tabId
-                }).catch(handleError);
-                
-            } else {
-                browser.action.setBadgeText({text: "", tabId: tabId}).catch(handleError);
-            }
-        };
-
+    if (storage.badgedStatus) {
+        // Set badge text
+        browser.action.setBadgeText({
+            text: (badges[tabId]).counter.toString(), 
+            tabId: tabId
+        }).catch(handleError);
+        
+        // SIMPLE FIX: Just read color from storage and apply it
+        browser.action.setBadgeBackgroundColor({
+            color: storage.badged_color,
+            tabId: tabId
+        }).catch(handleError);
+        
+    } else {
+        browser.action.setBadgeText({text: "", tabId: tabId}).catch(handleError);
+    }
+}
 
 /**
  * Call by each tab is updated.
@@ -112,4 +108,3 @@ function handleUpdated(tabId, changeInfo, tabInfo) {
  * Call by each tab is updated.
  */
 browser.tabs.onUpdated.addListener(handleUpdated);
-

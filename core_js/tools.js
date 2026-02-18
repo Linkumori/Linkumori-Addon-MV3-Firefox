@@ -107,20 +107,6 @@ function reload() {
 }
 
 /**
- * Check if it is an android device.
- * @return bool
- */
-async function checkOSAndroid() {
-    if (os === undefined || os === null || os === "") {
-        await chrome.runtime.getPlatformInfo(function (info) {
-            os = info.os;
-        });
-    }
-
-    return os === "android";
-}
-
-/**
  * Extract the host without port from an url.
  * @param  {URL} url URL as String
  * @return {String}     host as string
@@ -239,13 +225,12 @@ function increaseCleanedCounter() {
  * Change the icon.
  */
 function changeIcon() {
-    checkOSAndroid() 
-            if (storage.globalStatus) {
-                browser.action.setIcon({path: "img/icon128.png"}).catch(handleError);
-            } else {
-                browser.action.setIcon({path: "img/icon128_gray.png"}).catch(handleError);
-            }
-        };
+    if (storage.globalStatus) {
+        browser.action.setIcon({path: "img/icon128.png"}).catch(handleError);
+    } else {
+        browser.action.setIcon({path: "img/icon128_gray.png"}).catch(handleError);
+    }
+}
 
 // Fixed storage listener - properly handle property names with hyphens
 
@@ -255,21 +240,18 @@ function changeIcon() {
  *
  */
 function setBadgedStatus() {
-    checkOSAndroid().then((res) => {
-        if (storage.badgedStatus) {
-            let color = storage.badged_color;
-                storage.badged_color;
-            browser.action.setBadgeBackgroundColor({
-                'color': color
-            }).catch(handleError);
+    if (storage.badgedStatus) {
+        let color = storage.badged_color;
+        browser.action.setBadgeBackgroundColor({
+            'color': color
+        }).catch(handleError);
 
-            if (getBrowser() === "Firefox") {
-                browser.action.setBadgeTextColor({
-                    color: "#FFFFFF"
-                }).catch(handleError);
-            }
+        if (getBrowser() === "Firefox") {
+            browser.action.setBadgeTextColor({
+                color: "#FFFFFF"
+            }).catch(handleError);
         }
-    });
+    }
 }
 
 /**
@@ -425,4 +407,3 @@ browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === 'firstInstallAlarm') {
     }
 });
-

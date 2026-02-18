@@ -2230,20 +2230,14 @@ async function getData() {
             loadData("builtInRulesEnabled"),
             loadData("userWhitelist")
         ]);
-        
-        // Check browser for ETag support and remove context menu on Android
-       const info = await browser.runtime.getPlatformInfo();
-        if (info.os === 'android') {
-            const contextMenuToggle = document.getElementById('contextMenuEnabled');
-            if (contextMenuToggle) {
-                // Remove the entire toggle container (parent element)
-                contextMenuToggle.parentElement.remove();
-            }
-        }
-        
     } catch (error) {
     }
 }
+    
+        
+        
+    
+    
 
 /**
  * Display information about bundled rules with metadata and custom rules - ENHANCED WITH LOCALIZED NUMBERS AND OVERRIDE STATISTICS
