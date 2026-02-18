@@ -202,35 +202,17 @@ function createMergedRemoteProviderName(providerGroup) {
     return names[0];
 }
 
-/**
- * Generates a canonical grouping key for a provider based on its matching criteria.
- * - If urlPattern exists, use it.
- * - Else if domainPatterns exists, sort and join them to create a key.
- * - Else fallback to provider name.
- */
-function getProviderGroupKey(providerName, providerData) {
-    if (providerData?.urlPattern && typeof providerData.urlPattern === 'string') {
-        return providerData.urlPattern;
-    }
-    if (providerData?.domainPatterns && Array.isArray(providerData.domainPatterns) && providerData.domainPatterns.length > 0) {
-        // Sort to ensure order-independent matching
-        const sorted = [...providerData.domainPatterns].sort();
-        return 'DOMAIN_PATTERNS:' + sorted.join('||');
-    }
-    return `__NO_PATTERN__${providerName}`;
-}
-
 function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new Set()) {
-    const patternGroups = {};
+    const urlPatternGroups = {};
 
     Object.entries(providers || {}).forEach(([providerName, providerData]) => {
-        const key = getProviderGroupKey(providerName, providerData);
+        const pattern = providerData?.urlPattern || `__NO_PATTERN__${providerName}`;
 
-        if (!patternGroups[key]) {
-            patternGroups[key] = [];
+        if (!urlPatternGroups[pattern]) {
+            urlPatternGroups[pattern] = [];
         }
 
-        patternGroups[key].push({
+        urlPatternGroups[pattern].push({
             name: providerName,
             data: providerData,
             isPrimarySource: primaryProviderNames.has(providerName)
@@ -239,7 +221,7 @@ function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new 
 
     const mergedProviders = {};
 
-    Object.values(patternGroups).forEach(providerGroup => {
+    Object.values(urlPatternGroups).forEach(providerGroup => {
         if (providerGroup.length === 1) {
             const onlyProvider = providerGroup[0];
             mergedProviders[onlyProvider.name] = onlyProvider.data;
@@ -251,34 +233,7 @@ function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new 
         mergedProviders[mergedName] = mergedProvider;
     });
 
-    // --- Disambiguation step: ensure all provider names are unique ---
-    const entries = Object.entries(mergedProviders).sort(([a], [b]) => a.localeCompare(b));
-    const finalProviders = {};
-
-    for (const [name, provider] of entries) {
-        let finalName = name;
-        if (finalProviders.hasOwnProperty(finalName)) {
-            // Name conflict – append a suffix based on the matching type
-            let suffix = '';
-            if (provider.urlPattern) {
-                suffix = ' (urlPattern)';
-            } else if (provider.domainPatterns && provider.domainPatterns.length > 0) {
-                suffix = ' (domainPatterns)';
-            } else {
-                suffix = ' (fallback)';
-            }
-
-            finalName = name + suffix;
-            let counter = 1;
-            while (finalProviders.hasOwnProperty(finalName)) {
-                finalName = name + suffix + ' ' + counter;
-                counter++;
-            }
-        }
-        finalProviders[finalName] = provider;
-    }
-
-    return finalProviders;
+    return mergedProviders;
 }
 
 function mergeRemoteRulesSources(successfulSources, failedSources = []) {
@@ -1187,12 +1142,6 @@ function loadCustomOnlyRules() {
     });
 }
 
-/**
- * Merges custom rules with base rules.
- * Override is based on the canonical matching key (urlPattern or domainPatterns),
- * not on provider name. This ensures custom rules correctly replace providers
- * even after disambiguation (suffixes) have been applied.
- */
 function mergeCustomRules(bundledRules) {
     return new Promise(async (resolve) => {
         try {
@@ -1227,7 +1176,6 @@ function mergeCustomRules(bundledRules) {
                 customRules = { providers: {} };
             }
             
-            // If no custom rules, just use the base rules
             if (!customRules || customProviderCount === 0) {
                 storage.ClearURLsData = bundledRules;
                 storage.mergeStats = {
@@ -1301,7 +1249,7 @@ function mergeCustomRules(bundledRules) {
                 // Add all custom providers (they replace any with same key)
                 for (const [key, { name, data }] of customKeys.entries()) {
                     finalProviders[name] = data;
-                }
+                    }
                 
                 const mergedRules = {
                     providers: finalProviders
@@ -1648,9 +1596,8 @@ function initSettings() {
     storage.userWhitelist = [];
     storage.custom_rules = { providers: {} };
     
-    // Firefox-specific resource types
-    storage.types = ["font", "image", "imageset", "main_frame", "media", "object", "object_subrequest", "other", "script", "stylesheet", "sub_frame", "websocket", "xml_dtd", "xmlhttprequest", "xslt"];
-    storage.pingRequestTypes = ["ping", "beacon"];
+        storage.types = ["font", "image", "imageset", "main_frame", "media", "object", "object_subrequest", "other", "script", "stylesheet", "sub_frame", "websocket", "xml_dtd", "xmlhttprequest", "xslt"];
+        storage.pingRequestTypes = ["ping", "beacon"];
 }
 
 function loadOldDataFromStore() {
