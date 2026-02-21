@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dedicated documentation page like [docs.drasyl.org](https://docs.drasyl.org)
 
 ## [v28.0] - 2026-02-21
-## [v27.0] - 2026-02-21
-
+## [v27.0] - 2026-02-16
+## [v26.0] - 2026-02-16
 ### Linkumori Fork (MV3 Consolidation)
 
 ### Added
