@@ -735,8 +735,8 @@ This file is part of LINKUMORI.
 
     <div class="container">
         <!-- Welcome Section -->
-        <h2 class="section-header" data-i18n="welcomeHeading"></h2>
-        <div class="card">
+        <h2 id="welcomeSectionHeader" class="section-header" data-i18n="welcomeHeading"></h2>
+        <div id="welcomeSectionCard" class="card">
             <p data-i18n="welcomeDescription"></p>
             <ul class="features">
                 <li data-i18n="feature1"></li>
@@ -746,12 +746,13 @@ This file is part of LINKUMORI.
             </ul>
             <div class="button-group">
                 <a id="openSettingsBtn" href="/html/settings.html" class="btn btn-primary" data-i18n="openSettings"></a>
+                <button id="welcomeNextBtn" class="btn btn-secondary" type="button" data-i18n="welcome_next_button"></button>
             </div>
         </div>
 
         <!-- Privacy Policy Section -->
-        <h2 class="section-header" data-i18n="privacyPolicySection">Privacy Policy</h2>
-        <div class="card">
+        <h2 id="privacySectionHeader" class="section-header" data-i18n="privacyPolicySection">Privacy Policy</h2>
+        <div id="privacySectionCard" class="card">
             <p data-i18n="privacyDescription">Please review our privacy policy below.</p>
 
             <div class="privacy-version-row">
@@ -784,8 +785,8 @@ This file is part of LINKUMORI.
         </div>
 
         <!-- License Section -->
-        <h2 class="section-header" data-i18n="licenseSection">License Information</h2>
-        <div class="card">
+        <h2 id="licenseSectionHeader" class="section-header" data-i18n="licenseSection">License Information</h2>
+        <div id="licenseSectionCard" class="card">
             <p data-i18n="licenseDescription">This extension is open source and licensed under the GNU Lesser General Public License.</p>
 
             <div id="licenseContent" class="content-area loading">

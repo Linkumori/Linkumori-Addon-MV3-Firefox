@@ -991,6 +991,7 @@ function initializeApplication() {
     const paginationControls = document.getElementById('pagination-controls');
     const timeSortBtn = document.getElementById('time-sort-btn');
     const statsChartType = document.getElementById('stats-chart-type');
+    const statsChartReload = document.getElementById('stats-chart-reload');
     const statsChartCanvas = document.getElementById('stats-chart-canvas');
     const statsChartTooltip = document.getElementById('stats-chart-tooltip');
     const dashboardView = document.getElementById('dashboard-view');
@@ -1029,6 +1030,17 @@ function initializeApplication() {
 
     if (statsChartType) {
         statsChartType.addEventListener('change', () => {
+            renderOverallStats(fullLog, clearUrlsData);
+        });
+    }
+
+    if (statsChartReload) {
+        statsChartReload.addEventListener('click', () => {
+            const chartState = window.__logChartState;
+            if (chartState && chartState.hiddenPieIndexes instanceof Set) {
+                chartState.hiddenPieIndexes.clear();
+                window.__logChartState = chartState;
+            }
             renderOverallStats(fullLog, clearUrlsData);
         });
     }

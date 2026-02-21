@@ -61,6 +61,7 @@ var tempVerificationCache = {
     isRemoteVerified: false,
     isCacheUsed: false
 };
+const IMPORT_EXCLUSIONS_KEY = 'customrules_import_exclusions';
 
 /**
  * Generate a grouping key for a provider based on its urlPattern or domainPatterns.
@@ -126,6 +127,67 @@ function normalizeProviderEntries(providers, primaryProviderNames = new Set()) {
     });
 
     return normalized;
+}
+
+function getDisabledSignatures(rawExclusions) {
+    const signatures = new Set();
+
+    if (Array.isArray(rawExclusions)) {
+        rawExclusions.forEach(signature => {
+            if (typeof signature === 'string' && signature.trim().length > 0) {
+                signatures.add(signature.trim());
+            }
+        });
+        return signatures;
+    }
+
+    if (!rawExclusions || typeof rawExclusions !== 'object' || Array.isArray(rawExclusions)) {
+        return signatures;
+    }
+
+    Object.values(rawExclusions).forEach(sourceSignatures => {
+        if (!Array.isArray(sourceSignatures)) {
+            return;
+        }
+        sourceSignatures.forEach(signature => {
+            if (typeof signature === 'string' && signature.trim().length > 0) {
+                signatures.add(signature.trim());
+            }
+        });
+    });
+
+    return signatures;
+}
+
+function isProviderSignatureDisabled(providerData, providerName, disabledSignatures) {
+    if (!disabledSignatures || disabledSignatures.size === 0) {
+        return false;
+    }
+
+    const key = getProviderGroupKey(providerData, providerName);
+    if (typeof key !== 'string' || key.startsWith('no-pattern:')) {
+        return false;
+    }
+
+    return disabledSignatures.has(key);
+}
+
+function filterProvidersByDisabledSignatures(providers, disabledSignatures) {
+    const filtered = {};
+    let removedCount = 0;
+
+    Object.entries(providers || {}).forEach(([providerName, providerData]) => {
+        if (isProviderSignatureDisabled(providerData, providerName, disabledSignatures)) {
+            removedCount++;
+            return;
+        }
+        filtered[providerName] = providerData;
+    });
+
+    return {
+        providers: filtered,
+        removedCount
+    };
 }
 
 function normalizeRemoteRuleSetEntry(entry) {
@@ -1179,7 +1241,7 @@ function getEnhancedFallbackRules() {
 function loadCustomOnlyRules() {
     return new Promise(async (resolve) => {
         try {
-            const result = await browser.storage.local.get(['custom_rules']);
+            const result = await browser.storage.local.get(['custom_rules', IMPORT_EXCLUSIONS_KEY]);
             let customRules = null;
 
             if (result.custom_rules) {
@@ -1197,7 +1259,9 @@ function loadCustomOnlyRules() {
             const providers = (customRules && customRules.providers && typeof customRules.providers === 'object')
                 ? customRules.providers
                 : {};
-            const providerCount = Object.keys(providers).length;
+            const disabledSignatures = getDisabledSignatures(result[IMPORT_EXCLUSIONS_KEY]);
+            const filteredCustom = filterProvidersByDisabledSignatures(providers, disabledSignatures);
+            const providerCount = Object.keys(filteredCustom.providers).length;
 
             storage.rulesMetadata = {
                 name: 'Custom Rules Only',
@@ -1207,7 +1271,7 @@ function loadCustomOnlyRules() {
 
             storage.ClearURLsData = {
                 metadata: storage.rulesMetadata,
-                providers
+                providers: filteredCustom.providers
             };
 
             storage.mergeStats = {
@@ -1217,7 +1281,8 @@ function loadCustomOnlyRules() {
                 totalProviders: providerCount,
                 overriddenProviderNames: [],
                 filteredBundledProviders: 0,
-                newCustomProviders: providerCount
+                newCustomProviders: providerCount,
+                disabledProviders: filteredCustom.removedCount
             };
 
             storage.hashStatus = providerCount > 0 ? 'custom_only_loaded' : 'custom_only_no_rules';
@@ -1243,6 +1308,7 @@ function loadCustomOnlyRules() {
                 overriddenProviderNames: [],
                 filteredBundledProviders: 0,
                 newCustomProviders: 0,
+                disabledProviders: 0,
                 error: error.message
             };
             storage.hashStatus = 'custom_only_no_rules';
@@ -1256,7 +1322,8 @@ function loadCustomOnlyRules() {
 function mergeCustomRules(bundledRules) {
     return new Promise(async (resolve) => {
         try {
-            const result = await browser.storage.local.get(['custom_rules']);
+            const result = await browser.storage.local.get(['custom_rules', IMPORT_EXCLUSIONS_KEY]);
+            const disabledSignatures = getDisabledSignatures(result[IMPORT_EXCLUSIONS_KEY]);
             let customRules = null;
             let customProviderCount = 0;
             
@@ -1287,18 +1354,32 @@ function mergeCustomRules(bundledRules) {
                 customRules = { providers: {} };
             }
             
-            if (!customRules || customProviderCount === 0) {
-                storage.ClearURLsData = bundledRules;
+            const bundledProvidersRaw = bundledRules?.providers || {};
+            const filteredBundled = filterProvidersByDisabledSignatures(bundledProvidersRaw, disabledSignatures);
+            const customProvidersRaw = (customRules && customRules.providers && typeof customRules.providers === 'object')
+                ? customRules.providers
+                : {};
+            const filteredCustom = filterProvidersByDisabledSignatures(customProvidersRaw, disabledSignatures);
+            const activeCustomProviderCount = Object.keys(filteredCustom.providers).length;
+            const totalDisabledProviders = filteredBundled.removedCount + filteredCustom.removedCount;
+            const filteredBundledRules = {
+                ...bundledRules,
+                providers: filteredBundled.providers
+            };
+
+            if (!customRules || activeCustomProviderCount === 0) {
+                storage.ClearURLsData = filteredBundledRules;
                 storage.mergeStats = {
                     source: bundledRules?.metadata?.source || 'bundled',
-                    bundledProviders: Object.keys(bundledRules.providers || {}).length,
+                    bundledProviders: Object.keys(filteredBundled.providers || {}).length,
                     customProviders: 0,
                     overriddenProviders: 0,
-                    totalProviders: Object.keys(bundledRules.providers || {}).length,
-                    overriddenProviderNames: []
+                    totalProviders: Object.keys(filteredBundled.providers || {}).length,
+                    overriddenProviderNames: [],
+                    disabledProviders: totalDisabledProviders
                 };
                 
-                const ruleString = JSON.stringify(bundledRules, Object.keys(bundledRules).sort());
+                const ruleString = JSON.stringify(filteredBundledRules, Object.keys(filteredBundledRules).sort());
                 const hash = await sha256(ruleString);
                 storage.dataHash = hash;
                 const isOverloadStatus = typeof storage.hashStatus === 'string' &&
@@ -1322,12 +1403,12 @@ function mergeCustomRules(bundledRules) {
                 }
             } else {
                 // Build match keys while preserving all providers (including duplicate keys).
-                const baseProviders = bundledRules.providers || {};
+                const baseProviders = filteredBundled.providers || {};
                 const baseEntries = Object.entries(baseProviders).map(([name, data]) => ({
                     name,
                     data,
                     key: getProviderGroupKey(data, name)
-                })).filter(entry => !entry.key.startsWith('no-pattern:'));
+                })).filter(entry => !entry.key.startsWith('no-pattern:') && !disabledSignatures.has(entry.key));
 
                 const baseGroupsByKey = new Map();
                 baseEntries.forEach(entry => {
@@ -1341,12 +1422,12 @@ function mergeCustomRules(bundledRules) {
                     });
                 });
                 
-                const customProviders = customRules.providers || {};
+                const customProviders = filteredCustom.providers || {};
                 const customEntries = Object.entries(customProviders).map(([name, data]) => ({
                     name,
                     data,
                     key: getProviderGroupKey(data, name)
-                })).filter(entry => !entry.key.startsWith('no-pattern:'));
+                })).filter(entry => !entry.key.startsWith('no-pattern:') && !disabledSignatures.has(entry.key));
 
                 const customGroupsByKey = new Map();
                 customEntries.forEach(entry => {
@@ -1458,7 +1539,8 @@ function mergeCustomRules(bundledRules) {
                     totalProviders: Object.keys(finalProviders).length,
                     overriddenProviderNames: overriddenProviderNames,
                     filteredBundledProviders: nonOverriddenBaseKeys.length,
-                    newCustomProviders: customProviderNames.length - overridingCustomEntries.length
+                    newCustomProviders: customProviderNames.length - overridingCustomEntries.length,
+                    disabledProviders: totalDisabledProviders
                 };
                 
                 storage.ClearURLsData = mergedRules;
@@ -1493,6 +1575,7 @@ function mergeCustomRules(bundledRules) {
                 overriddenProviders: 0,
                 totalProviders: Object.keys(bundledRules.providers || {}).length,
                 overriddenProviderNames: [],
+                disabledProviders: 0,
                 error: error.message
             };
             
@@ -2002,10 +2085,9 @@ genesis();
 
 browser.storage.local.get(['firstInstall']).then(result => {
     if (!result.firstInstall) {
-        browser.alarms.create('firstInstallAlarm', { delayInMinutes: 1 });
-    browser.tabs.create({
-        url: 'html/legal.html',
-    });
+        browser.tabs.create({
+            url: 'html/legal.html?source=first_install',
+        });
         browser.storage.local.set({ firstInstall: true });
-  }
+    }
 });

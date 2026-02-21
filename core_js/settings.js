@@ -1433,17 +1433,6 @@ function importSettings(evt) {
         return;
     }
 
-    // Updated expected keys to match new format
-    const expectedKeys = [
-        "exportMetadata", "dataHash", "badgedStatus", "globalStatus",
-        "totalCounter", "cleanedCounter", "hashStatus", "loggingStatus", "log",
-        "statisticsStatus", "badged_color", "contextMenuEnabled", "historyListenerEnabled",
-        "localHostsSkipping", "referralMarketing", "logLimit", "domainBlocking",
-        "pingBlocking", "eTagFiltering", "watchDogErrorCount",
-        "custom_rules", "types", "pingRequestTypes", "firstInstall", "linkumori-theme",
-        "ruleURL", "hashURL" // Added new URL fields
-    ];
-
     let fileReader = new FileReader();
 
     fileReader.onload = function (e) {
@@ -1455,93 +1444,197 @@ function importSettings(evt) {
                 return;
             }
 
-            // Validate that essential structure exists
-            if (!parsed.exportMetadata || typeof parsed.exportMetadata !== 'object') {
+            const hasExportMetadata = parsed.exportMetadata && typeof parsed.exportMetadata === 'object';
+            const extensionName = hasExportMetadata ? String(parsed.exportMetadata.ExtensionName || '') : '';
+            const isLinkumoriMetadata = extensionName.includes('Linkumori');
+            const isClearURLsMetadata = extensionName.includes('ClearURLs');
+            const hasClearURLsData = Object.prototype.hasOwnProperty.call(parsed, 'ClearURLsData');
+            const isClearURLsFormat = hasClearURLsData || isClearURLsMetadata;
+
+            if (!hasExportMetadata && !isClearURLsFormat) {
                 alert(translate('settings_import_invalid_format'));
                 return;
             }
 
-            // Check for minimum required metadata
-            const requiredMetadata = ['ExtensionName', 'extensionVersion', 'exportDate'];
-            const missingMetadata = requiredMetadata.filter(key => !(key in parsed.exportMetadata));
-            
-            if (missingMetadata.length > 0) {
-                alert(translate('settings_import_incomplete_metadata'));
-                return;
+            if (hasExportMetadata) {
+                // Check for minimum required metadata
+                const requiredMetadata = ['ExtensionName', 'extensionVersion', 'exportDate'];
+                const missingMetadata = requiredMetadata.filter(key => !(key in parsed.exportMetadata));
+                
+                if (missingMetadata.length > 0) {
+                    alert(translate('settings_import_incomplete_metadata'));
+                    return;
+                }
+
+                // Validate that this is a Linkumori settings file
+                if (!isLinkumoriMetadata && !isClearURLsMetadata) {
+                    alert(translate('settings_import_wrong_extension'));
+                    return;
+                }
             }
 
-            // Validate that this is a Linkumori settings file
-            if (!parsed.exportMetadata.ExtensionName || 
-                !parsed.exportMetadata.ExtensionName.includes('Linkumori')) {
-                alert(translate('settings_import_wrong_extension'));
-                return;
+            let enableRemoteRulesForClearURLsImport = false;
+
+            if (isClearURLsFormat) {
+                const clearUrlsConfirm = translate('settings_import_clearurls_confirm');
+                if (!confirm(clearUrlsConfirm)) {
+                    evt.target.value = '';
+                    return;
+                }
+
+                const importedBadgeColor = (typeof parsed.badged_color === 'string')
+                    ? parsed.badged_color.trim().toUpperCase()
+                    : '';
+                if (importedBadgeColor === '#FFA500') {
+                    const switchBadgeColor = confirm(translate('settings_import_clearurls_badge_color_confirm'));
+                    if (switchBadgeColor) {
+                        parsed.badged_color = '#2563EB';
+                    }
+                }
+
+                const parsedRuleURL = (typeof parsed.ruleURL === 'string') ? parsed.ruleURL.trim() : '';
+                const parsedHashURL = (typeof parsed.hashURL === 'string') ? parsed.hashURL.trim() : '';
+                let hasRemoteRuleSets = false;
+                if (Array.isArray(parsed.remoteRuleSets)) {
+                    hasRemoteRuleSets = parsed.remoteRuleSets.length > 0;
+                } else if (typeof parsed.remoteRuleSets === 'string') {
+                    try {
+                        const parsedRemoteRuleSets = JSON.parse(parsed.remoteRuleSets);
+                        hasRemoteRuleSets = Array.isArray(parsedRemoteRuleSets) && parsedRemoteRuleSets.length > 0;
+                    } catch (err) {
+                        hasRemoteRuleSets = false;
+                    }
+                }
+
+                const hasPreviouslyUsedRemoteRules = Boolean(parsedRuleURL || parsedHashURL || hasRemoteRuleSets);
+                if (hasPreviouslyUsedRemoteRules) {
+                    enableRemoteRulesForClearURLsImport = confirm(translate('settings_import_clearurls_enable_remote_confirm'));
+                    if (enableRemoteRulesForClearURLsImport) {
+                        alert(translate('settings_import_clearurls_manual_save_notice'));
+                    }
+                }
             }
 
-            const actualKeys = Object.keys(parsed).sort();
-            const expectedKeysSorted = [...expectedKeys].sort();
-
-            // More flexible validation - check if all required keys are present
-            const missingKeys = expectedKeysSorted.filter(key => !actualKeys.includes(key));
-            const unexpectedKeys = actualKeys.filter(key => !expectedKeysSorted.includes(key));
-
-            if (missingKeys.length > 0) {
-                console.warn('Missing keys in import file:', missingKeys);
+            const keysToSkip = new Set([
+                "exportMetadata",
+                "dataHash",
+                "hashStatus",
+                "version",
+                "totalCounter",
+                "cleanedCounter",
+                "watchDogErrorCount",
+                // Derived/generated metadata should be recalculated on reload
+                "rulesMetadata",
+                "mergeStats",
+                "hashValidationStatus"
+            ]);
+            if (isClearURLsFormat) {
+                keysToSkip.add("ClearURLsData");
             }
 
-            if (unexpectedKeys.length > 0) {
-                console.warn('Unexpected keys in import file:', unexpectedKeys);
-            }
+            const parseJSONObject = (value, fallback) => {
+                if (typeof value === 'string') {
+                    try {
+                        const parsedValue = JSON.parse(value);
+                        return parsedValue ?? fallback;
+                    } catch (err) {
+                        return fallback;
+                    }
+                }
+                return value ?? fallback;
+            };
 
-            // Ã¢Å"â€¦ Filter out metadata and version-specific keys that shouldn't be imported
-            const keysToFilter = [
-                "exportMetadata",  // Don't import metadata
-                "dataHash",        // Don't import hash (will be regenerated)
-                "hashStatus",      // Don't import hash status
-                "version",         // Don't import version info
-                "totalCounter",    // Don't import usage counters (keep current)
-                "cleanedCounter",  // Don't import usage counters (keep current)
-                "watchDogErrorCount" // Don't import error counts
-            ];
+            const normalizeImportValue = (key, value) => {
+                switch (key) {
+                    case 'log':
+                    case 'custom_rules':
+                        return parseJSONObject(value, key === 'log' ? { log: [] } : { providers: {} });
+                    case 'userWhitelist': {
+                        const wl = parseJSONObject(value, []);
+                        return Array.isArray(wl) ? wl : [];
+                    }
+                    case 'remoteRulescache': {
+                        if (value === null || value === 'null') return null;
+                        const cacheValue = parseJSONObject(value, null);
+                        return (cacheValue && typeof cacheValue === 'object' && !Array.isArray(cacheValue)) ? cacheValue : null;
+                    }
+                    case 'remoteRuleSets': {
+                        const sets = parseJSONObject(value, []);
+                        return Array.isArray(sets) ? sets : [];
+                    }
+                    case 'pingRequestTypes': {
+                        const types = parseJSONObject(value, []);
+                        return Array.isArray(types) ? types : [];
+                    }
+                    case 'logLimit':
+                        return Math.max(0, Number(value) || 0);
+                    default:
+                        return value;
+                }
+            };
 
-            const filtered = Object.fromEntries(
-                Object.entries(parsed).filter(([key]) => !keysToFilter.includes(key))
-            );
+            browser.runtime.sendMessage({
+                function: "storageAsJSON",
+                params: []
+            }).then((currentDataResponse) => {
+                const currentData = (currentDataResponse && currentDataResponse.response && typeof currentDataResponse.response === 'object')
+                    ? currentDataResponse.response
+                    : {};
+                const knownKeys = new Set(Object.keys(currentData));
 
-            const keys = Object.keys(filtered);
+                const filteredEntries = Object.entries(parsed)
+                    .filter(([key]) => !keysToSkip.has(key))
+                    .filter(([key]) => knownKeys.has(key))
+                    .map(([key, value]) => [key, normalizeImportValue(key, value)]);
 
-            if (keys.length === 0) {
-                alert(translate('settings_import_no_data'));
-                return;
-            }
+                if (isClearURLsFormat && enableRemoteRulesForClearURLsImport && knownKeys.has('remoteRulesEnabled')) {
+                    const existingIdx = filteredEntries.findIndex(([key]) => key === 'remoteRulesEnabled');
+                    if (existingIdx >= 0) {
+                        filteredEntries[existingIdx] = ['remoteRulesEnabled', true];
+                    } else {
+                        filteredEntries.push(['remoteRulesEnabled', true]);
+                    }
+                }
 
-            // Ã¢Å"â€¦ Use Promise.all for better async handling
-            const promises = keys.map(key => 
-                browser.runtime.sendMessage({
-                    function: "setData",
-                    params: [key, filtered[key]]
-                })
-            );
+                if (filteredEntries.length === 0) {
+                    alert(translate('settings_import_no_data'));
+                    return Promise.reject(new Error('No importable settings keys found.'));
+                }
 
-            Promise.all(promises)
-                .then(() => {
-                    const importedCount = keys.length;
-                    const successMessage = translate('settings_imported');
-                    alert(successMessage);
-                    
-                    // Ã¢Å"â€¦ Wait for saveOnExit to complete before reloading
-                    return browser.runtime.sendMessage({ function: "saveOnExit", params: [] });
-                })
-                .then(() => {
-                    // Ã¢Å"â€¦ Send reload message to runtime (like save() and reset() functions do)
-                    return browser.runtime.sendMessage({ function: "reload", params: [] });
-                })
-                .then(() => {
-                    // Ã¢Å"â€¦ Add delay before location.reload() (like reset() function does)
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                })
-                .catch(handleError);
+                const promises = filteredEntries.map(([key, value]) =>
+                    browser.runtime.sendMessage({
+                        function: "setData",
+                        params: [key, value]
+                    })
+                );
+
+                return Promise.all(promises).then(() => filteredEntries.length);
+            }).then((importedCount) => {
+                if (!Number.isFinite(importedCount)) {
+                    return;
+                }
+
+                const successMessage = translate('settings_imported');
+                alert(successMessage);
+
+                if (isClearURLsFormat) {
+                    const welcomeUrl = browser.runtime.getURL('html/legal.html?source=clearurls_import');
+                    browser.tabs.create({ url: welcomeUrl }).catch(handleError);
+                }
+
+                // Persist imported values before refreshing UI
+                return browser.runtime.sendMessage({ function: "saveOnExit", params: [] });
+            }).then(() => {
+                // Refresh settings page to reflect imported values
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            }).catch((error) => {
+                if (error && error.message === 'No importable settings keys found.') {
+                    return;
+                }
+                handleError(error);
+            });
 
         } catch (error) {
             console.error('Import error:', error);
@@ -1876,8 +1969,12 @@ function displayBundledRulesInfo() {
         browser.runtime.sendMessage({
             function: "getData",
             params: ["userWhitelist"]
+        }),
+        browser.runtime.sendMessage({
+            function: "getCustomRulesStats",
+            params: []
         })
-    ]).then(([rulesResponse, metadataResponse, customRulesResponse, hashStatusResponse, sourceInfoResponse, mergeStatsResponse, whitelistResponse]) => {
+    ]).then(([rulesResponse, metadataResponse, customRulesResponse, hashStatusResponse, sourceInfoResponse, mergeStatsResponse, whitelistResponse, customStatsResponse]) => {
         const rulesData = rulesResponse.response;
         const metadata = metadataResponse.response;
         const customRules = customRulesResponse.response;
@@ -1885,6 +1982,7 @@ function displayBundledRulesInfo() {
         const sourceInfo = sourceInfoResponse.response || {};
         const mergeStats = mergeStatsResponse.response || {};
         const whitelist = Array.isArray(whitelistResponse.response) ? whitelistResponse.response : [];
+        const customStats = customStatsResponse && customStatsResponse.response ? customStatsResponse.response : {};
         const statusElement = document.getElementById('bundled_rules_status');
         
         const statusLabel = translate('rules_status_label');
@@ -1898,12 +1996,15 @@ function displayBundledRulesInfo() {
                 const statusActive = translate('rules_status_active');
                 const totalProvidersLabel = translate('rules_total_providers_label');
                 const totalRulesLabel = translate('rules_total_rules_label');
+                const disabledProvidersLabel = translate('rules_disabled_providers_label');
+                const disabledProvidersCount = getLocalizedNumber(customStats.disabledProviders || mergeStats.disabledProviders || 0);
                 
                 // Build basic info HTML with localized numbers
                 let html = `
                     <strong>${statusLabel}</strong> ${statusActive}<br>
                     <strong>${totalProvidersLabel}</strong> ${getLocalizedNumber(providerCount)}<br>
-                    <strong>${totalRulesLabel}</strong> ${getLocalizedNumber(ruleCount)}
+                    <strong>${totalRulesLabel}</strong> ${getLocalizedNumber(ruleCount)}<br>
+                    <strong>${disabledProvidersLabel}</strong> ${disabledProvidersCount}
                 `;
 
                 const whitelistTotalLabel = translate('rules_whitelist_total_label');
@@ -2445,6 +2546,7 @@ setElementText('language_selector_description', 'language_selector_description')
     // Rules section
     setElementText('bundled_rules_section_title', 'bundled_rules_section_title');
     setElementText('bundled_rules_description', 'bundled_rules_description');
+    setElementText('settings_disabled_rules_fallback_label', 'rules_disabled_providers_label');
     
     // Save section
     setElementText('save_settings_btn_text', 'settings_html_save_button');

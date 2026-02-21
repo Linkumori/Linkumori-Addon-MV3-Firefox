@@ -1,6 +1,6 @@
 /*
  * ClearURLs forks (linkumori) - Enhanced Custom Rules Editor with Provider Import Feature and Provider List Modal
- * Copyright (c) 2025 Subham Mahesh
+ * Copyright (c) 2025-2026 Subham Mahesh
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -94,12 +94,14 @@ let hasUnsavedChanges = false;
 let availableRuleSources = {};
 let selectedProviders = new Set();
 let currentRuleSource = 'bundled';
+const IMPORT_EXCLUSIONS_KEY = 'customrules_import_exclusions';
+let importExclusionsBySource = {};
 let userWhitelist = [];
 let whitelistSearchTerm = '';
 let whitelistStatusTimer = null;
 
 // DOM elements
-let providerList, editorContent, editorTitle, editorStatus, saveBtn, deleteBtn, exitBtn;
+let providerList, editorContent, editorTitle, editorStatus, saveBtn, editNameBtn, deleteBtn, exitBtn;
 let providerModal, providerForm, modalTitle, importFileInput;
 let faqModal, faqBtn;
 let providerImportModal, providerImportBtn;
@@ -167,6 +169,292 @@ function toDomainPatternArray(value) {
     }
 
     return [];
+}
+
+function getProviderSignature(provider) {
+    if (!provider || typeof provider !== 'object') {
+        return '';
+    }
+
+    const urlPattern = typeof provider.urlPattern === 'string'
+        ? provider.urlPattern.trim()
+        : '';
+    if (urlPattern) {
+        return `url:${urlPattern}`;
+    }
+
+    const domainPatterns = toDomainPatternArray(provider.domainPatterns)
+        .map(pattern => pattern.trim())
+        .filter(pattern => pattern.length > 0);
+    if (domainPatterns.length > 0) {
+        const normalized = [...new Set(domainPatterns)].sort((a, b) => a.localeCompare(b));
+        return `domain:${normalized.join('||')}`;
+    }
+
+    return '';
+}
+
+async function loadImportExclusions() {
+    try {
+        const result = await browser.storage.local.get([IMPORT_EXCLUSIONS_KEY]);
+        const stored = result && result[IMPORT_EXCLUSIONS_KEY];
+        if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
+            importExclusionsBySource = {};
+            return;
+        }
+
+        const normalized = {};
+        Object.entries(stored).forEach(([source, signatures]) => {
+            if (!Array.isArray(signatures)) {
+                return;
+            }
+            const cleaned = signatures
+                .filter(sig => typeof sig === 'string' && sig.trim().length > 0)
+                .map(sig => sig.trim());
+            if (cleaned.length > 0) {
+                normalized[source] = [...new Set(cleaned)];
+            }
+        });
+        importExclusionsBySource = normalized;
+    } catch (_) {
+        importExclusionsBySource = {};
+    }
+}
+
+async function saveImportExclusions() {
+    await browser.storage.local.set({
+        [IMPORT_EXCLUSIONS_KEY]: importExclusionsBySource
+    });
+}
+
+function getExcludedSignaturesForSource(source) {
+    const signatures = importExclusionsBySource[source];
+    if (!Array.isArray(signatures)) {
+        return new Set();
+    }
+    return new Set(signatures);
+}
+
+function getSignatureLabel(signature) {
+    if (typeof signature !== 'string') {
+        return '';
+    }
+    if (signature.startsWith('url:')) {
+        return signature.substring(4);
+    }
+    if (signature.startsWith('domain:')) {
+        return signature.substring(7);
+    }
+    return signature;
+}
+
+async function removeExcludedSignature(source, signature) {
+    const excludedSet = getExcludedSignaturesForSource(source);
+    if (!excludedSet.has(signature)) {
+        return;
+    }
+    excludedSet.delete(signature);
+    if (excludedSet.size === 0) {
+        delete importExclusionsBySource[source];
+    } else {
+        importExclusionsBySource[source] = Array.from(excludedSet);
+    }
+    await saveImportExclusions();
+}
+
+async function clearExcludedSignatures(source) {
+    if (!importExclusionsBySource[source]) {
+        return;
+    }
+    delete importExclusionsBySource[source];
+    await saveImportExclusions();
+}
+
+async function reloadRulesAfterExclusionChange() {
+    try {
+        await browser.runtime.sendMessage({
+            function: "reloadCustomRules"
+        });
+    } catch (_) {
+    }
+    await updateRulesStatus();
+}
+
+function renderImportDisabledList() {
+    const listEl = document.getElementById('provider-import-disabled-list');
+    const emptyEl = document.getElementById('provider-import-disabled-empty');
+    const clearBtn = document.getElementById('provider-import-disabled-clear-btn');
+    if (!listEl || !emptyEl || !clearBtn) {
+        return;
+    }
+
+    const signatures = Array.from(getExcludedSignaturesForSource(currentRuleSource));
+    const hasItems = signatures.length > 0;
+    listEl.replaceChildren();
+    emptyEl.style.display = hasItems ? 'none' : '';
+    clearBtn.disabled = !hasItems;
+
+    signatures.sort((a, b) => a.localeCompare(b));
+    signatures.forEach(signature => {
+        const li = document.createElement('li');
+        li.className = 'provider-disabled-item';
+        li.dataset.signature = signature;
+        setHTMLContent(li, `
+            <span class="provider-disabled-signature" title="${escapeHtml(signature)}">${escapeHtml(getSignatureLabel(signature))}</span>
+            <button type="button" class="btn btn-sm btn-secondary provider-disabled-restore-btn">${i18n('providerImport_disabledRestore')}</button>
+        `);
+
+        const restoreBtn = li.querySelector('.provider-disabled-restore-btn');
+        if (restoreBtn) {
+            restoreBtn.addEventListener('click', async () => {
+                await removeExcludedSignature(currentRuleSource, signature);
+                renderImportDisabledList();
+                loadProvidersForSource(currentRuleSource);
+                updateSourceCounts();
+                await reloadRulesAfterExclusionChange();
+            });
+        }
+
+        listEl.appendChild(li);
+    });
+}
+
+function isProviderExcluded(source, provider) {
+    const signature = getProviderSignature(provider);
+    if (!signature) {
+        return false;
+    }
+    return getExcludedSignaturesForSource(source).has(signature);
+}
+
+async function excludeProviderSignature(source, providerName) {
+    return excludeProviderSignatureInternal(source, providerName, {
+        requireConfirm: true,
+        showAlert: true,
+        refreshUI: true,
+        reloadRules: true
+    });
+}
+
+async function excludeProviderSignatureInternal(source, providerName, options = {}) {
+    const {
+        requireConfirm = true,
+        showAlert = true,
+        refreshUI = true,
+        reloadRules = true
+    } = options;
+
+    const sourceRules = availableRuleSources[source];
+    const provider = sourceRules?.providers?.[providerName];
+    if (!provider) {
+        return { excluded: false, removedFromCustom: 0 };
+    }
+
+    const signature = getProviderSignature(provider);
+    if (!signature) {
+        if (showAlert) {
+            alert(i18n('providerImport_excludeNoPattern'));
+        }
+        return { excluded: false, removedFromCustom: 0 };
+    }
+
+    if (requireConfirm && !confirm(i18n('providerImport_confirmExclude'))) {
+        return { excluded: false, removedFromCustom: 0 };
+    }
+
+    const excludedSet = getExcludedSignaturesForSource(source);
+    if (excludedSet.has(signature)) {
+        return { excluded: false, removedFromCustom: 0 };
+    }
+
+    excludedSet.add(signature);
+    importExclusionsBySource[source] = Array.from(excludedSet);
+    await saveImportExclusions();
+    selectedProviders.delete(providerName);
+
+    let removedFromCustom = 0;
+    const customProviderNames = Object.keys(customRules.providers || {});
+    customProviderNames.forEach(name => {
+        const customProvider = customRules.providers[name];
+        if (getProviderSignature(customProvider) === signature) {
+            delete customRules.providers[name];
+            removedFromCustom++;
+            selectedProviders.delete(name);
+            if (currentProvider === name) {
+                currentProvider = null;
+                isEditing = false;
+                hasUnsavedChanges = false;
+            }
+        }
+    });
+
+    if (removedFromCustom > 0) {
+        await saveCustomRules();
+    } else if (reloadRules) {
+        await reloadRulesAfterExclusionChange();
+    }
+
+    if (refreshUI) {
+        updateProviderCount();
+        updateSelectionCount();
+        renderImportDisabledList();
+        loadProvidersForSource(source);
+    }
+
+    if (showAlert) {
+        const removedCountText = getLocalizedNumber(removedFromCustom);
+        alert(i18n('providerImport_excludedSuccess', removedCountText));
+    }
+
+    return { excluded: true, removedFromCustom };
+}
+
+async function disableSelectedProviders() {
+    const selectedNames = Array.from(selectedProviders);
+    if (selectedNames.length === 0) {
+        return;
+    }
+
+    const countText = getLocalizedNumber(selectedNames.length);
+    if (!confirm(i18n('providerImport_disableSelectedConfirm', countText))) {
+        return;
+    }
+
+    let excludedCount = 0;
+    let removedFromCustomTotal = 0;
+
+    for (const providerName of selectedNames) {
+        const result = await excludeProviderSignatureInternal(currentRuleSource, providerName, {
+            requireConfirm: false,
+            showAlert: false,
+            refreshUI: false,
+            reloadRules: false
+        });
+
+        if (result.excluded) {
+            excludedCount++;
+            removedFromCustomTotal += result.removedFromCustom || 0;
+        }
+    }
+
+    selectedProviders.clear();
+    updateProviderCount();
+    updateSelectionCount();
+    renderImportDisabledList();
+    loadProvidersForSource(currentRuleSource);
+    updateSourceCounts();
+
+    if (excludedCount > 0) {
+        if (removedFromCustomTotal > 0) {
+            await saveCustomRules();
+        } else {
+            await reloadRulesAfterExclusionChange();
+        }
+    }
+
+    const excludedText = getLocalizedNumber(excludedCount);
+    const removedText = getLocalizedNumber(removedFromCustomTotal);
+    alert(i18n('providerImport_disableSelectedResult', excludedText, removedText));
 }
 
 function domainToPunycode(domain) {
@@ -700,6 +988,7 @@ function initializeEditor() {
     editorTitle = document.getElementById('editor-title');
     editorStatus = document.getElementById('editor-status');
     saveBtn = document.getElementById('save-provider-btn');
+    editNameBtn = document.getElementById('edit-provider-name-btn');
     deleteBtn = document.getElementById('delete-provider-btn');
     exitBtn = document.getElementById('exit-editor-btn');
     
@@ -1030,6 +1319,8 @@ function setupProviderImport() {
     const importCloseBtn = document.getElementById('provider-import-modal-close');
     const importCancelBtn = document.getElementById('provider-import-cancel');
     const importConfirmBtn = document.getElementById('provider-import-confirm');
+    const disableSelectedBtn = document.getElementById('provider-import-disable-selected');
+    const disabledClearBtn = document.getElementById('provider-import-disabled-clear-btn');
     
     if (importCloseBtn) {
         importCloseBtn.addEventListener('click', hideProviderImportModal);
@@ -1041,6 +1332,22 @@ function setupProviderImport() {
     
     if (importConfirmBtn) {
         importConfirmBtn.addEventListener('click', confirmProviderImport);
+    }
+    if (disableSelectedBtn) {
+        disableSelectedBtn.addEventListener('click', disableSelectedProviders);
+    }
+
+    if (disabledClearBtn) {
+        disabledClearBtn.addEventListener('click', async () => {
+            if (!confirm(i18n('providerImport_disabledClearConfirm'))) {
+                return;
+            }
+            await clearExcludedSignatures(currentRuleSource);
+            renderImportDisabledList();
+            loadProvidersForSource(currentRuleSource);
+            updateSourceCounts();
+            await reloadRulesAfterExclusionChange();
+        });
     }
     
     // Close provider import modal on background click
@@ -1102,6 +1409,8 @@ async function showProviderImportModal() {
     // Show modal
     providerImportModal.classList.add('show');
     document.body.style.overflow = 'hidden';
+
+    await loadImportExclusions();
     
     // Load available rule sources
     await loadAvailableRuleSources();
@@ -1189,7 +1498,9 @@ function updateSourceCounts() {
     const bundledCount = document.getElementById('bundled-count');
     
     if (bundledCount && availableRuleSources.bundled) {
-        bundledCount.textContent = getLocalizedNumber(Object.keys(availableRuleSources.bundled.providers || {}).length);
+        const bundledProviders = Object.values(availableRuleSources.bundled.providers || {});
+        const visibleCount = bundledProviders.filter(provider => !isProviderExcluded('bundled', provider)).length;
+        bundledCount.textContent = getLocalizedNumber(visibleCount);
     }
 }
 
@@ -1212,6 +1523,7 @@ function selectRuleSource(source) {
     // Clear current selection
     selectedProviders.clear();
     updateSelectionCount();
+    renderImportDisabledList();
     
     // Load providers for selected source
     loadProvidersForSource(source);
@@ -1231,7 +1543,9 @@ function loadProvidersForSource(source) {
     }
     
     const providers = rules.providers;
-    const providerNames = Object.keys(providers);
+    const providerNames = Object.keys(providers).filter(name => {
+        return !isProviderExcluded(source, providers[name]);
+    });
     
     if (providerNames.length === 0) {
         setHTMLContent(providerGrid, `
@@ -1272,6 +1586,7 @@ function loadProvidersForSource(source) {
                 }
             });
         }
+
     });
 }
 
@@ -1421,6 +1736,7 @@ function filterProviders(searchTerm) {
 function updateSelectionCount() {
     const selectionCount = document.getElementById('selection-count');
     const importConfirmBtn = document.getElementById('provider-import-confirm');
+    const disableSelectedBtn = document.getElementById('provider-import-disable-selected');
     
     const count = selectedProviders.size;
     
@@ -1430,6 +1746,9 @@ function updateSelectionCount() {
     
     if (importConfirmBtn) {
         importConfirmBtn.disabled = count === 0;
+    }
+    if (disableSelectedBtn) {
+        disableSelectedBtn.disabled = count === 0;
     }
 }
 
@@ -1460,6 +1779,11 @@ async function confirmProviderImport() {
         for (const providerName of selectedProviders) {
             const provider = rules.providers[providerName];
             if (!provider) {
+                skippedCount++;
+                continue;
+            }
+
+            if (isProviderExcluded(currentRuleSource, provider)) {
                 skippedCount++;
                 continue;
             }
@@ -1671,6 +1995,12 @@ function setupEventListeners() {
     if (saveBtn) {
         saveBtn.addEventListener('click', saveCurrentProvider);
     }
+    if (editNameBtn) {
+        editNameBtn.addEventListener('click', () => {
+            if (!currentProvider) return;
+            editProviderName(currentProvider);
+        });
+    }
     if (deleteBtn) {
         deleteBtn.addEventListener('click', deleteCurrentProvider);
     }
@@ -1835,10 +2165,8 @@ async function saveCustomRules() {
                 function: "reloadCustomRules"
             });
             
-            // Update the rules status display after successful reload
-            setTimeout(() => {
-                updateRulesStatus();
-            }, 500);
+            // Update rules status immediately after reload resolves.
+            await updateRulesStatus();
             
         } catch (error) {
             // Background script may not support this
@@ -1878,6 +2206,7 @@ async function updateRulesStatus() {
             const customCountElement = document.getElementById('custom-count');
             const builtinCountElement = document.getElementById('builtin-count');
             const totalCountElement = document.getElementById('total-count');
+            const disabledCountElement = document.getElementById('disabled-count');
             
             if (customCountElement) {
                 customCountElement.textContent = getLocalizedNumber(stats.customProviders || 0);
@@ -1887,6 +2216,9 @@ async function updateRulesStatus() {
             }
             if (totalCountElement) {
                 totalCountElement.textContent = getLocalizedNumber(stats.totalProviders || 0);
+            }
+            if (disabledCountElement) {
+                disabledCountElement.textContent = getLocalizedNumber(stats.disabledProviders || 0);
             }
             
             const statusMap = {
@@ -1928,11 +2260,13 @@ async function updateRulesStatus() {
         const customCountElement = document.getElementById('custom-count');
         const builtinCountElement = document.getElementById('builtin-count');
         const totalCountElement = document.getElementById('total-count');
+        const disabledCountElement = document.getElementById('disabled-count');
         const mergeStatusElement = document.getElementById('merge-status');
         
         if (customCountElement) customCountElement.textContent = '?';
         if (builtinCountElement) builtinCountElement.textContent = '?';
         if (totalCountElement) totalCountElement.textContent = '?';
+        if (disabledCountElement) disabledCountElement.textContent = '?';
         if (mergeStatusElement) mergeStatusElement.textContent = i18n('status_unavailable');
     }
 }
@@ -2068,6 +2402,9 @@ function showProviderEditor() {
     if (saveBtn) {
         saveBtn.style.display = 'inline-flex';
     }
+    if (editNameBtn) {
+        editNameBtn.style.display = 'inline-flex';
+    }
     if (deleteBtn) {
         deleteBtn.style.display = 'inline-flex';
     }
@@ -2087,152 +2424,165 @@ function showProviderEditor() {
  */
 function createProviderEditorHTML(provider) {
     return `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <!-- Basic Settings -->
-            <div>
-                <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 14px;">${i18n('customRulesEditor_basicSettings')}</h4>
-                
-                <div class="form-group">
-                    <label class="form-label">${i18n('customRulesEditor_urlPattern')} *</label>
-                    <input type="text" class="form-input" id="edit-url-pattern" value="${escapeHtml(provider.urlPattern || '')}" placeholder="${i18n('customRulesEditor_urlPatternPlaceholder') || '^https?:\\/\\/(?:[a-z0-9-]+\\.)*?example\\.com'}">
-                    <div class="form-help">${i18n('customRulesEditor_urlPatternHelp')}</div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">${i18n('customRulesEditor_domainPatterns')}</label>
-                    <textarea class="form-input" id="edit-domain-patterns" placeholder="||example.com^&#10;||*.example.com^&#10;||another-site.com^&#10;||subdomain.example.com^" rows="5">${escapeHtml(toDomainPatternArray(provider.domainPatterns).join('\n'))}</textarea>
-                    <div class="form-help">${i18n('customRulesEditor_domainPatternsHelp')}</div>
-                </div>
-                
-                <div class="form-checkbox">
-                    <input type="checkbox" id="edit-complete-provider" ${provider.completeProvider ? 'checked' : ''}>
-                    <label for="edit-complete-provider">${i18n('customRulesEditor_completeProvider')}</label>
-                </div>
-                
-                <div class="form-checkbox">
-                    <input type="checkbox" id="edit-force-redirection" ${provider.forceRedirection ? 'checked' : ''}>
-                    <label for="edit-force-redirection">${i18n('customRulesEditor_forceRedirection')}</label>
-                </div>
-            </div>
-            
-            <!-- Advanced Settings -->
-            <div>
-                <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 14px;">${i18n('customRulesEditor_advancedSettings')}</h4>
-                
-                <!-- Rules Array -->
-                <div class="form-group">
-                    <label class="form-label">${i18n('customRulesEditor_rules')}</label>
-                    <div class="array-editor">
-                        <div class="array-header">
-                            <span class="array-title">${i18n('customRulesEditor_parameterPatterns')}</span>
-                            <button type="button" class="array-add-btn" data-array="rules">${i18n('button_add')}</button>
+        <div class="editor-layout">
+            <div class="editor-grid-two">
+                <section class="editor-section">
+                    <h4 class="editor-section-title">${i18n('customRulesEditor_basicSettings')}</h4>
+
+                    <div class="form-group">
+                        <label class="form-label">${i18n('customRulesEditor_urlPattern')} *</label>
+                        <input type="text" class="form-input" id="edit-url-pattern" value="${escapeHtml(provider.urlPattern || '')}" placeholder="${i18n('customRulesEditor_urlPatternPlaceholder') || '^https?:\\/\\/(?:[a-z0-9-]+\\.)*?example\\.com'}">
+                        <div class="form-help">${i18n('customRulesEditor_urlPatternHelp')}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">${i18n('customRulesEditor_domainPatterns')}</label>
+                        <textarea class="form-input" id="edit-domain-patterns" placeholder="||example.com^&#10;||*.example.com^&#10;||another-site.com^&#10;||subdomain.example.com^" rows="5">${escapeHtml(toDomainPatternArray(provider.domainPatterns).join('\n'))}</textarea>
+                        <div class="form-help">${i18n('customRulesEditor_domainPatternsHelp')}</div>
+                    </div>
+
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="edit-complete-provider" ${provider.completeProvider ? 'checked' : ''}>
+                        <label for="edit-complete-provider">${i18n('customRulesEditor_completeProvider')}</label>
+                    </div>
+
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="edit-force-redirection" ${provider.forceRedirection ? 'checked' : ''}>
+                        <label for="edit-force-redirection">${i18n('customRulesEditor_forceRedirection')}</label>
+                    </div>
+                </section>
+
+                <section class="editor-section">
+                    <h4 class="editor-section-title">${i18n('customRulesEditor_rules')}</h4>
+                    <div class="editor-stack">
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_rules')}</label>
+                            <div class="array-editor">
+                                <div class="array-header">
+                                    <span class="array-title">${i18n('customRulesEditor_parameterPatterns')}</span>
+                                    <button type="button" class="array-add-btn" data-array="rules">${i18n('button_add')}</button>
+                                </div>
+                                <div class="array-items" id="rules-array">
+                                    ${createArrayItemsHTML(provider.rules || [], 'rules')}
+                                </div>
+                            </div>
                         </div>
-                        <div class="array-items" id="rules-array">
-                            ${createArrayItemsHTML(provider.rules || [], 'rules')}
+
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_referralMarketing')}</label>
+                            <div class="array-editor">
+                                <div class="array-header">
+                                    <span class="array-title">${i18n('customRulesEditor_referralParameters')}</span>
+                                    <button type="button" class="array-add-btn" data-array="referralMarketing">${i18n('button_add')}</button>
+                                </div>
+                                <div class="array-items" id="referralMarketing-array">
+                                    ${createArrayItemsHTML(provider.referralMarketing || [], 'referralMarketing')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <details class="editor-collapsible">
+                <summary class="editor-collapsible-summary">${i18n('customRulesEditor_rawRules')}</summary>
+                <div class="editor-collapsible-body">
+                    <div class="editor-stack">
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_rawRules')}</label>
+                            <div class="array-editor">
+                                <div class="array-header">
+                                    <span class="array-title">${i18n('customRulesEditor_rawRegexPatterns')}</span>
+                                    <button type="button" class="array-add-btn" data-array="rawRules">${i18n('button_add')}</button>
+                                </div>
+                                <div class="array-items" id="rawRules-array">
+                                    ${createArrayItemsHTML(provider.rawRules || [], 'rawRules')}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Referral Marketing Array -->
-                <div class="form-group">
-                    <label class="form-label">${i18n('customRulesEditor_referralMarketing')}</label>
-                    <div class="array-editor">
-                        <div class="array-header">
-                            <span class="array-title">${i18n('customRulesEditor_referralParameters')}</span>
-                            <button type="button" class="array-add-btn" data-array="referralMarketing">${i18n('button_add')}</button>
+            </details>
+
+            <details class="editor-collapsible">
+                <summary class="editor-collapsible-summary">${i18n('customRulesEditor_exceptions')} & ${i18n('customRulesEditor_redirections')}</summary>
+                <div class="editor-collapsible-body">
+                    <div class="editor-stack">
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_exceptions')}</label>
+                            <div class="array-editor">
+                                <div class="array-header">
+                                    <span class="array-title">${i18n('customRulesEditor_exceptionPatterns')}</span>
+                                    <button type="button" class="array-add-btn" data-array="exceptions">${i18n('button_add')}</button>
+                                </div>
+                                <div class="array-items" id="exceptions-array">
+                                    ${createArrayItemsHTML(provider.exceptions || [], 'exceptions')}
+                                </div>
+                            </div>
                         </div>
-                        <div class="array-items" id="referralMarketing-array">
-                            ${createArrayItemsHTML(provider.referralMarketing || [], 'referralMarketing')}
+
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_domainExceptions')}</label>
+                            <textarea class="form-input" id="edit-domain-exceptions" placeholder="||example.com^&#10;||*.subdomain.com^&#10;||exception-site.com^" rows="4">${escapeHtml((provider.domainExceptions || []).join('\n'))}</textarea>
+                            <div class="form-help">${i18n('customRulesEditor_domainExceptionsHelp')}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_redirections')}</label>
+                            <div class="array-editor">
+                                <div class="array-header">
+                                    <span class="array-title">${i18n('customRulesEditor_redirectPatterns')}</span>
+                                    <button type="button" class="array-add-btn" data-array="redirections">${i18n('button_add')}</button>
+                                </div>
+                                <div class="array-items" id="redirections-array">
+                                    ${createArrayItemsHTML(provider.redirections || [], 'redirections')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_domainRedirections')}</label>
+                            <textarea class="form-input" id="edit-domain-redirections" placeholder="||example.com$redirect=https://newsite.com&#10;||old-site.com$redirect=https://replacement.com&#10;||redirect-me.com$redirect=https://new-url.com" rows="4">${escapeHtml((provider.domainRedirections || []).join('\n'))}</textarea>
+                            <div class="form-help">${i18n('customRulesEditor_domainRedirectionsHelp')}</div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div style="margin-top: 24px;">
-            <!-- Raw Rules Array -->
-            <div class="form-group">
-                <label class="form-label">${i18n('customRulesEditor_rawRules')}</label>
-                <div class="array-editor">
-                    <div class="array-header">
-                        <span class="array-title">${i18n('customRulesEditor_rawRegexPatterns')}</span>
-                        <button type="button" class="array-add-btn" data-array="rawRules">${i18n('button_add')}</button>
-                    </div>
-                    <div class="array-items" id="rawRules-array">
-                        ${createArrayItemsHTML(provider.rawRules || [], 'rawRules')}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Exceptions Array -->
-            <div class="form-group">
-                <label class="form-label">${i18n('customRulesEditor_exceptions')}</label>
-                <div class="array-editor">
-                    <div class="array-header">
-                        <span class="array-title">${i18n('customRulesEditor_exceptionPatterns')}</span>
-                        <button type="button" class="array-add-btn" data-array="exceptions">${i18n('button_add')}</button>
-                    </div>
-                    <div class="array-items" id="exceptions-array">
-                        ${createArrayItemsHTML(provider.exceptions || [], 'exceptions')}
+            </details>
+
+            <details class="editor-collapsible">
+                <summary class="editor-collapsible-summary">${i18n('customRulesEditor_advancedSettings')}</summary>
+                <div class="editor-collapsible-body">
+                    <div class="editor-stack">
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_resourceTypes')}</label>
+                            <textarea class="form-input" id="edit-resource-types" placeholder="${i18n('customRulesEditor_resourceTypesPlaceholder')}" rows="5">${escapeHtml((provider.resourceTypes || []).join('\n'))}</textarea>
+                            <div class="form-help">${i18n('customRulesEditor_resourceTypesHelp')}</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">${i18n('customRulesEditor_httpMethods')}</label>
+                            <textarea class="form-input" id="edit-http-methods" placeholder="${i18n('customRulesEditor_httpMethodsPlaceholder')}" rows="5">${escapeHtml((provider.methods || []).join('\n'))}</textarea>
+                            <div class="form-help">${i18n('customRulesEditor_httpMethodsHelp')}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Domain Exceptions Array -->
-            <div class="form-group">
-                <label class="form-label">${i18n('customRulesEditor_domainExceptions')}</label>
-                <textarea class="form-input" id="edit-domain-exceptions" placeholder="||example.com^&#10;||*.subdomain.com^&#10;||exception-site.com^" rows="4">${escapeHtml((provider.domainExceptions || []).join('\n'))}</textarea>
-                <div class="form-help">${i18n('customRulesEditor_domainExceptionsHelp')}</div>
-            </div>
-            
-            <!-- Redirections Array -->
-            <div class="form-group">
-                <label class="form-label">${i18n('customRulesEditor_redirections')}</label>
-                <div class="array-editor">
-                    <div class="array-header">
-                        <span class="array-title">${i18n('customRulesEditor_redirectPatterns')}</span>
-                        <button type="button" class="array-add-btn" data-array="redirections">${i18n('button_add')}</button>
-                    </div>
-                    <div class="array-items" id="redirections-array">
-                        ${createArrayItemsHTML(provider.redirections || [], 'redirections')}
+            </details>
+
+            <details class="editor-collapsible">
+                <summary class="editor-collapsible-summary">${i18n('customRulesEditor_advancedJsonEditor')}</summary>
+                <div class="editor-collapsible-body">
+                    <div class="json-editor">
+                        <div class="json-editor-header">
+                            <span class="json-editor-title">${i18n('customRulesEditor_advancedJsonEditor')}</span>
+                            <button type="button" class="btn btn-warning btn-sm" id="sync-from-form-btn">${i18n('customRulesEditor_updateFromForm')}</button>
+                        </div>
+                        <div class="json-editor-content">
+                            <textarea class="json-editor-textarea" id="json-editor" placeholder="${i18n('customRulesEditor_jsonPlaceholder')}">${JSON.stringify(provider, null, 2)}</textarea>
+                            <div id="json-validation" style="display: none;"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Domain Redirections Array -->
-            <div class="form-group">
-                <label class="form-label">${i18n('customRulesEditor_domainRedirections')}</label>
-                <textarea class="form-input" id="edit-domain-redirections" placeholder="||example.com$redirect=https://newsite.com&#10;||old-site.com$redirect=https://replacement.com&#10;||redirect-me.com$redirect=https://new-url.com" rows="4">${escapeHtml((provider.domainRedirections || []).join('\n'))}</textarea>
-                <div class="form-help">${i18n('customRulesEditor_domainRedirectionsHelp')}</div>
-            </div>
-            
-            <!-- Resource Types -->
-            <div class="form-group">
-                <label class="form-label">${i18n('customRulesEditor_resourceTypes')}</label>
-                <textarea class="form-input" id="edit-resource-types" placeholder="${i18n('customRulesEditor_resourceTypesPlaceholder')}" rows="3">${escapeHtml((provider.resourceTypes || []).join('\n'))}</textarea>
-                <div class="form-help">${i18n('customRulesEditor_resourceTypesHelp')}</div>
-            </div>
-            
-            <!-- HTTP Methods -->
-            <div class="form-group">
-                <label class="form-label">${i18n('customRulesEditor_httpMethods')}</label>
-                <textarea class="form-input" id="edit-http-methods" placeholder="${i18n('customRulesEditor_httpMethodsPlaceholder')}" rows="3">${escapeHtml((provider.methods || []).join('\n'))}</textarea>
-                <div class="form-help">${i18n('customRulesEditor_httpMethodsHelp')}</div>
-            </div>
-        </div>
-        
-        <!-- JSON Editor -->
-        <div class="form-group" style="margin-top: 24px;">
-            <div class="json-editor">
-                <div class="json-editor-header">
-                    <span class="json-editor-title">${i18n('customRulesEditor_advancedJsonEditor')}</span>
-                    <button type="button" class="btn btn-warning btn-sm" id="sync-from-form-btn">${i18n('customRulesEditor_updateFromForm')}</button>
-                </div>
-                <div class="json-editor-content">
-                    <textarea class="json-editor-textarea" id="json-editor" placeholder="${i18n('customRulesEditor_jsonPlaceholder')}">${JSON.stringify(provider, null, 2)}</textarea>
-                    <div id="json-validation" style="display: none;"></div>
-                </div>
-            </div>
+            </details>
         </div>
     `;
 }
@@ -2653,6 +3003,7 @@ function showEmptyState() {
     
     if (editorStatus) editorStatus.style.display = 'none';
     if (saveBtn) saveBtn.style.display = 'none';
+    if (editNameBtn) editNameBtn.style.display = 'none';
     if (deleteBtn) deleteBtn.style.display = 'none';
     if (exitBtn) exitBtn.style.display = 'none';
     
@@ -2846,24 +3197,34 @@ async function handleProviderSubmit(e) {
         return;
     }
     
-    // Create provider object
-    const provider = {
-        completeProvider,
-        rules: [],
-        referralMarketing: [],
-        rawRules: [],
-        exceptions: [],
-        domainExceptions: [],
-        redirections: [],
-        domainRedirections: [],
-        forceRedirection
-    };
-    
-    // Add either urlPattern or domainPatterns based on selection
+    // Build provider object.
+    // For edits/renames, preserve existing advanced fields (rules, exceptions, etc.)
+    // and only update values exposed by this modal.
+    const existingProvider = (isEdit && customRules.providers[editProvider])
+        ? customRules.providers[editProvider]
+        : null;
+    const provider = existingProvider
+        ? JSON.parse(JSON.stringify(existingProvider))
+        : {
+            rules: [],
+            referralMarketing: [],
+            rawRules: [],
+            exceptions: [],
+            domainExceptions: [],
+            redirections: [],
+            domainRedirections: []
+        };
+
+    provider.completeProvider = completeProvider;
+    provider.forceRedirection = forceRedirection;
+
+    // Update selected pattern type and clear the mutually exclusive field.
     if (patternType === 'urlPattern') {
         provider.urlPattern = urlPattern;
+        delete provider.domainPatterns;
     } else if (patternType === 'domainPatterns') {
         provider.domainPatterns = domainPatterns;
+        delete provider.urlPattern;
     }
     
     try {

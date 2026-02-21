@@ -611,6 +611,12 @@ and jquery and bootstrap dependencies.
             font-size: 12px;
         }
 
+        .chart-reload-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+            line-height: 1;
+        }
+
         .chart-wrap {
             position: relative;
             width: 100%;
@@ -1221,7 +1227,7 @@ and jquery and bootstrap dependencies.
         }
 
         /* High contrast mode support */
-        @media (prefers-contrast: high) {
+        @media (prefers-contrast: more) {
             :root {
                 --border-color: rgba(255, 255, 255, 0.4);
             }
@@ -1344,6 +1350,7 @@ and jquery and bootstrap dependencies.
                                 <option value="line" data-i18n="log_stats_chart_type_line">Line</option>
                                 <option value="bar" data-i18n="log_stats_chart_type_bar">Bar</option>
                             </select>
+                            <button type="button" id="stats-chart-reload" class="btn btn-primary chart-reload-btn" data-i18n="log_stats_chart_reload" data-i18n-title="log_stats_chart_reload_title">Reload</button>
                         </div>
                     </div>
                     <div class="chart-wrap">

@@ -237,14 +237,14 @@ function handleGetCustomRulesStats(request) {
                 : { providers: customRulesRaw })
             : { providers: {} };
 
-        const customProviderCount = Object.keys(customRules.providers || {}).length;
+        const customProviderCountStored = Object.keys(customRules.providers || {}).length;
         
         // Get built-in rules
         const mergedRules = (typeof window.getData === 'function')
             ? window.getData('ClearURLsData') || { providers: {} }
             : { providers: {} };
 
-        const totalProviderCount = Object.keys(mergedRules.providers || {}).length;
+        const totalProviderCountMerged = Object.keys(mergedRules.providers || {}).length;
 
         // Use merge stats from storage as source of truth for built-in count.
         // "total - custom" is incorrect when custom providers are merged/deduplicated by key.
@@ -252,9 +252,26 @@ function handleGetCustomRulesStats(request) {
             ? window.getData('mergeStats') || {}
             : {};
 
-        const builtInProviderCount = (typeof mergeStats.bundledProviders === 'number')
+        const hasMergeCustom = typeof mergeStats.customProviders === 'number';
+        const hasMergeBuiltIn = typeof mergeStats.bundledProviders === 'number';
+        const hasMergeTotal = typeof mergeStats.totalProviders === 'number';
+        const hasMergeDisabled = typeof mergeStats.disabledProviders === 'number';
+
+        const customProviderCount = hasMergeCustom
+            ? Math.max(0, mergeStats.customProviders)
+            : customProviderCountStored;
+
+        const builtInProviderCount = hasMergeBuiltIn
             ? Math.max(0, mergeStats.bundledProviders)
-            : Math.max(0, totalProviderCount - customProviderCount);
+            : Math.max(0, totalProviderCountMerged);
+
+        const totalProviderCount = hasMergeTotal
+            ? Math.max(0, mergeStats.totalProviders)
+            : Math.max(0, totalProviderCountMerged);
+
+        const disabledProviderCount = hasMergeDisabled
+            ? Math.max(0, mergeStats.disabledProviders)
+            : 0;
         
         // Get hash status
         const hashStatus = (typeof window.getData === 'function') ? 
@@ -265,6 +282,7 @@ function handleGetCustomRulesStats(request) {
             customProviders: customProviderCount,
             totalProviders: totalProviderCount,
             builtInProviders: builtInProviderCount,
+            disabledProviders: disabledProviderCount,
             hashStatus: hashStatus,
             timestamp: Date.now()
         };
@@ -276,6 +294,7 @@ function handleGetCustomRulesStats(request) {
                 customProviders: 0,
                 totalProviders: 0,
                 builtInProviders: 0,
+                disabledProviders: 0,
                 hashStatus: 'error',
                 error: error.message
             }

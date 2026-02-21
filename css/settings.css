@@ -1672,7 +1672,7 @@
         }
 
         /* High contrast mode support */
-        @media (prefers-contrast: high) {
+        @media (prefers-contrast: more) {
             :root {
                 --border-color: rgba(255, 255, 255, 0.4);
             }

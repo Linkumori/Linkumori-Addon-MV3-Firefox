@@ -738,31 +738,12 @@ Fourth modified:  14.02.2026 (February)  by Subham Mahesh
             }
         }
 
-        /* Custom scrollbar for license content and main content */
-        #licenseContent::-webkit-scrollbar,
-        #mainContent::-webkit-scrollbar,
-        body::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        #licenseContent::-webkit-scrollbar-track,
-        #mainContent::-webkit-scrollbar-track,
-        body::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-            border-radius: 3px;
-        }
-
-        #licenseContent::-webkit-scrollbar-thumb,
-        #mainContent::-webkit-scrollbar-thumb,
-        body::-webkit-scrollbar-thumb {
-            background: var(--text-muted);
-            border-radius: 3px;
-        }
-
-        #licenseContent::-webkit-scrollbar-thumb:hover,
-        #mainContent::-webkit-scrollbar-thumb:hover,
-        body::-webkit-scrollbar-thumb:hover {
-            background: var(--text-secondary);
+        /* Firefox-safe custom scrollbar styling */
+        #licenseContent,
+        #mainContent,
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-muted) var(--bg-primary);
         }
 
         /* Popup consent gate */
@@ -794,7 +775,7 @@ Fourth modified:  14.02.2026 (February)  by Subham Mahesh
         .popup-consent-title {
             margin: 0 0 8px 0;
             font-size: 16px;
-            color: var(--text-primary);
+            color: var(--text-secondary);
         }
 
         .popup-consent-description {

@@ -64,6 +64,89 @@ This file is part of LINKUMORI.
     target.replaceChildren(...Array.from(doc.body.childNodes));
   }
 
+  function isClearURLsImportMode() {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      return params.get('source') === 'clearurls_import';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getPageSourceMode() {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      return params.get('source') || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function configureWelcomeSectionVisibility() {
+    const sourceMode = getPageSourceMode();
+    const guidedMode = sourceMode === 'first_install' || sourceMode === 'clearurls_import';
+    const shouldShowWelcome = guidedMode;
+    const welcomeHeader = $('welcomeSectionHeader');
+    const welcomeCard = $('welcomeSectionCard');
+    const privacyHeader = $('privacySectionHeader');
+    const privacyCard = $('privacySectionCard');
+    const licenseHeader = $('licenseSectionHeader');
+    const licenseCard = $('licenseSectionCard');
+    const nextButton = $('welcomeNextBtn');
+
+    if (welcomeHeader) {
+      welcomeHeader.style.display = shouldShowWelcome ? '' : 'none';
+    }
+    if (welcomeCard) {
+      welcomeCard.style.display = shouldShowWelcome ? '' : 'none';
+    }
+
+    const showLegalContentNow = !guidedMode;
+    if (privacyHeader) privacyHeader.style.display = showLegalContentNow ? '' : 'none';
+    if (privacyCard) privacyCard.style.display = showLegalContentNow ? '' : 'none';
+    if (licenseHeader) licenseHeader.style.display = showLegalContentNow ? '' : 'none';
+    if (licenseCard) licenseCard.style.display = showLegalContentNow ? '' : 'none';
+    if (nextButton) nextButton.style.display = guidedMode ? '' : 'none';
+  }
+
+  function applyClearURLsImportWelcomeContent() {
+    if (!isClearURLsImportMode()) return;
+
+    const titleNode = document.querySelector('title[data-i18n]');
+    if (titleNode) {
+      titleNode.setAttribute('data-i18n', 'welcome_migration_title');
+    }
+
+    const heading = document.querySelector('h2[data-i18n="welcomeHeading"]');
+    if (heading) {
+      heading.setAttribute('data-i18n', 'welcome_migration_heading');
+    }
+
+    const description = document.querySelector('p[data-i18n="welcomeDescription"]');
+    if (description) {
+      description.setAttribute('data-i18n', 'welcome_migration_description');
+    }
+
+    const mappedFeatureKeys = [
+      'welcome_migration_feature_custom_rules',
+      'welcome_migration_feature_overload',
+      'welcome_migration_feature_whitelist',
+      'welcome_migration_feature_remote_sets',
+      'welcome_migration_feature_bundled'
+    ];
+    const featureItems = document.querySelectorAll('ul.features li[data-i18n]');
+    featureItems.forEach((item, index) => {
+      if (mappedFeatureKeys[index]) {
+        item.setAttribute('data-i18n', mappedFeatureKeys[index]);
+      }
+    });
+
+    const settingsButton = $('openSettingsBtn');
+    if (settingsButton) {
+      settingsButton.setAttribute('data-i18n', 'welcome_migration_open_settings');
+    }
+  }
+
 
 
   /* --------------------------- 
@@ -980,6 +1063,28 @@ ${htmlContent}
       }
     });
 
+    const welcomeNextBtn = $('welcomeNextBtn');
+    if (welcomeNextBtn) {
+      welcomeNextBtn.addEventListener('click', () => {
+        const privacyHeader = $('privacySectionHeader');
+        const privacyCard = $('privacySectionCard');
+        const licenseHeader = $('licenseSectionHeader');
+        const licenseCard = $('licenseSectionCard');
+
+        if (privacyHeader) privacyHeader.style.display = '';
+        if (privacyCard) privacyCard.style.display = '';
+        if (licenseHeader) licenseHeader.style.display = '';
+        if (licenseCard) licenseCard.style.display = '';
+
+        const welcomeHeader = $('welcomeSectionHeader');
+        const welcomeCard = $('welcomeSectionCard');
+        if (welcomeHeader) welcomeHeader.style.display = 'none';
+        if (welcomeCard) welcomeCard.style.display = 'none';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
 
 
     // Browser storage change listener
@@ -1095,6 +1200,8 @@ ${htmlContent}
       } catch (error) {
         showNotification(i18n('privacyVersionMapLoadFailed', 'Failed to load privacy policy version map.'), 'error');
       }
+      configureWelcomeSectionVisibility();
+      applyClearURLsImportWelcomeContent();
       setLocalizedContent();
       initializePrivacyVersionSelector();
       initializeTheme();
@@ -1119,6 +1226,8 @@ ${htmlContent}
         } catch (error) {
           showNotification(i18n('privacyVersionMapLoadFailed', 'Failed to load privacy policy version map.'), 'error');
         }
+        configureWelcomeSectionVisibility();
+        applyClearURLsImportWelcomeContent();
         setLocalizedContent();
         initializePrivacyVersionSelector();
         initializeTheme();

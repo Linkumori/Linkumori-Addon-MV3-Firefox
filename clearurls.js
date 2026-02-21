@@ -799,6 +799,9 @@ function start() {
 
     function clearUrl(request) {
         if (isWhitelisted(request.url)) {
+            if (storage.loggingStatus) {
+                pushToLog(request.url, request.url, translate('log_whitelist_bypass'));
+            }
             return {};
         }
 

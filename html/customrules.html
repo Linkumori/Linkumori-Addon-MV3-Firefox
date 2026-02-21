@@ -958,7 +958,6 @@ and have separate attribution in that file.
 
         .editor-header {
             display: flex;
-            justify-content: between;
             align-items: center;
             margin-bottom: 10px;
         }
@@ -975,6 +974,70 @@ and have separate attribution in that file.
         .editor-actions {
             display: flex;
             gap: 8px;
+        }
+
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .editor-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .editor-section-title {
+            margin: 0 0 12px 0;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: "Old-Country-Nobility", serif;
+        }
+
+        .editor-grid-two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .editor-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .editor-collapsible {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            overflow: hidden;
+        }
+
+        .editor-collapsible-summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid transparent;
+            user-select: none;
+            font-family: "Old-Country-Nobility", serif;
+        }
+
+        .editor-collapsible-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .editor-collapsible[open] .editor-collapsible-summary {
+            border-bottom-color: var(--border-color);
+        }
+
+        .editor-collapsible-body {
+            padding: 12px 14px;
         }
 
         /* Form Styles */
@@ -1558,6 +1621,61 @@ and have separate attribution in that file.
             font-family: "Old-Country-Nobility", serif;
         }
 
+        .provider-disabled-section {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .provider-disabled-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .provider-disabled-title {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+
+        .provider-disabled-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .provider-disabled-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 6px;
+            background: var(--bg-quaternary);
+            font-size: 11px;
+        }
+
+        .provider-disabled-signature {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: normal;
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        .provider-disabled-empty {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
         .provider-browser-content {
             background: var(--bg-tertiary);
             border-radius: 6px;
@@ -2017,6 +2135,10 @@ and have separate attribution in that file.
                 grid-template-columns: 1fr;
             }
 
+            .editor-grid-two {
+                grid-template-columns: 1fr;
+            }
+
             .sidebar-actions-row {
                 grid-template-columns: 1fr;
             }
@@ -2038,7 +2160,7 @@ and have separate attribution in that file.
         }
 
         /* High contrast mode support */
-        @media (prefers-contrast: high) {
+        @media (prefers-contrast: more) {
             :root {
                 --border-color: rgba(255, 255, 255, 0.4);
             }
@@ -2572,7 +2694,14 @@ admin.example.com
                         <span data-i18n="providerImport_bundledRules"></span>
                         <span class="provider-source-count" id="bundled-count"></span>
                     </div>
-                    
+                    <div class="provider-disabled-section">
+                        <div class="provider-disabled-title-row">
+                            <h5 class="provider-disabled-title" data-i18n="providerImport_disabledTitle"></h5>
+                            <button class="btn btn-sm btn-secondary" id="provider-import-disabled-clear-btn" data-i18n="providerImport_disabledClear"></button>
+                        </div>
+                        <ul class="provider-disabled-list" id="provider-import-disabled-list"></ul>
+                        <p class="provider-disabled-empty" id="provider-import-disabled-empty" data-i18n="providerImport_disabledEmpty"></p>
+                    </div>
     
                 </div>
 
@@ -2595,6 +2724,7 @@ admin.example.com
 
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="provider-import-cancel" data-i18n="button_cancel"></button>
+                <button class="btn btn-warning" id="provider-import-disable-selected" disabled data-i18n="providerImport_disableSelected"></button>
                 <button class="btn btn-primary" id="provider-import-confirm" disabled data-i18n="providerImport_import"></button>
             </div>
         </div>
@@ -2630,6 +2760,10 @@ admin.example.com
                         <div class="rules-status-row">
                             <span data-i18n="customRulesEditor_total"></span>
                             <span id="total-count" data-i18n="status_loading"></span>
+                        </div>
+                        <div class="rules-status-row">
+                            <span data-i18n="customRulesEditor_disabled"></span>
+                            <span id="disabled-count">0</span>
                         </div>
                         <div class="rules-status-merge" id="merge-status" data-i18n="status_loading"></div>
                     </div>
@@ -2682,6 +2816,12 @@ admin.example.com
                                 <path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z"/>
                             </svg>
                             <span data-i18n="button_save"></span>
+                        </button>
+                        <button class="btn btn-warning" id="edit-provider-name-btn" style="display: none;" data-i18n-title="customRulesEditor_editName">
+                            <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor">
+                                <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+                            </svg>
+                            <span data-i18n="customRulesEditor_editName"></span>
                         </button>
                         <button class="btn btn-danger" id="delete-provider-btn" style="display: none;" data-i18n-title="customRulesEditor_deleteTooltip">
                             <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor">

@@ -7,6 +7,10 @@
         "message": "This domain is blocked",
         "description": "This string is used on blocked domains in the Linkumori (Clean URLS) log."
     },
+    "log_whitelist_bypass": {
+        "message": "Skipped: domain is whitelisted",
+        "description": "This string is used in the log when URL cleaning is skipped because the domain is whitelisted."
+    },
     "check_os_log": {
         "message": "[Linkumori (Clean URLS)]: Log listener is added.",
         "description": "This string is used on Linkumori (Clean URLS) log startup."
@@ -655,8 +659,8 @@
         "description": "Shown when imported settings data cannot be parsed as expected."
     },
     "settings_import_wrong_extension": {
-        "message": "Please select a JSON file",
-        "description": "Shown when imported file extension is not JSON."
+        "message": "Please select a valid Linkumori/ClearURLs settings file (.json or .conf)",
+        "description": "Shown when imported settings file does not match supported Linkumori or ClearURLs formats."
     },
     "settings_import_no_file": {
         "message": "No file selected",
@@ -677,6 +681,22 @@
     "settings_import_incomplete_metadata": {
         "message": "Import metadata is incomplete",
         "description": "Shown when import metadata is present but missing expected fields."
+    },
+    "settings_import_clearurls_confirm": {
+        "message": "You are importing a ClearURLs backup. Linkumori will import compatible settings and skip ClearURLsData. Continue?",
+        "description": "Confirmation shown when importing legacy ClearURLs JSON files."
+    },
+    "settings_import_clearurls_enable_remote_confirm": {
+        "message": "This ClearURLs backup includes remote rule source settings. Do you want to enable the Remote Rules toggle now?",
+        "description": "Second confirmation shown for ClearURLs imports when remote rule URLs are present."
+    },
+    "settings_import_clearurls_badge_color_confirm": {
+        "message": "Imported badge color is #FFA500. Do you want to switch to Linkumori blue (#2563EB)?",
+        "description": "Prompt shown during ClearURLs import when old orange badge color is detected."
+    },
+    "settings_import_clearurls_manual_save_notice": {
+        "message": "Remote Rules toggle was enabled from your ClearURLs import. Please open Settings and click Save manually to confirm your final remote configuration.",
+        "description": "Notice shown after user enables remote rules during ClearURLs import."
     },
   "whitelist_section_title": {
     "message": "Domain Whitelist",
@@ -1258,29 +1278,73 @@
   "welcomeTitle": {
     "message": "Welcome to Linkumori - URL Cleaner"
   },
+  "welcome_migration_title": {
+    "message": "Welcome to Linkumori",
+    "description": "Page title for the migration welcome screen shown after ClearURLs import."
+  },
+  "welcome_migration_heading": {
+    "message": "ClearURLs Migration Completed",
+    "description": "Main heading on migration welcome screen."
+  },
+  "welcome_migration_description": {
+    "message": "Your ClearURLs settings were imported. Review Linkumori features below, then continue to read Privacy Policy and License.",
+    "description": "Description shown on migration welcome screen."
+  },
+  "welcome_migration_feature_custom_rules": {
+    "message": "Custom Rules editor with provider-level control, import/export, and rule management.",
+    "description": "Feature list item describing custom rules."
+  },
+  "welcome_migration_feature_overload": {
+    "message": "Overload Mode can merge bundled and remote rules before custom rules are applied.",
+    "description": "Feature list item describing overload mode."
+  },
+  "welcome_migration_feature_whitelist": {
+    "message": "Whitelist support to bypass cleaning on selected domains when needed.",
+    "description": "Feature list item describing whitelist behavior."
+  },
+  "welcome_migration_feature_remote_sets": {
+    "message": "Multiple remote rule sources supported (rule URL + hash URL pairs).",
+    "description": "Feature list item describing multiple remote sets."
+  },
+  "welcome_migration_feature_bundled": {
+    "message": "Built-in privacy-focused rules enabled by default.",
+    "description": "Feature list item describing default bundled rule behavior."
+  },
+  "welcome_migration_open_settings": {
+    "message": "Open Settings",
+    "description": "Button label to open settings from migration welcome screen."
+  },
+  "welcome_migration_open_legal": {
+    "message": "Open Privacy & License",
+    "description": "Button label to open legal page from migration welcome screen."
+  },
   "welcomeHeading": {
     "message": "Welcome to Linkumori"
   },
   "welcomeDescription": {
-    "message": "Thank you for installing Linkumori, your personal URL privacy and tracking protection tool. Linkumori helps you maintain your online privacy by removing tracking parameters from URLs."
+    "message": "Linkumori removes tracking parameters from URLs by default and gives you advanced controls when needed. Review the features below, then continue to Privacy Policy and License."
   },
   "feature1": {
-    "message": "Automatically remove tracking parameters from URLs"
+    "message": "Built-in privacy-focused URL cleaning enabled by default"
   },
   "feature2": {
-    "message": "Protect your privacy across different websites"
+    "message": "Custom Rules support for per-provider and per-pattern control"
   },
   "feature3": {
-    "message": "Easily customizable whitelist"
+    "message": "Whitelist support to bypass cleaning for selected domains"
   },
   "feature4": {
-    "message": "Lightweight and non-intrusive"
+    "message": "Remote rules and Overload Mode for advanced setups"
   },
   "getStartedText": {
     "message": "To get started, click the button below to open the extension settings."
   },
   "openSettings": {
     "message": "Open Linkumori Settings"
+  },
+  "welcome_next_button": {
+    "message": "Next: Privacy & License",
+    "description": "Button shown in guided welcome mode to continue to privacy and license sections."
   },
 
   "customRulesEditor_title": {
@@ -1303,6 +1367,9 @@
   },
   "customRulesEditor_total": {
     "message": "Total:"
+  },
+  "customRulesEditor_disabled": {
+    "message": "Disabled:"
   },
   "customRulesEditor_enforceRules": {
     "message": "Enforce Rules"
@@ -2468,6 +2535,14 @@
     "message": "No chart data",
     "description": "Empty-state label when no data is available for chart"
   },
+  "log_stats_chart_reload": {
+    "message": "Reload",
+    "description": "Button label to reload the stats chart and reset pie filters"
+  },
+  "log_stats_chart_reload_title": {
+    "message": "Reload chart and reset pie filters",
+    "description": "Tooltip for reload chart button in log dashboard"
+  },
  
   "datatable_showing_entries": {
     "message": "Showing $1 to $2 of $3 entries",
@@ -2545,6 +2620,10 @@
   "rules_total_providers_label": {
     "message": "Total Providers:",
     "description": "Label for the total number of rule providers (bundled + custom)"
+  },
+  "rules_disabled_providers_label": {
+    "message": "Disabled Providers:",
+    "description": "Label for the number of disabled provider signatures"
   },
  
   "bundled_providers_section_label": {
@@ -3209,24 +3288,24 @@
     "description": "Confirmation message when exiting with validation errors"
   },
   "providerImport_title": {
-    "message": "Import Providers from Rules",
+    "message": "Import or Disable Providers",
     "description": "Title of the provider import modal dialog."
   },
   "providerImport_sources": {
-    "message": "Rule Sources",
+    "message": "Rule Source",
     "description": "Heading for the sidebar that lists available rule sources."
   },
   "providerImport_bundledRules": {
-    "message": "Bundled Rules/Remote Rules",
-    "description": "Sidebar option for rules that are shipped with the extension/app."
+    "message": "Active Bundled/Remote Rules/Custom Rules",
+    "description": "Sidebar option for currently active bundled and remote-backed rules."
   },
   "providerImport_remoteRules": {
-    "message": "Remote Rules",
-    "description": "Sidebar option for rules loaded from a remote source (like an online ruleset)."
+    "message": "Remote Rules (Legacy)",
+    "description": "Legacy label for remote-only rules source."
   },
   "providerImport_currentMerged": {
-    "message": "Current Active Rules",
-    "description": "Sidebar option for the rules currently active after merging custom and bundled rules."
+    "message": "Active Merged Rules (Legacy)",
+    "description": "Legacy label for currently active merged rules."
   },
   "providerImport_searchPlaceholder": {
     "message": "Search providers...",
@@ -3239,6 +3318,26 @@
   "providerImport_clearSelection": {
     "message": "Clear",
     "description": "Button text to clear all selected providers."
+  },
+  "providerImport_disabledTitle": {
+    "message": "Disabled Rules",
+    "description": "Title for disabled provider signature list in provider import sidebar"
+  },
+  "providerImport_disabledEmpty": {
+    "message": "No disabled signatures",
+    "description": "Empty state text when no disabled signatures exist for selected source"
+  },
+  "providerImport_disabledRestore": {
+    "message": "Restore",
+    "description": "Button label to restore an excluded signature"
+  },
+  "providerImport_disabledClear": {
+    "message": "Clear All",
+    "description": "Button label to clear all excluded signatures for selected source"
+  },
+  "providerImport_disabledClearConfirm": {
+    "message": "Clear all disabled signatures for this source?",
+    "description": "Confirmation before clearing disabled signatures for selected source"
   },
   "providerImport_loading": {
     "message": "Loading providers...",
@@ -3312,11 +3411,43 @@
   "providerImport_import": {
     "message": "Import Selected"
   },
+  "providerImport_disableSelected": {
+    "message": "Disable Selected",
+    "description": "Button text to disable selected providers by signature"
+  },
+  "providerImport_disableSelectedConfirm": {
+    "message": "Disable signatures for $1 selected provider(s)?",
+    "description": "Confirmation before disabling selected providers in batch. $1 is selected count"
+  },
+  "providerImport_disableSelectedResult": {
+    "message": "Disabled signatures: $1. Removed matching custom providers: $2.",
+    "description": "Batch disable result. $1 is disabled signature count and $2 removed custom provider count"
+  },
   "providerImport_selectedCount": {
     "message": "$1 selected"
   },
+  "providerImport_excludeTooltip": {
+    "message": "Exclude this provider signature",
+    "description": "Tooltip text for excluding provider by URL/domain signature in import grid"
+  },
+  "providerImport_confirmExclude": {
+    "message": "Exclude this provider signature? Matching URL/domain pattern providers will be hidden and removed from custom rules.",
+    "description": "Confirmation shown before excluding a provider signature from import"
+  },
+  "providerImport_excludeNoPattern": {
+    "message": "This provider has no URL/domain pattern and cannot be excluded by signature.",
+    "description": "Shown when user tries to exclude a provider without URL/domain patterns"
+  },
+  "providerImport_excludedSuccess": {
+    "message": "Provider signature excluded. Removed $1 matching custom provider(s).",
+    "description": "Success message after excluding a provider signature. $1 is removed custom count"
+  },
+  "providerImport_excludeFailed": {
+    "message": "Failed to exclude provider signature: $1",
+    "description": "Shown when excluding provider signature fails"
+  },
   "providerImport_button": {
-    "message": "Import bundle rule/remote rule for editing",
+    "message": "Import/Disable Providers",
     "description": "Button text to import selected providers"
   },
   "providerImport_rulesAbbr": {
