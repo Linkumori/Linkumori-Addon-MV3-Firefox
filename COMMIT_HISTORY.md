@@ -1,11 +1,127 @@
 # Git Commit History
 
-**Generated**: 2026-02-21T16:57:04.900Z
-**Total Commits**: 21
+**Generated**: 2026-02-21T21:13:08.196Z
+**Total Commits**: 27
 
 ---
 
-## Commit 1: Adjust build workflow order and ignore commit history file
+## Commit 1: Update Template.md
+
+**Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
+**Date**: 2026-02-22 02:42:44 +0530
+**Commit Hash**: `ff7a743f2bf9fd9f7d62eb701114fb52e0772217`
+**Short Hash**: `ff7a743`
+
+### Files Modified
+
+- **Modified**: `Template.md`
+
+### Commit Message
+
+```
+Update Template.md
+```
+
+---
+
+## Commit 2: Update Template.md
+
+**Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
+**Date**: 2026-02-22 02:38:46 +0530
+**Commit Hash**: `c75e95ef78a76a1176873ae3b2d1ad53eb3a75da`
+**Short Hash**: `c75e95e`
+
+### Files Modified
+
+- **Modified**: `Template.md`
+
+### Commit Message
+
+```
+Update Template.md
+```
+
+---
+
+## Commit 3: updated CHANGELOG.md
+
+**Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
+**Date**: 2026-02-21 22:55:30 +0530
+**Commit Hash**: `2c80bc48a2bbcc53def0108f321e27f36e4137fc`
+**Short Hash**: `2c80bc4`
+
+### Files Modified
+
+- **Modified**: `CHANGELOG.md`
+
+### Commit Message
+
+```
+updated CHANGELOG.md
+```
+
+---
+
+## Commit 4: push origin main updated changelog
+
+**Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
+**Date**: 2026-02-21 22:54:31 +0530
+**Commit Hash**: `f98890d2dbecb1e776d14ae656c48a1a9b71ccaa`
+**Short Hash**: `f98890d`
+
+### Files Modified
+
+- **Modified**: `CHANGELOG.md`
+
+### Commit Message
+
+```
+push origin main updated changelog
+```
+
+---
+
+## Commit 5: Add consolidated Linkumori v27-v28 changelog
+
+**Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
+**Date**: 2026-02-21 22:51:17 +0530
+**Commit Hash**: `12926fab443ec1b0dd46a88023012c087936a2e7`
+**Short Hash**: `12926fa`
+
+### Files Modified
+
+- **Modified**: `CHANGELOG.md`
+
+### Commit Message
+
+```
+Add consolidated Linkumori v27-v28 changelog
+```
+
+---
+
+## Commit 6: release 28.0
+
+**Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+**Date**: 2026-02-21 16:57:26 +0000
+**Commit Hash**: `902c759b6aef95e9a70764c4dffbef326a9f1e2a`
+**Short Hash**: `902c759`
+
+### Files Modified
+
+- **Added**: `COMMIT_HISTORY.md`
+- **Modified**: `License.md`
+- **Modified**: `manifest.json`
+
+### Commit Message
+
+```
+release 28.0
+```
+
+---
+
+## Commit 7: Adjust build workflow order and ignore commit history file
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-21 22:26:28 +0530
@@ -25,7 +141,7 @@ Adjust build workflow order and ignore commit history file
 
 ---
 
-## Commit 2: Refine domain wildcard matching for root and www
+## Commit 8: Refine domain wildcard matching for root and www
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-21 22:16:38 +0530
@@ -44,7 +160,7 @@ Refine domain wildcard matching for root and www
 
 ---
 
-## Commit 3: Fix domain pattern matching and FAQ accuracy
+## Commit 9: Fix domain pattern matching and FAQ accuracy
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-21 21:56:05 +0530
@@ -64,7 +180,7 @@ Fix domain pattern matching and FAQ accuracy
 
 ---
 
-## Commit 4: added more texts for popup consent gate and legal information page
+## Commit 10: added more texts for popup consent gate and legal information page
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-21 21:30:33 +0530
@@ -83,7 +199,7 @@ added more texts for popup consent gate and legal information page
 
 ---
 
-## Commit 5: Implement import flow, legal welcome gating, whitelist logging, and UI/CSS fixes
+## Commit 11: Implement import flow, legal welcome gating, whitelist logging, and UI/CSS fixes
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-21 20:20:41 +0530
@@ -116,7 +232,7 @@ Implement import flow, legal welcome gating, whitelist logging, and UI/CSS fixes
 
 ---
 
-## Commit 6: Implement consent gating, provider list UX, whitelist parity, and policy/legal updates
+## Commit 12: Implement consent gating, provider list UX, whitelist parity, and policy/legal updates
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-21 16:42:32 +0530
@@ -155,7 +271,7 @@ Implement consent gating, provider list UX, whitelist parity, and policy/legal u
 
 ---
 
-## Commit 7: for now we reversing domain pattern merging in multiple rule merging logic lot of change are experimental and may be reverted if not working as expected.
+## Commit 13: for now we reversing domain pattern merging in multiple rule merging logic lot of change are experimental and may be reverted if not working as expected.
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-18 22:13:20 +0530
@@ -174,7 +290,7 @@ for now we reversing domain pattern merging in multiple rule merging logic lot o
 
 ---
 
-## Commit 8: introduced proper merging algorthim ins settings.js to avoid conflicts and ensure all changes are preserved. Also added Firefox-specific resource types in storage.js and removed context menu toggle on Android in settings.js.
+## Commit 14: introduced proper merging algorthim ins settings.js to avoid conflicts and ensure all changes are preserved. Also added Firefox-specific resource types in storage.js and removed context menu toggle on Android in settings.js.
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-18 19:25:46 +0530
@@ -197,7 +313,7 @@ introduced proper merging algorthim ins settings.js to avoid conflicts and ensur
 
 ---
 
-## Commit 9: well fixed bugs
+## Commit 15: well fixed bugs
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-18 14:47:09 +0530
@@ -218,7 +334,7 @@ well fixed bugs
 
 ---
 
-## Commit 10: Added overload mode where user can use built in rule and remote rule in same time and add toogle for built in rules
+## Commit 16: Added overload mode where user can use built in rule and remote rule in same time and add toogle for built in rules
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-18 00:22:29 +0530
@@ -241,7 +357,7 @@ Added overload mode where user can use built in rule and remote rule in same tim
 
 ---
 
-## Commit 11: Fix custom rules editor theme toggle binding
+## Commit 17: Fix custom rules editor theme toggle binding
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-17 22:40:21 +0530
@@ -260,7 +376,7 @@ Fix custom rules editor theme toggle binding
 
 ---
 
-## Commit 12: Merge pull request #2 from Linkumori/codex/multi-remote-rules-storage-settings-ui
+## Commit 18: Merge pull request #2 from Linkumori/codex/multi-remote-rules-storage-settings-ui
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-17 22:34:03 +0530
@@ -279,7 +395,7 @@ Merge pull request #2 from Linkumori/codex/multi-remote-rules-storage-settings-u
 
 ---
 
-## Commit 13: Finalize remote-rule settings UI and i18n wiring
+## Commit 19: Finalize remote-rule settings UI and i18n wiring
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-17 22:32:57 +0530
@@ -300,7 +416,7 @@ Finalize remote-rule settings UI and i18n wiring
 
 ---
 
-## Commit 14: Guard remote network access when remote rules are disabled and refine provider import summary
+## Commit 20: Guard remote network access when remote rules are disabled and refine provider import summary
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-17 22:31:56 +0530
@@ -320,7 +436,7 @@ Guard remote network access when remote rules are disabled and refine provider i
 
 ---
 
-## Commit 15: Fix blocked page i18n HTML rendering safely
+## Commit 21: Fix blocked page i18n HTML rendering safely
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-17 22:07:24 +0530
@@ -339,7 +455,7 @@ Fix blocked page i18n HTML rendering safely
 
 ---
 
-## Commit 16: Merge pull request #1 from Linkumori/codex/remote-rules-messages-json
+## Commit 22: Merge pull request #1 from Linkumori/codex/remote-rules-messages-json
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-17 21:44:37 +0530
@@ -358,7 +474,7 @@ Merge pull request #1 from Linkumori/codex/remote-rules-messages-json
 
 ---
 
-## Commit 17: Add i18n strings for multi-remote rules UI, validation, and merge statuses
+## Commit 23: Add i18n strings for multi-remote rules UI, validation, and merge statuses
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-17 21:42:22 +0530
@@ -377,7 +493,7 @@ Add i18n strings for multi-remote rules UI, validation, and merge statuses
 
 ---
 
-## Commit 18: Implement multi-source remote rule loading and restore textarea-based remote set configuration
+## Commit 24: Implement multi-source remote rule loading and restore textarea-based remote set configuration
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-17 21:39:46 +0530
@@ -398,7 +514,7 @@ Implement multi-source remote rule loading and restore textarea-based remote set
 
 ---
 
-## Commit 19: release 27.0
+## Commit 25: release 27.0
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-16 17:54:42 +0000
@@ -418,7 +534,7 @@ release 27.0
 
 ---
 
-## Commit 20: release 26.0
+## Commit 26: release 26.0
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-16 17:50:12 +0000
@@ -442,7 +558,7 @@ release 26.0
 
 ---
 
-## Commit 21: Initial commit
+## Commit 27: Initial commit
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-16 23:17:03 +0530
@@ -569,4 +685,4 @@ Initial commit
 
 *End of Commit History*
 
-**Generated by Linkumori CLI** - 2026-02-21T16:57:04.900Z
+**Generated by Linkumori CLI** - 2026-02-21T21:13:08.196Z
