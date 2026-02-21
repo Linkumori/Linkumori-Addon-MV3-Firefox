@@ -3856,5 +3856,13 @@
   "permissionsMissing": {
     "message": "Some permissions are missing. Please grant the required permissions. by clicking the grant permissions button.",
     "description": "Status text when some permissions are missing"
+  },
+  "popup_consent_legal_button_title": {
+    "message": "Legal Information - Privacy Policy and License",
+    "description": "Title for legal information page opened from popup consent gate"
+  },
+  "popup_html_whitelist_button_title": {
+    "message": "Whitelist",
+    "description": "Title for HTML content page opened from popup consent gate"
   }
 }
