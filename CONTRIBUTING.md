@@ -159,7 +159,7 @@ To view full modification history for third-party files, run the CLI tool and se
 ### General
 
 - Write clean, readable JavaScript — prioritise clarity over cleverness
-- Avoid introducing new external dependencies unless absolutely necessary; all third-party code must be reviewed and attributed in `COPYRIGHT.md`
+- Avoid introducing new external dependencies unless absolutely necessary; all third-party code must be reviewed and attributed in `LICENSE.md`
 - Do not use inline scripts — the extension enforces `script-src 'self'` via CSP
 - Do not make network requests from extension code unless strictly required and clearly documented
 
@@ -177,7 +177,7 @@ To view full modification history for third-party files, run the CLI tool and se
 
 ### Third-Party Code
 
-- Any new third-party code must be documented in `COPYRIGHT.md` with copyright holder, license, and any modifications made
+- Any new third-party code must be documented in `LICENSE.md` with copyright holder, license, and any modifications made
 - Modified third-party code must include an inline notice referencing the original source
 - Licenses must be compatible with LGPL v3.0
 
@@ -516,7 +516,7 @@ Feature suggestions are welcome. When opening a feature request, please include:
 
 ## 11. License
 
-By contributing to Linkumori, you agree that your contributions will be licensed under the **GNU Lesser General Public License v3.0 or later (LGPL-3.0)**, consistent with the project's existing license. See `COPYRIGHT.md` for full license details.
+By contributing to Linkumori, you agree that your contributions will be licensed under the **GNU Lesser General Public License v3.0 or later (LGPL-3.0)**, consistent with the project's existing license. See `LICENSE.md` for full license details.
 
 ---
 
