@@ -202,8 +202,7 @@ SOFTWARE.
 
 #### 3.4.1 Original Copyright
 
-**Copyright:** Mathias Bynens  
-**Website:** <https://mathiasbynens.be/>
+**Copyright:** Mathias Bynens \<https://mathiasbynens.be/>
 
 **License:** MIT License
 
