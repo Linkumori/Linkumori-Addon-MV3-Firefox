@@ -1901,7 +1901,7 @@
     "description": "FAQ answer explaining custom rules"
   },
   "faq_custom_rules_note": {
-    "message": "Custom rules are merged with built-in rules",
+    "message": "Custom rules run together with built-in rules and can override imported bundled/remote provider entries by name.",
     "description": "Note about custom rules precedence"
   },
   "faq_how_providers_work": {
@@ -1937,11 +1937,11 @@
     "description": "FAQ question about completeProvider"
   },
   "faq_complete_provider_explanation": {
-    "message": "When set to true, completeProvider blocks all URLs matching the urlPattern completely. When false, it allows you to specify individual rules, exceptions, and redirections.",
+    "message": "When set to true, completeProvider marks matching requests for blocking. Actual blocking happens only when the global \"Domain Blocking\" setting is enabled. When false, you can use normal rules, exceptions, and redirections.",
     "description": "FAQ answer explaining completeProvider"
   },
   "faq_complete_provider_warning": {
-    "message": "Setting this to true will block access to the entire website!",
+    "message": "If Domain Blocking is enabled, this can block full access for matching URLs.",
     "description": "FAQ warning about completeProvider"
   },
   "faq_complete_provider_usage": {
@@ -1957,12 +1957,12 @@
     "description": "FAQ section title for rules explanation"
   },
   "faq_rules_explanation": {
-    "message": "Simple parameter names that get automatically converted to regex patterns. Best for standard URL parameters.",
+    "message": "Regex patterns matched against each query parameter key and hash fragment key. Use simple names (for exact key matches) or regex for broader matching.",
     "description": "FAQ explanation of rules"
   },
   "faq_rules_converted": {
-    "message": "These get converted to patterns like: (?:&|[/?#&])(?:utm_source=[^&]*)",
-    "description": "FAQ example of how rules are converted"
+    "message": "Example: \"utm_source\" matches the key exactly; \"utm_.*\" matches keys like utm_source and utm_campaign.",
+    "description": "FAQ examples for rules key matching"
   },
   "faq_raw_rules_title": {
     "message": "Raw Rules:",
@@ -2157,7 +2157,7 @@
     "description": "FAQ question about domain patterns vs URL patterns"
   },
   "faq_domain_patterns_explanation": {
-    "message": "Domain Patterns provide a simpler alternative to URL patterns. Instead of complex regex, you can specify domains directly:",
+    "message": "Domain Patterns support simple tokens and AdBlock-style forms. Matching behavior depends on syntax (some forms check hostname, others match against the full URL string):",
     "description": "FAQ explanation of domain patterns"
   },
   "faq_url_patterns_explanation": {
@@ -2165,7 +2165,7 @@
     "description": "FAQ explanation of URL patterns"
   },
   "faq_pattern_exclusive_note": {
-    "message": "You can only use either Domain Patterns OR URL Pattern, not both in the same provider.",
+    "message": "Both fields can be present in data, but urlPattern takes priority. Domain Patterns are used only when urlPattern is empty. Limitation: matching is pattern-based (not PSL/eTLD-aware), so wildcard TLD patterns may match more broadly than registrable-domain logic.",
     "description": "FAQ note about pattern exclusivity"
   },
   "faq_domain_pattern_types": {
@@ -2177,7 +2177,7 @@
     "description": "FAQ section title for pattern usage guidance"
   },
   "faq_use_domain_patterns": {
-    "message": "Use Domain Patterns for simple domain-based rules (easier to manage)",
+    "message": "Use Domain Patterns for simpler hostname/path matching without writing full urlPattern regex.",
     "description": "FAQ guidance for using domain patterns"
   },
   "faq_use_url_patterns": {
@@ -2217,7 +2217,7 @@
     "description": "FAQ question about provider list management"
   },
   "faq_provider_list_explanation": {
-    "message": "The Provider List modal gives you a quick overview of all your custom providers. You can search, edit, duplicate, or delete providers without opening each one individually.",
+    "message": "The Provider List view gives you a quick overview of all custom providers. You can search, edit, duplicate, or delete providers without opening each one individually.",
     "description": "FAQ explanation of provider list feature"
   },
   "faq_provider_list_features": {
@@ -2377,28 +2377,32 @@
     "description": "FAQ tip about provider import"
   },
   "faq_provider_list_tip": {
-    "message": "Click the \"Provider List\" button in the sidebar to open this feature.",
+    "message": "Open the Provider List from the editor toolbar to browse and manage providers.",
     "description": "FAQ tip about provider list"
   },
   "faq_domain_pattern_basic": {
-    "message": "example.com - Matches example.com and all subdomains",
+    "message": "example.com - Simple substring match on full URL (can also match inside longer hostnames/paths)",
     "description": "FAQ explanation of basic domain pattern"
   },
   "faq_domain_pattern_wildcard": {
-    "message": "*.example.com - Matches all subdomains of example.com",
+    "message": "*.example.com - Wildcard regex match on full URL, not strict hostname-only matching",
     "description": "FAQ explanation of wildcard domain pattern"
   },
   "faq_domain_pattern_adblock": {
-    "message": "||example.com^ - AdBlock-style exact domain matching",
+    "message": "||example.com^ - Hostname match for example.com and its subdomains",
     "description": "FAQ explanation of AdBlock domain pattern"
   },
   "faq_domain_pattern_adblock_wildcard": {
-    "message": "||*.example.com^ - AdBlock-style subdomain wildcard",
+    "message": "||*.example.com^ - Hostname wildcard; each * matches one label (dot segment)",
     "description": "FAQ explanation of AdBlock wildcard pattern"
+  },
+  "faq_domain_pattern_tld": {
+    "message": "||example.*^ - Matches the domain with wildcard TLDs, including multi-part TLDs (example.co.uk, example.gov.in)",
+    "description": "FAQ explanation of TLD wildcard domain pattern"
   },
 
   "faq_domain_pattern_full_wildcard": {
-    "message": "||*.example.*^ - Matches subdomains with any TLD",
+    "message": "||*.example.*^ - Matches subdomains with wildcard TLDs, including multi-part TLDs (a.example.co.uk)",
     "description": "FAQ explanation of full wildcard pattern"
   },
   "button_close": {

@@ -244,15 +244,28 @@ function matchDomainPattern(url, patterns) {
                 return domainMatches && pathMatches;
             }
 
+            function wildcardDomainToRegex(domainPattern) {
+                // Escape dots first, then expand wildcard behavior.
+                let regexPattern = domainPattern.replace(/\./g, '\\.');
+
+                // Support multi-part TLD matching for trailing wildcard TLD forms:
+                //   ||example.*^  -> example.com, example.co.uk, example.gov.in, ...
+                //   ||*.example.*^ -> a.example.com, a.example.co.uk, ...
+                if (domainPattern.endsWith('.*')) {
+                    regexPattern = regexPattern.replace(/\\\.\*$/, '(?:\\.[^.]+)+');
+                }
+
+                // Remaining wildcards match within a single DNS label.
+                regexPattern = regexPattern.replace(/\*/g, '[^.]*');
+                return '^' + regexPattern + '$';
+            }
+
             // Handle AdBlock-style patterns: ||example.com^
             if (p.startsWith('||') && p.endsWith('^')) {
                 const domain = p.slice(2, -1).toLowerCase();
 
                 if (domain.includes('*')) {
-                    const regexPattern = '^' + domain
-                        .replace(/\./g, '\\.')
-                        .replace(/\*/g, '[^.]*') + '$';
-                    return new RegExp(regexPattern, 'i').test(hostname);
+                    return new RegExp(wildcardDomainToRegex(domain), 'i').test(hostname);
                 }
 
                 return hostname === domain || hostname.endsWith('.' + domain);
@@ -265,10 +278,7 @@ function matchDomainPattern(url, patterns) {
                 // if contains '/', treat as domain+path handled earlier; otherwise domain wildcard
                 if (!domainPattern.includes('/')) {
                     if (domainPattern.includes('*')) {
-                        const regexPattern = '^' + domainPattern
-                            .replace(/\./g, '\\.')
-                            .replace(/\*/g, '[^.]*') + '$';
-                        return new RegExp(regexPattern, 'i').test(hostname);
+                        return new RegExp(wildcardDomainToRegex(domainPattern), 'i').test(hostname);
                     } else {
                         return hostname === domainPattern.toLowerCase() || hostname.endsWith('.' + domainPattern.toLowerCase());
                     }
