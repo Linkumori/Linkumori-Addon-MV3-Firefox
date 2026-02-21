@@ -82,6 +82,8 @@
  * - NEW: Added provider list modal for quick overview and editing
  * - NEW: Fully internationalized (i18n) provider list interface
  */
+import punycode from '../external_js/light-punycode.js';
+
 // Global state
 let customRules = { providers: {} };
 let currentProvider = null;
@@ -92,13 +94,17 @@ let hasUnsavedChanges = false;
 let availableRuleSources = {};
 let selectedProviders = new Set();
 let currentRuleSource = 'bundled';
+let userWhitelist = [];
+let whitelistSearchTerm = '';
+let whitelistStatusTimer = null;
 
 // DOM elements
 let providerList, editorContent, editorTitle, editorStatus, saveBtn, deleteBtn, exitBtn;
 let providerModal, providerForm, modalTitle, importFileInput;
 let faqModal, faqBtn;
 let providerImportModal, providerImportBtn;
-let providerListModal, providerListBtn; // NEW: Provider list modal elements
+let providerListView, providerListBtn; // Provider list page view elements
+let applyCustomRulesView = null;
 
 // ============================================================================
 // LINKUMORI I18N NUMBER LOCALIZATION HELPER FUNCTIONS
@@ -148,6 +154,464 @@ function setHTMLContent(element, html) {
     element.replaceChildren(...Array.from(doc.body.childNodes));
 }
 
+function toDomainPatternArray(value) {
+    if (Array.isArray(value)) {
+        return value
+            .filter(item => typeof item === 'string')
+            .map(item => item.trim())
+            .filter(item => item.length > 0);
+    }
+
+    if (typeof value === 'string' && value.trim().length > 0) {
+        return [value.trim()];
+    }
+
+    return [];
+}
+
+function domainToPunycode(domain) {
+    if (!domain || typeof domain !== 'string') {
+        return domain;
+    }
+
+    try {
+        if (domain.startsWith('*.')) {
+            const baseDomain = domain.substring(2);
+            const punycodeBase = punycode.toASCII(baseDomain);
+            return '*.' + punycodeBase;
+        }
+
+        return punycode.toASCII(domain);
+    } catch (_) {
+        return domain;
+    }
+}
+
+function domainToUnicode(domain) {
+    if (!domain || typeof domain !== 'string') {
+        return domain;
+    }
+
+    try {
+        if (domain.startsWith('*.')) {
+            const baseDomain = domain.substring(2);
+            const unicodeBase = punycode.toUnicode(baseDomain);
+            return '*.' + unicodeBase;
+        }
+
+        return punycode.toUnicode(domain);
+    } catch (_) {
+        return domain;
+    }
+}
+
+function normalizeDomain(domain) {
+    if (!domain || typeof domain !== 'string') {
+        return domain;
+    }
+
+    return domainToPunycode(domain.trim().toLowerCase());
+}
+
+function isSpecialDomain(domain) {
+    const specialDomains = ['localhost', 'broadcasthost'];
+    return specialDomains.includes(domain.toLowerCase());
+}
+
+function isValidDomain(domain) {
+    if (!domain || typeof domain !== 'string') {
+        return false;
+    }
+
+    let testDomain = domain.trim().toLowerCase();
+    if (!testDomain) {
+        return false;
+    }
+
+    if (testDomain.startsWith('*.')) {
+        testDomain = testDomain.substring(2);
+        if (!testDomain) {
+            return false;
+        }
+    }
+
+    if (testDomain.length > 253) {
+        return false;
+    }
+
+    try {
+        const punnycodeDomain = punycode.toASCII(testDomain);
+        if (!punnycodeDomain || punnycodeDomain.length === 0) {
+            return false;
+        }
+
+        const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        const parts = punnycodeDomain.split('.');
+
+        if (parts.length < 2 && !isSpecialDomain(testDomain)) {
+            return false;
+        }
+
+        for (const part of parts) {
+            if (part.length === 0 || part.length > 63) {
+                return false;
+            }
+            if (part.startsWith('-') || part.endsWith('-')) {
+                return false;
+            }
+            if (parts.indexOf(part) === parts.length - 1 && /^\d+$/.test(part)) {
+                return false;
+            }
+        }
+
+        return domainRegex.test(punnycodeDomain);
+    } catch (error) {
+        console.warn('Punycode conversion failed for domain:', testDomain, error);
+        const basicDomainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        const parts = testDomain.split('.');
+
+        if (parts.length < 2 && !isSpecialDomain(testDomain)) {
+            return false;
+        }
+
+        for (const part of parts) {
+            if (part.length === 0 || part.length > 63) {
+                return false;
+            }
+            if (part.startsWith('-') || part.endsWith('-')) {
+                return false;
+            }
+        }
+
+        return basicDomainRegex.test(testDomain);
+    }
+}
+
+function setWhitelistStatus(type, message) {
+    const status = document.getElementById('customrules-whitelist-status');
+    if (!status) return;
+
+    if (whitelistStatusTimer) {
+        clearTimeout(whitelistStatusTimer);
+        whitelistStatusTimer = null;
+    }
+
+    status.classList.remove('success', 'error');
+    status.textContent = message || '';
+    if (type) {
+        status.classList.add(type);
+    }
+
+    if (message) {
+        whitelistStatusTimer = setTimeout(() => {
+            status.classList.remove('success', 'error');
+            status.textContent = '';
+            whitelistStatusTimer = null;
+        }, 3500);
+    }
+}
+
+function renderWhitelistCount() {
+    const countEl = document.getElementById('customrules-whitelist-count');
+    if (!countEl) return;
+
+    const localizedCount = getLocalizedNumber(userWhitelist.length);
+    countEl.textContent = i18n('whitelist_count').replace('%d', localizedCount);
+}
+
+function renderWhitelistList() {
+    const list = document.getElementById('customrules-whitelist-list');
+    if (!list) return;
+
+    const term = whitelistSearchTerm.trim().toLowerCase();
+    const filtered = userWhitelist.filter(domain => !term || domain.toLowerCase().includes(term));
+
+    if (userWhitelist.length === 0) {
+        const countEl = document.getElementById('customrules-whitelist-count');
+        setHTMLContent(list, `<li class="whitelist-empty">${i18n('whitelist_empty')}</li>`);
+        if (countEl) {
+            countEl.textContent = '';
+        }
+        return;
+    }
+
+    if (filtered.length === 0) {
+        setHTMLContent(list, `<li class="whitelist-empty">${i18n('whitelist_empty')}</li>`);
+        renderWhitelistCount();
+        addWhitelistRemoveHandlers();
+        return;
+    }
+
+    const items = filtered.map(domain => `
+        <li class="whitelist-item">
+            <span class="whitelist-domain" title="${escapeHtml(domain)}">${escapeHtml(domain)}</span>
+            <button class="btn btn-danger btn-sm whitelist-remove" data-domain="${escapeHtml(domain)}" title="${i18n('whitelist_remove_button')}">${i18n('whitelist_remove_button')}</button>
+        </li>
+    `).join('');
+    setHTMLContent(list, items);
+    renderWhitelistCount();
+    addWhitelistRemoveHandlers();
+}
+
+function addWhitelistRemoveHandlers() {
+    const list = document.getElementById('customrules-whitelist-list');
+    if (!list) {
+        return;
+    }
+
+    list.removeEventListener('click', handleWhitelistRemove);
+    list.addEventListener('click', handleWhitelistRemove);
+}
+
+function handleWhitelistRemove(event) {
+    const target = event.target;
+    if (!target.classList.contains('whitelist-remove')) {
+        return;
+    }
+
+    const domain = target.getAttribute('data-domain');
+    if (domain) {
+        removeWhitelistDomain(domain);
+    }
+}
+
+async function loadWhitelist() {
+    try {
+        const response = await browser.runtime.sendMessage({
+            function: "getData",
+            params: ["userWhitelist"]
+        });
+        userWhitelist = response.response || [];
+
+        renderWhitelistList();
+        setTimeout(() => {
+            addWhitelistRemoveHandlers();
+        }, 100);
+    } catch (_) {
+        userWhitelist = [];
+        renderWhitelistList();
+        setWhitelistStatus('error', i18n('whitelist_load_failed'));
+    }
+}
+
+async function addWhitelistDomain() {
+    const input = document.getElementById('customrules-whitelist-input');
+    if (!input) return;
+
+    const raw = input.value || '';
+    if (!raw.trim()) {
+        setWhitelistStatus('error', i18n('whitelist_enter_domain'));
+        return;
+    }
+    if (!isValidDomain(raw)) {
+        setWhitelistStatus('error', i18n('whitelist_invalid_format'));
+        return;
+    }
+
+    const punnycodeDomain = normalizeDomain(raw);
+    try {
+        const response = await browser.runtime.sendMessage({
+            function: "addToWhitelist",
+            params: [punnycodeDomain]
+        });
+
+        if (response && response.response) {
+            input.value = '';
+            await loadWhitelist();
+            setWhitelistStatus('success', i18n('whitelist_added').replace('%s', domainToUnicode(punnycodeDomain)));
+        } else {
+            setWhitelistStatus('error', i18n('whitelist_already_exists'));
+        }
+    } catch (_) {
+        setWhitelistStatus('error', i18n('whitelist_add_failed'));
+    }
+}
+
+async function removeWhitelistDomain(domain) {
+    if (!domain) {
+        return;
+    }
+
+    try {
+        const response = await browser.runtime.sendMessage({
+            function: "removeFromWhitelist",
+            params: [domain]
+        });
+
+        if (response && response.response) {
+            await loadWhitelist();
+            setWhitelistStatus('success', i18n('whitelist_removed').replace('%s', domainToUnicode(domain)));
+        } else {
+            setWhitelistStatus('error', i18n('whitelist_remove_failed'));
+        }
+    } catch (_) {
+        setWhitelistStatus('error', i18n('whitelist_remove_failed'));
+    }
+}
+
+async function exportWhitelistDomains() {
+    let url = null;
+    try {
+        if (!Array.isArray(userWhitelist) || userWhitelist.length === 0) {
+            setWhitelistStatus('error', i18n('whitelist_export_empty'));
+            return;
+        }
+
+        const payload = JSON.stringify(userWhitelist, null, 2);
+        const blob = new Blob([payload], { type: 'application/json' });
+        url = URL.createObjectURL(blob);
+        const fileName = `Linkumori-Whitelist-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+
+        await browser.downloads.download({
+            url,
+            filename: fileName,
+            saveAs: true
+        });
+
+        setWhitelistStatus('success', i18n('whitelist_export_done'));
+    } catch (_) {
+        setWhitelistStatus('error', i18n('whitelist_export_failed'));
+    } finally {
+        if (url) {
+            URL.revokeObjectURL(url);
+        }
+    }
+}
+
+async function importWhitelistDomainsFromFile(file) {
+    if (!file) return;
+
+    let parsed;
+    try {
+        const text = await file.text();
+        parsed = JSON.parse(text);
+    } catch (_) {
+        setWhitelistStatus('error', i18n('whitelist_import_parse_failed'));
+        return;
+    }
+
+    let importedDomains = null;
+    if (Array.isArray(parsed)) {
+        importedDomains = parsed;
+    } else if (parsed && Array.isArray(parsed.userWhitelist)) {
+        importedDomains = parsed.userWhitelist;
+    }
+
+    if (!Array.isArray(importedDomains)) {
+        setWhitelistStatus('error', i18n('whitelist_import_invalid_format'));
+        return;
+    }
+
+    const normalizedToImport = Array.from(new Set(
+        importedDomains
+            .filter(item => typeof item === 'string')
+            .map(item => item.trim())
+            .filter(item => item.length > 0 && isValidDomain(item))
+            .map(item => normalizeDomain(item))
+    ));
+
+    if (normalizedToImport.length === 0) {
+        setWhitelistStatus('error', i18n('whitelist_import_no_valid_domain'));
+        return;
+    }
+
+    let addedCount = 0;
+    for (const domain of normalizedToImport) {
+        try {
+            const response = await browser.runtime.sendMessage({
+                function: "addToWhitelist",
+                params: [domain]
+            });
+            if (response && response.response) {
+                addedCount++;
+            }
+        } catch (_) {
+        }
+    }
+
+    await loadWhitelist();
+    const localizedCount = getLocalizedNumber(addedCount);
+    setWhitelistStatus('success', i18n('whitelist_import_done').replace('%s', localizedCount));
+}
+
+function setupWhitelistUI() {
+    const addBtn = document.getElementById('customrules-whitelist-add-btn');
+    const importBtn = document.getElementById('customrules-whitelist-import-btn');
+    const exportBtn = document.getElementById('customrules-whitelist-export-btn');
+    const importInput = document.getElementById('customrules-whitelist-import-input');
+    const input = document.getElementById('customrules-whitelist-input');
+    const search = document.getElementById('customrules-whitelist-search');
+    const list = document.getElementById('customrules-whitelist-list');
+    const examples = document.getElementById('whitelist_examples_text');
+
+    if (!addBtn || !input || !search || !list || !importBtn || !exportBtn || !importInput) {
+        return;
+    }
+
+    addBtn.onclick = addWhitelistDomain;
+    importBtn.onclick = () => {
+        importInput.value = '';
+        importInput.click();
+    };
+    exportBtn.onclick = exportWhitelistDomains;
+    input.onkeypress = (event) => {
+        if (event.key === 'Enter') {
+            addWhitelistDomain();
+        }
+    };
+    input.placeholder = i18n('whitelist_input_placeholder');
+    if (examples) {
+        setHTMLContent(examples, i18n('whitelist_examples_text'));
+    }
+
+    search.addEventListener('input', () => {
+        whitelistSearchTerm = search.value || '';
+        renderWhitelistList();
+    });
+    importInput.addEventListener('change', async (event) => {
+        const file = event.target.files && event.target.files[0];
+        await importWhitelistDomainsFromFile(file);
+        importInput.value = '';
+    });
+    addWhitelistRemoveHandlers();
+}
+
+function setupCustomRulesViews() {
+    const navRules = document.getElementById('nav-custom-rules');
+    const navWhitelist = document.getElementById('nav-whitelist');
+    const rulesView = document.getElementById('custom-rules-view');
+    const whitelistView = document.getElementById('whitelist-view');
+    const providerListPageView = document.getElementById('provider-list-view');
+
+    if (!navRules || !navWhitelist || !rulesView || !whitelistView || !providerListPageView) {
+        return;
+    }
+
+    const applyView = (viewName) => {
+        const showWhitelist = viewName === 'whitelist';
+        const showProviderList = viewName === 'provider-list';
+        navRules.classList.toggle('active', !showWhitelist);
+        navWhitelist.classList.toggle('active', showWhitelist);
+        rulesView.classList.toggle('active', !showWhitelist && !showProviderList);
+        whitelistView.classList.toggle('active', showWhitelist);
+        providerListPageView.classList.toggle('active', showProviderList);
+        localStorage.setItem('customrules-active-view', showWhitelist ? 'whitelist' : 'rules');
+    };
+    applyCustomRulesView = applyView;
+
+    navRules.addEventListener('click', () => applyView('rules'));
+    navWhitelist.addEventListener('click', () => applyView('whitelist'));
+
+    const savedView = localStorage.getItem('customrules-active-view');
+    applyView(savedView === 'whitelist' ? 'whitelist' : 'rules');
+}
+
+function switchCustomRulesView(viewName) {
+    if (typeof applyCustomRulesView === 'function') {
+        applyCustomRulesView(viewName);
+    }
+}
+
 /**
  * Initialize i18n for all static elements
  */
@@ -184,6 +648,11 @@ function initializeI18n() {
             element.placeholder = text;
         }
     });
+
+    const whitelistExamples = document.getElementById('whitelist_examples_text');
+    if (whitelistExamples) {
+        setHTMLContent(whitelistExamples, i18n('whitelist_examples_text'));
+    }
 }
      initializeTheme();
 /**
@@ -212,10 +681,13 @@ document.addEventListener('DOMContentLoaded', function() {
  * Initialize the main application
  */
 function initializeApp() {
+    setupCustomRulesViews();
     setupFAQ();
     setupProviderImport();
     setupProviderListModal(); // NEW: Setup provider list modal
     setupEventListeners();
+    setupWhitelistUI();
+    loadWhitelist();
     loadCustomRules(); // Load this last so UI is ready
 }
 
@@ -244,8 +716,8 @@ function initializeEditor() {
     providerImportModal = document.getElementById('provider-import-modal');
     providerImportBtn = document.getElementById('import-from-rules-btn');
     
-    // NEW: Provider list modal elements
-    providerListModal = document.getElementById('provider-list-modal');
+    // Provider list page view elements
+    providerListView = document.getElementById('provider-list-view');
     providerListBtn = document.getElementById('provider-list-btn');
 }
 
@@ -280,35 +752,22 @@ function initializeEditor() {
  */
 
 /**
- * Setup provider list modal functionality
+ * Setup provider list page functionality
  */
 function setupProviderListModal() {
-    if (!providerListBtn || !providerListModal) {
+    if (!providerListBtn || !providerListView) {
         return;
     }
     
     // Provider list button click
     providerListBtn.addEventListener('click', showProviderListModal);
     
-    // Provider list modal close buttons
-    const listCloseBtn = document.getElementById('provider-list-modal-close');
-    const listModalCloseBtn = document.getElementById('provider-list-close-btn');
-    
-    if (listCloseBtn) {
-        listCloseBtn.addEventListener('click', hideProviderListModal);
+    // Provider list page close button
+    const listPageCloseBtn = document.getElementById('provider-list-close-btn');
+    if (listPageCloseBtn) {
+        listPageCloseBtn.addEventListener('click', hideProviderListModal);
     }
-    
-    if (listModalCloseBtn) {
-        listModalCloseBtn.addEventListener('click', hideProviderListModal);
-    }
-    
-    // Close provider list modal on background click
-    providerListModal.addEventListener('click', function(e) {
-        if (e.target === providerListModal) {
-            hideProviderListModal();
-        }
-    });
-    
+
     // Search functionality
     const searchInput = document.getElementById('provider-list-search');
     if (searchInput) {
@@ -317,44 +776,38 @@ function setupProviderListModal() {
         });
     }
     
-    // Close modal with Escape key
+    // Return to rules view with Escape key
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && providerListModal && providerListModal.classList.contains('show')) {
+        if (e.key === 'Escape' && providerListView && providerListView.classList.contains('active')) {
             hideProviderListModal();
         }
     });
 }
 
 /**
- * Show provider list modal
+ * Show provider list page
  */
 function showProviderListModal() {
-    if (!providerListModal) return;
+    if (!providerListView) return;
     
-    // Populate the provider list
     populateProviderListModal();
+    switchCustomRulesView('provider-list');
     
-    // Show modal
-    providerListModal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-    
-    // Focus management for accessibility
     const searchInput = document.getElementById('provider-list-search');
     if (searchInput) {
+        searchInput.value = '';
+        filterProviderList('');
         searchInput.focus();
     }
 }
 
 /**
- * Hide provider list modal
+ * Hide provider list page
  */
 function hideProviderListModal() {
-    if (!providerListModal) return;
+    if (!providerListView) return;
+    switchCustomRulesView('rules');
     
-    providerListModal.classList.remove('show');
-    document.body.style.overflow = '';
-    
-    // Return focus to provider list button
     if (providerListBtn) {
         providerListBtn.focus();
     }
@@ -431,13 +884,14 @@ function populateProviderListModal() {
  * Create HTML for a provider list item in the modal
  */
 function createProviderListItemHTML(providerName, provider) {
+    const domainPatterns = toDomainPatternArray(provider.domainPatterns);
     // Calculate provider statistics
     const rulesCount = (provider.rules || []).length;
     const rawRulesCount = (provider.rawRules || []).length;
     const exceptionsCount = (provider.exceptions || []).length;
     const redirectionsCount = (provider.redirections || []).length;
     const referralCount = (provider.referralMarketing || []).length;
-    const domainPatternsCount = (provider.domainPatterns || []).length;
+    const domainPatternsCount = domainPatterns.length;
     const domainExceptionsCount = (provider.domainExceptions || []).length;
     const domainRedirectionsCount = (provider.domainRedirections || []).length;
     
@@ -456,7 +910,7 @@ function createProviderListItemHTML(providerName, provider) {
         <div class="provider-list-item" data-provider="${escapeHtml(providerName)}">
             <div class="provider-list-item-info">
                 <h4 class="provider-list-item-name" title="${escapeHtml(providerName)}">${escapeHtml(providerName)}</h4>
-                <p class="provider-list-item-url" title="${escapeHtml(provider.urlPattern || (provider.domainPatterns && provider.domainPatterns.length > 0 ? provider.domainPatterns.join(', ') : ''))}">${escapeHtml(provider.urlPattern || (provider.domainPatterns && provider.domainPatterns.length > 0 ? `Domain: ${provider.domainPatterns.join(', ')}` : i18n('providerList_noUrlPattern')))}</p>
+                <p class="provider-list-item-url" title="${escapeHtml(provider.urlPattern || (domainPatterns.length > 0 ? domainPatterns.join(', ') : ''))}">${escapeHtml(provider.urlPattern || (domainPatterns.length > 0 ? `Domain: ${domainPatterns.join(', ')}` : i18n('providerList_noUrlPattern')))}</p>
                 <div class="provider-list-item-stats">
                     ${stats.map(stat => `<span class="provider-list-item-stat">${stat}</span>`).join('')}
                 </div>
@@ -825,13 +1279,14 @@ function loadProvidersForSource(source) {
  * Create a provider card HTML
  */
 function createProviderCard(name, provider, source) {
+    const domainPatterns = toDomainPatternArray(provider.domainPatterns);
     // Calculate provider statistics
     const rulesCount = (provider.rules || []).length;
     const rawRulesCount = (provider.rawRules || []).length;
     const exceptionsCount = (provider.exceptions || []).length;
     const redirectionsCount = (provider.redirections || []).length;
     const referralCount = (provider.referralMarketing || []).length;
-    const domainPatternsCount = (provider.domainPatterns || []).length;
+    const domainPatternsCount = domainPatterns.length;
     const domainExceptionsCount = (provider.domainExceptions || []).length;
     const domainRedirectionsCount = (provider.domainRedirections || []).length;
     
@@ -846,7 +1301,7 @@ function createProviderCard(name, provider, source) {
                 <h4 class="provider-card-name" title="${escapeHtml(name)}">${escapeHtml(name)}</h4>
                 <input type="checkbox" class="provider-card-checkbox">
             </div>
-            <div class="provider-card-url" title="${escapeHtml(provider.urlPattern || (provider.domainPatterns && provider.domainPatterns.length > 0 ? provider.domainPatterns.join(', ') : ''))}">${escapeHtml(provider.urlPattern || (provider.domainPatterns && provider.domainPatterns.length > 0 ? `Domain: ${provider.domainPatterns.join(', ')}` : i18n('providerImport_noUrlPattern')))}</div>
+            <div class="provider-card-url" title="${escapeHtml(provider.urlPattern || (domainPatterns.length > 0 ? domainPatterns.join(', ') : ''))}">${escapeHtml(provider.urlPattern || (domainPatterns.length > 0 ? `Domain: ${domainPatterns.join(', ')}` : i18n('providerImport_noUrlPattern')))}</div>
             <div class="provider-card-stats">
                 ${rulesCount > 0 ? `<span class="provider-card-stat" title="${i18n('providerImport_rules')}">${getLocalizedNumber(rulesCount)} ${i18n('providerImport_rulesAbbr')}</span>` : ''}
                 ${rawRulesCount > 0 ? `<span class="provider-card-stat" title="${i18n('providerImport_rawRules')}">${getLocalizedNumber(rawRulesCount)} ${i18n('providerImport_rawRulesAbbr')}</span>` : ''}
@@ -1236,7 +1691,7 @@ function setupEventListeners() {
     if (importFileInput) {
         importFileInput.addEventListener('change', handleFileImport);
     }
-    
+
     // Enforce rules button - with null checks
     const enforceRulesBtn = document.getElementById('enforce-rules-btn');
     if (enforceRulesBtn) {
@@ -1645,7 +2100,7 @@ function createProviderEditorHTML(provider) {
                 
                 <div class="form-group">
                     <label class="form-label">${i18n('customRulesEditor_domainPatterns')}</label>
-                    <textarea class="form-input" id="edit-domain-patterns" placeholder="||example.com^&#10;||*.example.com^&#10;||another-site.com^&#10;||subdomain.example.com^" rows="5">${escapeHtml((provider.domainPatterns || []).join('\n'))}</textarea>
+                    <textarea class="form-input" id="edit-domain-patterns" placeholder="||example.com^&#10;||*.example.com^&#10;||another-site.com^&#10;||subdomain.example.com^" rows="5">${escapeHtml(toDomainPatternArray(provider.domainPatterns).join('\n'))}</textarea>
                     <div class="form-help">${i18n('customRulesEditor_domainPatternsHelp')}</div>
                 </div>
                 
@@ -2257,9 +2712,9 @@ function showAddProviderModal(editProvider = null) {
             if (urlPatternRadio) urlPatternRadio.checked = true;
             if (urlPatternInput) urlPatternInput.value = provider.urlPattern;
             if (domainPatternsInput) domainPatternsInput.value = '';
-        } else if (provider.domainPatterns && provider.domainPatterns.length > 0) {
+        } else if (toDomainPatternArray(provider.domainPatterns).length > 0) {
             if (domainPatternsRadio) domainPatternsRadio.checked = true;
-            if (domainPatternsInput) domainPatternsInput.value = provider.domainPatterns.join('\n');
+            if (domainPatternsInput) domainPatternsInput.value = toDomainPatternArray(provider.domainPatterns).join('\n');
             if (urlPatternInput) urlPatternInput.value = '';
         } else {
             // Default to URL pattern for new providers

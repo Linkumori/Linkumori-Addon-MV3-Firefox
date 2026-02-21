@@ -410,6 +410,434 @@ function showErrorMessage(message) {
     }, 5000);
 }
 
+function setupViewNavigation(onViewChange = null) {
+    const dashboardBtn = document.getElementById('nav-dashboard');
+    const logsBtn = document.getElementById('nav-logs');
+    const dashboardView = document.getElementById('dashboard-view');
+    const logsView = document.getElementById('logs-view');
+
+    if (!dashboardBtn || !logsBtn || !dashboardView || !logsView) {
+        return;
+    }
+
+    const applyView = (view) => {
+        const isDashboard = view === 'dashboard';
+        dashboardBtn.classList.toggle('active', isDashboard);
+        logsBtn.classList.toggle('active', !isDashboard);
+        dashboardView.classList.toggle('active', isDashboard);
+        logsView.classList.toggle('active', !isDashboard);
+        localStorage.setItem('linkumori-log-view', isDashboard ? 'dashboard' : 'logs');
+        if (typeof onViewChange === 'function') {
+            onViewChange(isDashboard ? 'dashboard' : 'logs');
+        }
+    };
+
+    dashboardBtn.addEventListener('click', () => applyView('dashboard'));
+    logsBtn.addEventListener('click', () => applyView('logs'));
+
+    const saved = localStorage.getItem('linkumori-log-view');
+    applyView(saved === 'logs' ? 'logs' : 'dashboard');
+}
+
+function toMillis(value) {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+        const asNum = Number(value);
+        if (!Number.isNaN(asNum) && Number.isFinite(asNum)) return asNum;
+        const asDate = Date.parse(value);
+        if (!Number.isNaN(asDate)) return asDate;
+    }
+    return null;
+}
+
+function extractHost(rawUrl) {
+    if (typeof rawUrl !== 'string' || rawUrl.trim() === '') return null;
+    try {
+        return new URL(rawUrl).hostname.toLowerCase();
+    } catch (_) {
+        return null;
+    }
+}
+
+function getQueryParamNames(rawUrl) {
+    if (typeof rawUrl !== 'string' || rawUrl.trim() === '') return [];
+    try {
+        const url = new URL(rawUrl);
+        const keys = new Set();
+        url.searchParams.forEach((_, key) => {
+            if (key && typeof key === 'string') keys.add(key);
+        });
+        return Array.from(keys);
+    } catch (_) {
+        return [];
+    }
+}
+
+function countTop(items, limit = 10) {
+    const counts = new Map();
+    items.forEach((item) => {
+        if (!item) return;
+        counts.set(item, (counts.get(item) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+        .sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))
+        .slice(0, limit);
+}
+
+function formatStatsDateKey(dateKey) {
+    if (typeof dateKey !== 'string' || dateKey.length !== 10) {
+        return dateKey;
+    }
+
+    const asMillis = Date.parse(`${dateKey}T00:00:00`);
+    if (Number.isNaN(asMillis)) {
+        return dateKey;
+    }
+
+    if (window.LinkumoriI18n?.isReady()) {
+        return LinkumoriI18n.formatDate(asMillis, 'DD/MM/YYYY');
+    }
+
+    return new Date(asMillis).toLocaleDateString();
+}
+
+function renderStatsRows(tbodyId, rows, emptyLabel = 'No data', localizeFirstColumnAsDate = false) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (rows.length === 0) {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+        td1.textContent = emptyLabel;
+        td2.textContent = localizeNumber(0);
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tbody.appendChild(tr);
+        return;
+    }
+    rows.forEach(([name, count]) => {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+        const firstColumnText = localizeFirstColumnAsDate ? formatStatsDateKey(String(name)) : String(name);
+        td1.textContent = firstColumnText;
+        td2.textContent = localizeNumber(count);
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tbody.appendChild(tr);
+    });
+}
+
+function buildDailySeries(timestamps, days = 14) {
+    const now = new Date();
+    const bucket = new Map();
+    timestamps.forEach((ts) => {
+        if (ts == null) return;
+        const key = new Date(ts).toISOString().slice(0, 10);
+        bucket.set(key, (bucket.get(key) || 0) + 1);
+    });
+    const rows = [];
+    for (let i = days - 1; i >= 0; i -= 1) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        rows.push([key, bucket.get(key) || 0]);
+    }
+    return rows;
+}
+
+function getThemeColor(name, fallback) {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name);
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    return trimmed || fallback;
+}
+
+function getChartPalette() {
+    return [
+        '#2563eb', '#16a34a', '#dc2626', '#f59e0b', '#7c3aed',
+        '#0ea5e9', '#14b8a6', '#ef4444', '#84cc16', '#f97316'
+    ];
+}
+
+function drawPieChart(ctx, width, height, labels, values) {
+    const regions = [];
+    const total = values.reduce((a, b) => a + b, 0);
+    const cx = width * 0.35;
+    const cy = height * 0.5;
+    const r = Math.min(width, height) * 0.28;
+    const palette = getChartPalette();
+    let start = -Math.PI / 2;
+
+    if (total <= 0) {
+        return regions;
+    }
+
+    values.forEach((value, index) => {
+        const from = start;
+        const angle = (value / total) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, start, start + angle);
+        ctx.closePath();
+        ctx.fillStyle = palette[index % palette.length];
+        ctx.fill();
+        start += angle;
+
+        regions.push({
+            kind: 'slice',
+            label: labels[index],
+            value,
+            contains(x, y) {
+                const dx = x - cx;
+                const dy = y - cy;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > r) return false;
+                let a = Math.atan2(dy, dx);
+                if (a < 0) a += Math.PI * 2;
+                let nFrom = from;
+                let nTo = from + angle;
+                while (nFrom < 0) {
+                    nFrom += Math.PI * 2;
+                    nTo += Math.PI * 2;
+                }
+                if (a < nFrom) a += Math.PI * 2;
+                return a >= nFrom && a <= nTo;
+            }
+        });
+    });
+
+    // Legend
+    const legendX = width * 0.65;
+    let legendY = height * 0.2;
+    ctx.font = '12px sans-serif';
+    labels.forEach((label, index) => {
+        const color = palette[index % palette.length];
+        ctx.fillStyle = color;
+        ctx.fillRect(legendX, legendY, 10, 10);
+        ctx.fillStyle = getThemeColor('--text-primary', '#f8fafc');
+        const percent = ((values[index] / total) * 100).toFixed(1);
+        ctx.fillText(`${label} (${percent}%)`, legendX + 16, legendY + 9);
+
+        const rowY = legendY - 2;
+        regions.push({
+            kind: 'legend',
+            index,
+            label,
+            value: values[index],
+            x: legendX,
+            y: rowY,
+            w: Math.max(120, width - legendX - 8),
+            h: 14,
+            contains(x, y) {
+                return x >= this.x && x <= this.x + this.w && y >= this.y && y <= this.y + this.h;
+            }
+        });
+        legendY += 18;
+    });
+
+    return regions;
+}
+
+function drawLineOrBarChart(ctx, width, height, labels, values, type) {
+    const regions = [];
+    const left = 45;
+    const right = width - 16;
+    const top = 16;
+    const bottom = height - 34;
+    const plotW = right - left;
+    const plotH = bottom - top;
+    const maxVal = Math.max(...values, 1);
+    const axisColor = getThemeColor('--border-color', 'rgba(255,255,255,0.2)');
+    const textColor = getThemeColor('--text-secondary', '#cbd5e1');
+    const primary = getThemeColor('--button-primary', '#2563eb');
+
+    // Axes
+    ctx.strokeStyle = axisColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(left, top);
+    ctx.lineTo(left, bottom);
+    ctx.lineTo(right, bottom);
+    ctx.stroke();
+
+    // Y ticks
+    ctx.fillStyle = textColor;
+    ctx.font = '11px sans-serif';
+    for (let i = 0; i <= 4; i += 1) {
+        const y = top + (plotH * i) / 4;
+        const val = Math.round(maxVal - (maxVal * i) / 4);
+        ctx.fillText(String(val), 6, y + 4);
+    }
+
+    if (values.length === 0) {
+        return regions;
+    }
+
+    const step = values.length > 1 ? plotW / (values.length - 1) : plotW;
+    const points = values.map((v, i) => ({
+        x: left + i * step,
+        y: bottom - (v / maxVal) * plotH
+    }));
+
+    if (type === 'bar') {
+        const barW = Math.max(6, Math.min(28, plotW / values.length - 6));
+        ctx.fillStyle = primary;
+        points.forEach((p, i) => {
+            const x = p.x - barW / 2;
+            const y = p.y;
+            const h = bottom - y;
+            ctx.fillRect(x, y, barW, h);
+            if (i % Math.ceil(values.length / 6) === 0 || i === values.length - 1) {
+                ctx.fillStyle = textColor;
+                ctx.fillText(labels[i].slice(5), x - 2, bottom + 14);
+                ctx.fillStyle = primary;
+            }
+
+            regions.push({
+                kind: 'bar',
+                label: labels[i],
+                value: values[i],
+                x,
+                y,
+                w: barW,
+                h,
+                contains(px, py) {
+                    return px >= this.x && px <= this.x + this.w && py >= this.y && py <= this.y + this.h;
+                }
+            });
+        });
+        return regions;
+    }
+
+    // Line chart
+    ctx.strokeStyle = primary;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    points.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle = primary;
+    points.forEach((p, i) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+        if (i % Math.ceil(values.length / 6) === 0 || i === values.length - 1) {
+            ctx.fillStyle = textColor;
+            ctx.fillText(labels[i].slice(5), p.x - 10, bottom + 14);
+            ctx.fillStyle = primary;
+        }
+
+        regions.push({
+            kind: 'point',
+            label: labels[i],
+            value: values[i],
+            x: p.x,
+            y: p.y,
+            r: 8,
+            contains(px, py) {
+                const dx = px - this.x;
+                const dy = py - this.y;
+                return (dx * dx + dy * dy) <= (this.r * this.r);
+            }
+        });
+    });
+
+    return regions;
+}
+
+function renderStatsChart(dailySeries, topRulesSeries) {
+    const canvas = document.getElementById('stats-chart-canvas');
+    const typeSelect = document.getElementById('stats-chart-type');
+    const chartWrap = canvas ? canvas.closest('.chart-wrap') : null;
+    if (!canvas || !typeSelect) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(320, Math.floor(rect.width || 800));
+    const height = Math.max(220, Math.floor(rect.height || 280));
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    const selectedType = typeSelect.value || 'pie';
+    const chartState = window.__logChartState || { hiddenPieIndexes: new Set() };
+    if (!(chartState.hiddenPieIndexes instanceof Set)) {
+        chartState.hiddenPieIndexes = new Set();
+    }
+    chartState.type = selectedType;
+    chartState.dailySeries = dailySeries;
+    chartState.topRulesSeries = topRulesSeries;
+
+    if (selectedType === 'pie') {
+        const activeSeries = topRulesSeries.filter((_, idx) => !chartState.hiddenPieIndexes.has(idx));
+        const labels = activeSeries.map(([label]) => label);
+        const values = activeSeries.map(([, value]) => value);
+        const total = values.reduce((sum, val) => sum + (Number(val) || 0), 0);
+        if (chartWrap) chartWrap.classList.toggle('is-empty', total <= 0);
+        if (total <= 0) {
+            chartState.regions = [];
+            chartState.pieVisibleMap = [];
+            window.__logChartState = chartState;
+            return;
+        }
+        const regions = drawPieChart(ctx, width, height, labels, values);
+        chartState.regions = regions;
+        chartState.pieVisibleMap = activeSeries.map((item) => topRulesSeries.findIndex((x) => x[0] === item[0] && x[1] === item[1]));
+        window.__logChartState = chartState;
+        return;
+    }
+
+    const labels = dailySeries.map(([date]) => date);
+    const values = dailySeries.map(([, count]) => count);
+    const hasData = values.some((value) => (Number(value) || 0) > 0);
+    if (chartWrap) chartWrap.classList.toggle('is-empty', !hasData);
+    if (!hasData) {
+        chartState.regions = [];
+        window.__logChartState = chartState;
+        return;
+    }
+    const regions = drawLineOrBarChart(ctx, width, height, labels, values, selectedType);
+    chartState.regions = regions;
+    window.__logChartState = chartState;
+}
+
+function renderOverallStats(logs, clearUrlsData = null) {
+    const safeLogs = Array.isArray(logs) ? logs : [];
+    const totalEntries = safeLogs.length;
+    const changedEntries = safeLogs.filter((x) => (x?.before || '') !== (x?.after || '')).length;
+    const rules = safeLogs.map((x) => (typeof x?.rule === 'string' ? x.rule : null)).filter(Boolean);
+    const domains = safeLogs.map((x) => extractHost(x?.before)).filter(Boolean);
+    const timestamps = safeLogs.map((x) => toMillis(x?.timestamp)).filter((x) => x != null);
+
+    const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+
+    setText('stats-total-entries', localizeNumber(totalEntries));
+    setText('stats-changed-entries', localizeNumber(changedEntries));
+    setText('stats-unique-rules', localizeNumber(new Set(rules).size));
+    setText('stats-unique-domains', localizeNumber(new Set(domains).size));
+    setText('stats-earliest', timestamps.length ? toDate(Math.min(...timestamps)) : '-');
+    setText('stats-latest', timestamps.length ? toDate(Math.max(...timestamps)) : '-');
+
+    const topRulesSeries = countTop(rules, 10);
+    const topDomainsSeries = countTop(domains, 10);
+    const dailySeries = buildDailySeries(timestamps, 14);
+
+    renderStatsRows('stats-top-rules', topRulesSeries, translate('log_stats_no_rules'));
+    renderStatsRows('stats-top-domains', topDomainsSeries, translate('log_stats_no_domains'));
+    renderStatsRows('stats-daily', dailySeries, translate('log_stats_no_activity'), true);
+    renderStatsChart(dailySeries, topRulesSeries);
+}
+
 /**
  * DataTables pagination logic with responsive button count
  */
@@ -551,6 +979,7 @@ function initializeApplication() {
 
     // --- State variables ---
     let fullLog = [];
+    let clearUrlsData = null;
     window.currentPage = 1;
     window.sortOrder = 'desc'; // Default to newest first
 
@@ -561,6 +990,31 @@ function initializeApplication() {
     const paginationInfo = document.getElementById('pagination-info');
     const paginationControls = document.getElementById('pagination-controls');
     const timeSortBtn = document.getElementById('time-sort-btn');
+    const statsChartType = document.getElementById('stats-chart-type');
+    const statsChartCanvas = document.getElementById('stats-chart-canvas');
+    const statsChartTooltip = document.getElementById('stats-chart-tooltip');
+    const dashboardView = document.getElementById('dashboard-view');
+
+    const rerenderChartWhenVisible = () => {
+        if (!dashboardView || !dashboardView.classList.contains('active')) {
+            return;
+        }
+        const chartState = window.__logChartState;
+        if (!chartState) {
+            return;
+        }
+        requestAnimationFrame(() => {
+            renderStatsChart(chartState.dailySeries || [], chartState.topRulesSeries || []);
+        });
+    };
+
+    setupViewNavigation((view) => {
+        if (view === 'dashboard') {
+            rerenderChartWhenVisible();
+        }
+    });
+
+    window.addEventListener('resize', rerenderChartWhenVisible);
 
     // Handle sort button click
     if (timeSortBtn) {
@@ -570,6 +1024,69 @@ function initializeApplication() {
             updateSortButton(window.sortOrder);
             window.currentPage = 1; // Reset to first page when sorting
             renderTable();
+        });
+    }
+
+    if (statsChartType) {
+        statsChartType.addEventListener('change', () => {
+            renderOverallStats(fullLog, clearUrlsData);
+        });
+    }
+
+    if (statsChartCanvas && statsChartTooltip) {
+        const showTooltip = (x, y, text) => {
+            statsChartTooltip.textContent = text;
+            statsChartTooltip.style.left = `${x}px`;
+            statsChartTooltip.style.top = `${y}px`;
+            statsChartTooltip.style.opacity = '1';
+        };
+        const hideTooltip = () => {
+            statsChartTooltip.style.opacity = '0';
+        };
+
+        statsChartCanvas.addEventListener('mousemove', (evt) => {
+            const state = window.__logChartState;
+            if (!state || !Array.isArray(state.regions)) {
+                hideTooltip();
+                return;
+            }
+            const rect = statsChartCanvas.getBoundingClientRect();
+            const x = evt.clientX - rect.left;
+            const y = evt.clientY - rect.top;
+            const hit = state.regions.find((region) => typeof region.contains === 'function' && region.contains(x, y));
+            if (!hit) {
+                hideTooltip();
+                statsChartCanvas.style.cursor = 'default';
+                return;
+            }
+            statsChartCanvas.style.cursor = hit.kind === 'legend' ? 'pointer' : 'crosshair';
+            showTooltip(x, y, `${hit.label}: ${localizeNumber(hit.value)}`);
+        });
+
+        statsChartCanvas.addEventListener('mouseleave', () => {
+            hideTooltip();
+            statsChartCanvas.style.cursor = 'default';
+        });
+
+        statsChartCanvas.addEventListener('click', (evt) => {
+            const state = window.__logChartState;
+            if (!state || state.type !== 'pie' || !Array.isArray(state.regions)) return;
+            const rect = statsChartCanvas.getBoundingClientRect();
+            const x = evt.clientX - rect.left;
+            const y = evt.clientY - rect.top;
+            const hit = state.regions.find((region) => region.kind === 'legend' && region.contains(x, y));
+            if (!hit) return;
+
+            const originalIndex = state.pieVisibleMap?.[hit.index];
+            if (originalIndex == null) return;
+
+            if (state.hiddenPieIndexes.has(originalIndex)) {
+                state.hiddenPieIndexes.delete(originalIndex);
+            } else {
+                state.hiddenPieIndexes.add(originalIndex);
+            }
+            window.__logChartState = state;
+            renderStatsChart(state.dailySeries || [], state.topRulesSeries || []);
         });
     }
 
@@ -833,13 +1350,19 @@ function initializeApplication() {
     // Initialize sort button appearance
     updateSortButton(window.sortOrder);
     
-    browser.runtime.sendMessage({ function: "getData", params: ['log'] })
-        .then((data) => {
-            if (data && data.response && Array.isArray(data.response.log)) {
-                fullLog = data.response.log;
+    Promise.all([
+        browser.runtime.sendMessage({ function: "getData", params: ['log'] }),
+        browser.runtime.sendMessage({ function: "getData", params: ['ClearURLsData'] })
+    ])
+        .then(([logData, rulesData]) => {
+            if (logData && logData.response && Array.isArray(logData.response.log)) {
+                fullLog = logData.response.log;
             } else {
                 fullLog = [];
             }
+            clearUrlsData = rulesData?.response || null;
+
+            renderOverallStats(fullLog, clearUrlsData);
             
             // If state was restored, ensure current page is valid
             if (stateRestored) {
@@ -857,6 +1380,8 @@ function initializeApplication() {
         .catch(error => {
             handleError(error);
             fullLog = [];
+            clearUrlsData = null;
+            renderOverallStats(fullLog, clearUrlsData);
             renderTable();
             
             // Show user-friendly error message

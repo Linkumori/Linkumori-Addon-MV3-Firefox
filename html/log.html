@@ -494,6 +494,214 @@ and jquery and bootstrap dependencies.
             overflow: hidden;
         }
 
+        .stats-dashboard {
+            margin-bottom: 20px;
+        }
+
+        .view-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .view-nav-btn {
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-family: "Old-Country-Nobility";
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .view-nav-btn.active {
+            background: var(--button-primary);
+            border-color: var(--button-primary);
+            color: #ffffff;
+        }
+
+        .view-panel {
+            display: none;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .stats-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .stats-label {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .stats-value {
+            color: var(--text-primary);
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .stats-panels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .chart-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .chart-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .chart-title {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chart-controls label {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .chart-select {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-family: "Old-Country-Nobility";
+            font-size: 12px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .chart-wrap.is-empty .chart-canvas {
+            opacity: 0.5;
+        }
+
+        .chart-empty {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 12px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-family: "Old-Country-Nobility";
+            letter-spacing: 0.2px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .chart-wrap.is-empty .chart-empty {
+            display: flex;
+        }
+
+        .chart-tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 12px;
+            line-height: 1.2;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            white-space: nowrap;
+            opacity: 0;
+            transform: translate(-50%, -120%);
+            transition: opacity 0.12s ease;
+            z-index: 2;
+        }
+
+        .stats-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            padding: 12px;
+        }
+
+        .stats-panel h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .stats-mini-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .stats-mini-table th,
+        .stats-mini-table td {
+            border-bottom: 1px solid var(--border-color);
+            padding: 6px 4px;
+            text-align: left;
+            color: var(--text-primary);
+        }
+
+        .stats-mini-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
         .table-responsive {
             border-radius: 6px;
             overflow-x: auto;
@@ -1111,67 +1319,128 @@ and jquery and bootstrap dependencies.
     </div>
 
     <div class="container">
-        <div class="button-controls">
-            <button type="button" id="reset_log_btn" class="btn btn-danger" data-i18n-title="log_html_reset_button_title">
-                <span id="reset_log_btn_text" data-i18n="log_html_reset_button"></span>
-            </button>
-
-            <button type="button" id="export_log_btn" class="btn btn-success" data-i18n-title="log_html_export_button_title">
-                <span id="export_log_btn_text" data-i18n="log_html_export_button"></span>
-            </button>
-
-            <label id="import_log_btn" class="btn btn-success file-input-wrapper" data-i18n-title="log_html_import_button_title">
-                <span id="import_log_btn_text" data-i18n="log_html_import_button"></span>
-                <input type="file" name="file" id="importLog" accept=".json"/>
-            </label>
+        <div class="view-nav">
+            <button type="button" id="nav-dashboard" class="view-nav-btn active" data-i18n="log_nav_dashboard">Dashboard</button>
+            <button type="button" id="nav-logs" class="view-nav-btn" data-i18n="log_nav_logs">Logs</button>
         </div>
 
-        <div class="table-container">
-            <div class="table-controls">
-                <div class="length-control">
-                    <label for="length_select" data-i18n="log_html_show_entries"></label>
-                    <select id="length_select">
-                        <option value="10">10</option>
-                        <option value="25" selected>25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                        <option value="-1" data-i18n="log_html_show_all"></option>
-                    </select>
+        <section id="dashboard-view" class="view-panel active">
+            <div class="stats-dashboard">
+                <div class="stats-cards">
+                    <div class="stats-card"><div class="stats-label" data-i18n="log_stats_total_entries">Total Entries</div><div id="stats-total-entries" class="stats-value">0</div></div>
+                    <div class="stats-card"><div class="stats-label" data-i18n="log_stats_changed_urls">Changed URLs</div><div id="stats-changed-entries" class="stats-value">0</div></div>
+                    <div class="stats-card"><div class="stats-label" data-i18n="log_stats_unique_rules">Unique Rules</div><div id="stats-unique-rules" class="stats-value">0</div></div>
+                    <div class="stats-card"><div class="stats-label" data-i18n="log_stats_unique_domains">Unique Domains</div><div id="stats-unique-domains" class="stats-value">0</div></div>
+                    <div class="stats-card"><div class="stats-label" data-i18n="log_stats_earliest">Earliest</div><div id="stats-earliest" class="stats-value" style="font-size:12px;">-</div></div>
+                    <div class="stats-card"><div class="stats-label" data-i18n="log_stats_latest">Latest</div><div id="stats-latest" class="stats-value" style="font-size:12px;">-</div></div>
                 </div>
-                <div class="search-control">
-                    <label for="search_input" data-i18n="log_html_search"></label>
-                    <input type="text" id="search_input" data-i18n-placeholder="log_html_search_placeholder">
+                <div class="chart-panel">
+                    <div class="chart-head">
+                        <h3 class="chart-title" data-i18n="log_stats_chart_title">Stats Chart</h3>
+                        <div class="chart-controls">
+                            <label for="stats-chart-type" data-i18n="log_stats_chart_type">Chart Type</label>
+                            <select id="stats-chart-type" class="chart-select">
+                                <option value="pie" data-i18n="log_stats_chart_type_pie">Pie</option>
+                                <option value="line" data-i18n="log_stats_chart_type_line">Line</option>
+                                <option value="bar" data-i18n="log_stats_chart_type_bar">Bar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-wrap">
+                        <canvas id="stats-chart-canvas" class="chart-canvas"></canvas>
+                        <div id="stats-chart-empty" class="chart-empty" data-i18n="log_stats_chart_no_data">No chart data</div>
+                        <div id="stats-chart-tooltip" class="chart-tooltip"></div>
+                    </div>
                 </div>
+                <div class="stats-panels">
+                    <div class="stats-panel">
+                        <h3 data-i18n="log_stats_top_rules">Top Rules</h3>
+                        <table class="stats-mini-table">
+                            <thead><tr><th data-i18n="log_stats_rule_col">Rule</th><th data-i18n="log_stats_count_col">Count</th></tr></thead>
+                            <tbody id="stats-top-rules"></tbody>
+                        </table>
+                    </div>
+                    <div class="stats-panel">
+                        <h3 data-i18n="log_stats_top_domains">Top Domains</h3>
+                        <table class="stats-mini-table">
+                            <thead><tr><th data-i18n="log_stats_domain_col">Domain</th><th data-i18n="log_stats_count_col">Count</th></tr></thead>
+                            <tbody id="stats-top-domains"></tbody>
+                        </table>
+                    </div>
+                    <div class="stats-panel">
+                        <h3 data-i18n="log_stats_daily_activity">Daily Activity (Last 14 days)</h3>
+                        <table class="stats-mini-table">
+                            <thead><tr><th data-i18n="log_stats_date_col">Date</th><th data-i18n="log_stats_entries_col">Entries</th></tr></thead>
+                            <tbody id="stats-daily"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="logs-view" class="view-panel">
+            <div class="button-controls">
+                <button type="button" id="reset_log_btn" class="btn btn-danger" data-i18n-title="log_html_reset_button_title">
+                    <span id="reset_log_btn_text" data-i18n="log_html_reset_button"></span>
+                </button>
+
+                <button type="button" id="export_log_btn" class="btn btn-success" data-i18n-title="log_html_export_button_title">
+                    <span id="export_log_btn_text" data-i18n="log_html_export_button"></span>
+                </button>
+
+                <label id="import_log_btn" class="btn btn-success file-input-wrapper" data-i18n-title="log_html_import_button_title">
+                    <span id="import_log_btn_text" data-i18n="log_html_import_button"></span>
+                    <input type="file" name="file" id="importLog" accept=".json"/>
+                </label>
             </div>
 
-            <div class="table-responsive">
-                <table class="log-table" width="100%" id="logTable" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th id="head_1" data-i18n="log_html_table_head_1"></th>
-                            <th id="head_2" data-i18n="log_html_table_head_2"></th>
-                            <th id="head_3" data-i18n="log_html_table_head_3"></th>
-                            <th id="head_4" data-i18n="log_html_table_head_4">
-                                 <span class="sort-button" id="time-sort-btn">
-                                    <div class="sort-arrow up"></div>
-                                    <div class="sort-arrow down"></div>
-                                </span>
-                        </tr>
-                    </th>
-                    </thead>
-                    <tbody id="tbody">
-                        <!-- Table rows will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
+            <div class="table-container">
+                <div class="table-controls">
+                    <div class="length-control">
+                        <label for="length_select" data-i18n="log_html_show_entries"></label>
+                        <select id="length_select">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="-1" data-i18n="log_html_show_all"></option>
+                        </select>
+                    </div>
+                    <div class="search-control">
+                        <label for="search_input" data-i18n="log_html_search"></label>
+                        <input type="text" id="search_input" data-i18n-placeholder="log_html_search_placeholder">
+                    </div>
+                </div>
 
-            <div class="pagination-footer">
-                <div id="pagination-info" data-i18n="datatable_info_empty"></div>
-                <div id="pagination-controls">
-                    <!-- Pagination buttons will be populated by JavaScript -->
+                <div class="table-responsive">
+                    <table class="log-table" width="100%" id="logTable" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th id="head_1" data-i18n="log_html_table_head_1"></th>
+                                <th id="head_2" data-i18n="log_html_table_head_2"></th>
+                                <th id="head_3" data-i18n="log_html_table_head_3"></th>
+                                <th id="head_4" data-i18n="log_html_table_head_4">
+                                     <span class="sort-button" id="time-sort-btn">
+                                        <div class="sort-arrow up"></div>
+                                        <div class="sort-arrow down"></div>
+                                    </span>
+                            </tr>
+                        </th>
+                        </thead>
+                        <tbody id="tbody">
+                            <!-- Table rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-footer">
+                    <div id="pagination-info" data-i18n="datatable_info_empty"></div>
+                    <div id="pagination-controls">
+                        <!-- Pagination buttons will be populated by JavaScript -->
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <!-- Loading overlay -->

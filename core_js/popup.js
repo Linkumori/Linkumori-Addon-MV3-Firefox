@@ -67,6 +67,148 @@ var currentURL = '';
 
 // ===== WHITELIST STATE (NEW ADDITION) =====
 var userWhitelist = [];
+const POPUP_CONSENT_STORAGE_KEY = 'popupConsentAccepted';
+const POPUP_CONSENT_VERSION_STORAGE_KEY = 'popupConsentPolicyVersionAccepted';
+const POPUP_CONSENT_SIGNATURE_STORAGE_KEY = 'popupConsentPolicySignatureAccepted';
+const POPUP_CONSENT_TEXT_KEYS = {
+    title: 'popup_consent_title',
+    description: 'popup_consent_description',
+    checkbox: 'popup_consent_checkbox'
+};
+function getPopupConsentPolicyVersion() {
+    const version = Number(window.LINKUMORI_POPUP_CONSENT_POLICY_VERSION);
+    if (!Number.isInteger(version) || version <= 0) {
+        throw new Error('Invalid window.LINKUMORI_POPUP_CONSENT_POLICY_VERSION');
+    }
+    return version;
+}
+
+function getCurrentConsentSignature() {
+    const consentPayload = {
+        title: browser.i18n.getMessage(POPUP_CONSENT_TEXT_KEYS.title) || '',
+        description: browser.i18n.getMessage(POPUP_CONSENT_TEXT_KEYS.description) || '',
+        checkbox: browser.i18n.getMessage(POPUP_CONSENT_TEXT_KEYS.checkbox) || ''
+    };
+
+    const normalized = JSON.stringify(consentPayload).toLowerCase().trim();
+    let hash = 0;
+    for (let i = 0; i < normalized.length; i++) {
+        hash = ((hash << 5) - hash) + normalized.charCodeAt(i);
+        hash |= 0;
+    }
+    return String(hash);
+}
+
+/**
+ * Check whether popup consent was accepted.
+ * @returns {Promise<boolean>}
+ */
+async function hasPopupConsent(policyVersion) {
+    try {
+        const result = await browser.storage.local.get([
+            POPUP_CONSENT_STORAGE_KEY,
+            POPUP_CONSENT_VERSION_STORAGE_KEY,
+            POPUP_CONSENT_SIGNATURE_STORAGE_KEY
+        ]);
+
+        const accepted = result[POPUP_CONSENT_STORAGE_KEY] === true;
+        const acceptedVersion = Number(result[POPUP_CONSENT_VERSION_STORAGE_KEY] || 0);
+        const storedSignature = typeof result[POPUP_CONSENT_SIGNATURE_STORAGE_KEY] === 'string'
+            ? result[POPUP_CONSENT_SIGNATURE_STORAGE_KEY]
+            : '';
+        const currentSignature = getCurrentConsentSignature();
+
+        if (accepted && acceptedVersion === policyVersion && storedSignature === currentSignature) {
+            return true;
+        }
+
+        // Policy version/text changed or signature missing: revoke old consent and re-ask.
+        if (accepted) {
+            await browser.storage.local.set({
+                [POPUP_CONSENT_STORAGE_KEY]: false,
+                [POPUP_CONSENT_VERSION_STORAGE_KEY]: 0
+            });
+        }
+
+        return false;
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
+ * Show or hide popup consent gate.
+ * @param {boolean} locked
+ */
+function setPopupConsentLock(locked) {
+    const consentGate = document.getElementById('popupConsentGate');
+    if (!consentGate) {
+        return;
+    }
+
+    if (locked) {
+        consentGate.classList.remove('hidden');
+    } else {
+        consentGate.classList.add('hidden');
+    }
+
+    document.body.classList.toggle('consent-locked', locked);
+}
+
+/**
+ * Initialize popup consent gate behavior.
+ */
+async function initializePopupConsentGate() {
+    const consentGate = document.getElementById('popupConsentGate');
+    const consentCheckbox = document.getElementById('popupConsentCheckbox');
+    const consentAcceptButton = document.getElementById('popupConsentAccept');
+    const consentLegalLink = document.getElementById('popupConsentLegalLink');
+
+    if (!consentGate || !consentCheckbox || !consentAcceptButton || !consentLegalLink) {
+        return;
+    }
+
+    let policyVersion = 0;
+    try {
+        policyVersion = getPopupConsentPolicyVersion();
+    } catch (error) {
+        setPopupConsentLock(true);
+        return;
+    }
+
+    const consentAccepted = await hasPopupConsent(policyVersion);
+    setPopupConsentLock(!consentAccepted);
+
+    if (consentAccepted) {
+        return;
+    }
+
+    consentCheckbox.checked = false;
+    consentAcceptButton.disabled = true;
+
+    consentCheckbox.addEventListener('change', () => {
+        consentAcceptButton.disabled = !consentCheckbox.checked;
+    });
+
+    consentAcceptButton.addEventListener('click', async () => {
+        if (!consentCheckbox.checked) {
+            return;
+        }
+
+        consentAcceptButton.disabled = true;
+
+        try {
+            await browser.storage.local.set({
+                [POPUP_CONSENT_STORAGE_KEY]: true,
+                [POPUP_CONSENT_VERSION_STORAGE_KEY]: policyVersion,
+                [POPUP_CONSENT_SIGNATURE_STORAGE_KEY]: getCurrentConsentSignature()
+            });
+            setPopupConsentLock(false);
+        } catch (error) {
+            consentAcceptButton.disabled = false;
+        }
+    });
+}
 
 
 // ===== TEXT TO HTML CONVERSION FUNCTIONS (NEW ADDITION) =====
@@ -1312,6 +1454,7 @@ function getGlobalVariable(varName) {
 */
 (async function initializePopup() {
     try {
+        await initializePopupConsentGate();
         
         // FIXED: Load data with better error handling - don't fail completely if some data can't be loaded
         const dataPromises = [
@@ -1396,7 +1539,7 @@ function getGlobalVariable(varName) {
             };
         }
         
-        const cleaningToolsBtn = document.getElementById('cleaning_tools');
+        const cleaningToolsBtn = document.getElementById('cleaning_tools_icon');
         if (cleaningToolsBtn) {
             cleaningToolsBtn.onclick = () => {
                 browser.tabs.create({url: browser.runtime.getURL('./html/cleaningTool.html')});
@@ -1407,6 +1550,14 @@ function getGlobalVariable(varName) {
             customrulesBtn.onclick = () => {
                 browser.tabs.create({url: browser.runtime.getURL('./html/customrules.html')})
             }
+        }
+
+        const whitelistPageBtn = document.getElementById('whitelist_page');
+        if (whitelistPageBtn) {
+            whitelistPageBtn.onclick = () => {
+                localStorage.setItem('customrules-active-view', 'whitelist');
+                browser.tabs.create({url: browser.runtime.getURL('./html/customrules.html')});
+            };
         }
         
         // Set up legal link
@@ -1504,9 +1655,23 @@ function setText() {
         // Set button labels and tooltips
         injectText('reset_counter_btn', 'popup_html_statistics_reset_button');
         injectText('loggingPage', 'popup_html_log_head');
-        injectText('cleaning_tools', 'popup_html_tools_button');
         injectText('settings', 'popup_html_settings_button');
-        injectText('customrules', 'customrules')
+        injectText('customrules', 'customrules');
+        injectText('whitelist_page', 'popup_html_whitelist_button');
+        const cleaningToolsIcon = document.getElementById('cleaning_tools_icon');
+        if (cleaningToolsIcon) {
+            const toolsTitle = translate('popup_html_tools_button_title');
+            cleaningToolsIcon.setAttribute('title', toolsTitle);
+            cleaningToolsIcon.setAttribute('aria-label', toolsTitle);
+        }
+
+        // Consent gate text
+        injectText('popupConsentTitle', 'popup_consent_title');
+        injectText('popupConsentDescription', 'popup_consent_description');
+        injectText('popupConsentCheckboxLabel', 'popup_consent_checkbox');
+        injectText('popupConsentLegalLink', 'popup_consent_legal_button');
+        injectText('popupConsentAccept', 'popup_consent_accept_button');
+
         // Set license section titles (only titles are translatable)
         injectText('license_title', 'license_title');
         injectText('license_links_title', 'license_links_title');
@@ -1570,7 +1735,13 @@ function getFallbackText(attribute, id) {
         'popup_nav_license': 'License',
         'license_title': 'License',
         'license_links_title': 'Links',
-        'license_third_party_title': 'Third Party Components'
+        'license_third_party_title': 'Third Party Components',
+        'popup_consent_title': 'Consent required',
+        'popup_consent_description': 'Please read Privacy Policy and License. We do not collect data. All data stays on your device and is not transmitted to us.',
+        'popup_consent_checkbox': 'I have read and accept the Privacy Policy and License.',
+        'popup_consent_legal_button': 'Read Legal',
+        'popup_consent_accept_button': 'Accept and continue',
+        'popup_html_whitelist_button': 'Whitelist'
     };
     
     return fallbacks[attribute] || id.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();

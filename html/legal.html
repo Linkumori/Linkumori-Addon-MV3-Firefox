@@ -385,8 +385,60 @@ This file is part of LINKUMORI.
             font-size: 14px;
             max-height: 500px;
             overflow-y: auto;
+            overflow-x: auto;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
             margin: 12px 0;
             line-height: 1.6;
+        }
+
+        .content-area::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: var(--bg-quaternary);
+            border-radius: 8px;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .content-area::-webkit-scrollbar-thumb:hover {
+            background: var(--button-primary);
+        }
+
+        .privacy-version-row {
+            margin: 10px 0 8px 0;
+        }
+
+        .privacy-version-label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .privacy-version-select {
+            width: 100%;
+            max-width: 340px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--input-border);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: "Old-Country-Nobility";
+            font-size: 13px;
+        }
+
+        .privacy-version-help {
+            margin-top: 6px;
+            color: var(--text-muted);
+            font-size: 12px;
         }
 
         .content-area.loading {
@@ -676,8 +728,8 @@ This file is part of LINKUMORI.
         </div>
 
         <button id="themeToggle" class="theme-toggle-btn" data-i18n-aria="themeToggleAriaLabel">
-            <img src="sun.svg" alt="sun icon" class="sun-icon">
-            <img src="moon.svg" alt="moon icon" class="moon-icon">
+            <img src="sun.svg" alt="sun icon" class="sun-icon" data-i18n-alt="sunIconAlt">
+            <img src="moon.svg" alt="moon icon" class="moon-icon" data-i18n-alt="moonIconAlt">
         </button>
     </header>
 
@@ -693,7 +745,7 @@ This file is part of LINKUMORI.
                 <li data-i18n="feature4"></li>
             </ul>
             <div class="button-group">
-                <a href="/html/settings.html" class="btn btn-primary" data-i18n="openSettings"></a>
+                <a id="openSettingsBtn" href="/html/settings.html" class="btn btn-primary" data-i18n="openSettings"></a>
             </div>
         </div>
 
@@ -701,6 +753,12 @@ This file is part of LINKUMORI.
         <h2 class="section-header" data-i18n="privacyPolicySection">Privacy Policy</h2>
         <div class="card">
             <p data-i18n="privacyDescription">Please review our privacy policy below.</p>
+
+            <div class="privacy-version-row">
+                <label id="privacyVersionLabel" class="privacy-version-label" for="privacyVersionSelector" data-i18n="privacyVersionLabel"></label>
+                <select id="privacyVersionSelector" class="privacy-version-select"></select>
+                <div id="privacyVersionHelp" class="privacy-version-help" data-i18n="privacyVersionDescription"></div>
+            </div>
 
             <!-- Permission Status Display - Moved here to appear right after privacy description -->
            

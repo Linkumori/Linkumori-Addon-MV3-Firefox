@@ -35,11 +35,9 @@ This program is free software: you can redistribute it and/or modify
  * *
  * 
  * Modifications include:
- * -  Added support for punycode domains in whitelist
  * - Improved color picker initialization and error handling
  * - Enhanced UI for better user experience
  * - Added echanced. import functionality for settings
- * - Whitelist functionality
  * - redisgn ui by manipulating html via js
  * - Added remote URL configuration fields (ruleURL, hashURL)
  * - Added comprehensive security modal system for remote URL configuration
@@ -58,7 +56,6 @@ This program is free software: you can redistribute it and/or modify
  * Then select "Generate Commit History". This will create a Markdown file
  * where you can browse who modified which files and on what date.
  */
-import punycode from '../external_js/light-punycode.js';
 
 var settings = [];
 let linkumoriPicker = null; // Initialize as null first
@@ -112,9 +109,6 @@ function getLocalizedPercentage(percentage) {
 function updateAllLocalizedNumbers() {
     // Re-display bundled rules info with new localization
     displayBundledRulesInfo();
-    
-    // Re-load and display whitelist to update count
-    loadWhitelist();
 }
 
 (function () {
@@ -1085,9 +1079,6 @@ function setupEventHandlers() {
     // Set up toggle switches
     setupToggleSwitches();
     
-    // Set up whitelist management
-    setupWhitelistManagement();
-    
     // Set up enhanced URL validation with security modal
     setupEnhancedURLValidation();
 }
@@ -1406,392 +1397,6 @@ function setupToggleSwitches() {
 }
 
 // ============================================================================
-// PUNYCODE UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Convert domain to punycode format for storage
- * @param {string} domain - Domain to convert
- * @returns {string} Punycode domain
- */
-function domainToPunycode(domain) {
-    if (!domain || typeof domain !== 'string') {
-        return domain;
-    }
-    
-    try {
-        // Handle wildcard domains
-        if (domain.startsWith('*.')) {
-            const baseDomain = domain.substring(2);
-            const punycodeBase = punycode.toASCII(baseDomain);
-            return '*.' + punycodeBase;
-        }
-        
-        return punycode.toASCII(domain);
-    } catch (error) {
-        return domain; // Return original if conversion fails
-    }
-}
-
-/**
- * Convert domain from punycode to Unicode for display
- * @param {string} domain - Punycode domain to convert
- * @returns {string} Unicode domain
- */
-function domainToUnicode(domain) {
-    if (!domain || typeof domain !== 'string') {
-        return domain;
-    }
-    
-    try {
-        // Handle wildcard domains
-        if (domain.startsWith('*.')) {
-            const baseDomain = domain.substring(2);
-            const unicodeBase = punycode.toUnicode(baseDomain);
-            return '*.' + unicodeBase;
-        }
-        
-        return punycode.toUnicode(domain);
-    } catch (error) {
-        return domain; // Return original if conversion fails
-    }
-}
-
-/**
- * Normalize domain for comparison (convert to punycode)
- * @param {string} domain - Domain to normalize
- * @returns {string} Normalized domain
- */
-function normalizeDomain(domain) {
-    if (!domain || typeof domain !== 'string') {
-        return domain;
-    }
-    
-    return domainToPunycode(domain.trim().toLowerCase());
-}
-
-// ============================================================================
-// WHITELIST MANAGEMENT FUNCTIONS - WITH PUNYCODE SUPPORT AND LOCALIZED NUMBERS
-// ============================================================================
-
-/**
- * Set up whitelist management UI - UPDATED WITH PUNYCODE SUPPORT
- */
-function setupWhitelistManagement() {
-    loadWhitelist();
-    
-    // Add domain button
-    const addBtn = document.getElementById('addWhitelistBtn');
-    if (addBtn) {
-        addBtn.onclick = addDomainToWhitelist;
-    }
-    
-    // Enter key in input
-    const input = document.getElementById('whitelistInput');
-    if (input) {
-        input.onkeypress = function(e) {
-            if (e.key === 'Enter') {
-                addDomainToWhitelist();
-            }
-        };
-        
-        // Set placeholder text - updated to show punycode support
-        input.placeholder = translate('whitelist_input_placeholder');
-    }
-    
-    // Ensure remove handlers are always properly set up
-    addWhitelistRemoveHandlers();
-}
-
-/**
- * Load and display whitelist from storage - WITH PUNYCODE SUPPORT
- */
-async function loadWhitelist() {
-    try {
-        
-        const response = await browser.runtime.sendMessage({
-            function: "getData",
-            params: ["userWhitelist"]
-        });
-        
-        
-        const whitelist = response.response || [];
-        
-        displayWhitelist(whitelist);
-        
-        // Re-attach event handlers after DOM update
-        setTimeout(() => {
-            addWhitelistRemoveHandlers();
-        }, 100);
-        
-    } catch (error) {
-        showStatus(translate('whitelist_load_failed'), 'error');
-    }
-}
-
-/**
- * Display whitelist in UI - WITH PUNYCODE SUPPORT AND LOCALIZED NUMBERS
- */
-function displayWhitelist(whitelist) {
-    const container = document.getElementById('whitelistList');
-    if (!container) {
-        return;
-    }
-    
-    if (!whitelist || whitelist.length === 0) {
-        setHTMLContent(container, `<div class="whitelist-empty">${translate('whitelist_empty')}</div>`);
-        return;
-    }
-    
-    
-    // Convert domains to Unicode for display, but keep original for data attributes
-    const listHTML = whitelist.map((domain, index) => {
-        const originalDomain = domain;
-        
-        return `
-            <div class="whitelist-item">
-                <span class="whitelist-domain" title="${escapeHtml(originalDomain)}">${escapeHtml(originalDomain)}</span>
-                <button class="whitelist-remove" data-domain="${escapeHtml(originalDomain)}" data-index="${index}" title="${translate('whitelist_remove_button')}">
-                    ${translate('whitelist_remove_button')}
-                </button>
-            </div>
-        `;
-    }).join('');
-    
-    const countText = translate('whitelist_count');
-    // Use localized number for the count
-    const localizedCount = getLocalizedNumber(whitelist.length);
-    setHTMLContent(container, listHTML + 
-        `<div class="whitelist-count">${countText.replace('%d', localizedCount)}</div>`);
-    
-}
-
-/**
- * Add event handlers for whitelist remove buttons
- */
-function addWhitelistRemoveHandlers() {
-    const container = document.getElementById('whitelistList');
-    if (!container) {
-        return;
-    }
-    
-    // Remove existing event listeners to prevent duplicates
-    container.removeEventListener('click', handleWhitelistRemove);
-    
-    // Add single event listener using event delegation
-    container.addEventListener('click', handleWhitelistRemove);
-    
-}
-
-/**
- * Handle whitelist remove button clicks
- */
-function handleWhitelistRemove(event) {
-    if (!event.target.classList.contains('whitelist-remove')) {
-        return;
-    }
-    
-    const domain = event.target.getAttribute('data-domain');
-    
-    if (domain) {
-        removeDomainFromWhitelist(domain);
-    }
-}
-
-/**
- * Add domain to whitelist - WITH PUNYCODE SUPPORT
- */
-async function addDomainToWhitelist() {
-    const input = document.getElementById('whitelistInput');
-    if (!input) {
-        return;
-    }
-    
-    const rawDomain = input.value.trim();
-    
-    if (!rawDomain) {
-        showStatus(translate('whitelist_enter_domain'), 'error');
-        return;
-    }
-    
-    // Validate the domain before converting
-    if (!isValidDomain(rawDomain)) {
-        showStatus(translate('whitelist_invalid_format'), 'error');
-        return;
-    }
-    
-    // Convert to punycode for storage
-    const punnycodeDomain = normalizeDomain(rawDomain);
-    
-    try {
-        const response = await browser.runtime.sendMessage({
-            function: "addToWhitelist",
-            params: [punnycodeDomain]
-        });
-        
-        
-        if (response && response.response) {
-            input.value = '';
-            loadWhitelist();
-            const displayDomain = domainToUnicode(punnycodeDomain);
-            const successMsg = translate('whitelist_added');
-            showStatus(successMsg.replace('%s', displayDomain), 'success');
-        } else {
-            showStatus(translate('whitelist_already_exists'), 'error');
-        }
-    } catch (error) {
-        showStatus(translate('whitelist_add_failed'), 'error');
-    }
-}
-
-/**
- * Remove domain from whitelist - WITH PUNYCODE SUPPORT
- */
-async function removeDomainFromWhitelist(domain) {
-    if (!domain) {
-        return;
-    }
-    
-    try {
-        
-        // Domain should already be in punycode format from storage
-        const response = await browser.runtime.sendMessage({
-            function: "removeFromWhitelist",
-            params: [domain]
-        });
-        
-        
-        if (response && response.response) {
-            loadWhitelist(); // Reload the list
-            const displayDomain = domainToUnicode(domain);
-            const successMsg = translate('whitelist_removed');
-            showStatus(successMsg.replace('%s', displayDomain), 'success');
-        } else {
-            showStatus(translate('whitelist_remove_failed'), 'error');
-        }
-    } catch (error) {
-        showStatus(translate('whitelist_remove_failed'), 'error');
-    }
-}
-
-/**
- * FIXED: Validate domain format - ENHANCED VERSION WITH IMPROVED VALIDATION
- */
-function isValidDomain(domain) {
-    if (!domain || typeof domain !== 'string') {
-        return false;
-    }
-    
-    let testDomain = domain.trim().toLowerCase();
-    
-    // Handle empty domain after trim
-    if (!testDomain) {
-        return false;
-    }
-    
-    // Allow wildcards
-    if (testDomain.startsWith('*.')) {
-        testDomain = testDomain.substring(2);
-        if (!testDomain) {
-            return false;
-        }
-    }
-    
-    // Basic length check
-    if (testDomain.length > 253) {
-        return false;
-    }
-    
-    // Try to convert to punycode to validate internationalized domains
-    try {
-        const punnycodeDomain = punycode.toASCII(testDomain);
-        
-        // Check for punycode conversion issues
-        if (!punnycodeDomain || punnycodeDomain.length === 0) {
-            return false;
-        }
-        
-        // Enhanced domain validation regex
-        // Each label must be 1-63 characters, start and end with alphanumeric
-        // Domain must have at least one dot (except for localhost-style names)
-        const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-        
-        // Additional checks
-        const parts = punnycodeDomain.split('.');
-        
-        // Must have at least 2 parts for most domains (domain.tld)
-        // Exception: allow single part for special cases like 'localhost'
-        if (parts.length < 2 && !isSpecialDomain(testDomain)) {
-            return false;
-        }
-        
-        // Validate each part
-        for (const part of parts) {
-            if (part.length === 0 || part.length > 63) {
-                return false;
-            }
-            // Cannot start or end with hyphen
-            if (part.startsWith('-') || part.endsWith('-')) {
-                return false;
-            }
-            // Cannot be all numeric (for TLD)
-            if (parts.indexOf(part) === parts.length - 1 && /^\d+$/.test(part)) {
-                return false;
-            }
-        }
-        
-        const isValid = domainRegex.test(punnycodeDomain);
-        return isValid;
-        
-    } catch (error) {
-        console.warn('Punycode conversion failed for domain:', testDomain, error);
-        
-        // Fallback to basic ASCII validation if punycode conversion fails
-        const basicDomainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-        
-        const parts = testDomain.split('.');
-        
-        // Basic validation for ASCII domains
-        if (parts.length < 2 && !isSpecialDomain(testDomain)) {
-            return false;
-        }
-        
-        for (const part of parts) {
-            if (part.length === 0 || part.length > 63) {
-                return false;
-            }
-            if (part.startsWith('-') || part.endsWith('-')) {
-                return false;
-            }
-        }
-        
-        return basicDomainRegex.test(testDomain);
-    }
-}
-
-/**
- * Check if domain is a special case (like localhost)
- */
-function isSpecialDomain(domain) {
-    const specialDomains = ['localhost', 'broadcasthost'];
-    return specialDomains.includes(domain.toLowerCase());
-}
-
-/**
- * Enhanced HTML escaping for better security
- */
-function escapeHtml(text) {
-    if (!text) return '';
-    
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .replace(/`/g, '&#x60;');
-}
-
-// ============================================================================
 // IMPORT/EXPORT FUNCTIONS
 // ============================================================================
 
@@ -1834,7 +1439,7 @@ function importSettings(evt) {
         "totalCounter", "cleanedCounter", "hashStatus", "loggingStatus", "log",
         "statisticsStatus", "badged_color", "contextMenuEnabled", "historyListenerEnabled",
         "localHostsSkipping", "referralMarketing", "logLimit", "domainBlocking",
-        "pingBlocking", "eTagFiltering", "watchDogErrorCount", "userWhitelist",
+        "pingBlocking", "eTagFiltering", "watchDogErrorCount",
         "custom_rules", "types", "pingRequestTypes", "firstInstall", "linkumori-theme",
         "ruleURL", "hashURL" // Added new URL fields
     ];
@@ -2218,7 +1823,7 @@ async function getData() {
             logLimitLabel.textContent = translate('setting_log_limit_label_with_range');
         }
         
-        // Load feature toggles + whitelist in parallel.
+        // Load feature toggles in parallel.
         await Promise.all([
             loadData("contextMenuEnabled"),
             loadData("historyListenerEnabled"),
@@ -2227,8 +1832,7 @@ async function getData() {
             loadData("domainBlocking"),
             loadData("pingBlocking"),
             loadData("eTagFiltering"),
-            loadData("builtInRulesEnabled"),
-            loadData("userWhitelist")
+            loadData("builtInRulesEnabled")
         ]);
     } catch (error) {
     }
@@ -2268,14 +1872,19 @@ function displayBundledRulesInfo() {
         browser.runtime.sendMessage({
             function: "getMergeStatistics",
             params: []
+        }),
+        browser.runtime.sendMessage({
+            function: "getData",
+            params: ["userWhitelist"]
         })
-    ]).then(([rulesResponse, metadataResponse, customRulesResponse, hashStatusResponse, sourceInfoResponse, mergeStatsResponse]) => {
+    ]).then(([rulesResponse, metadataResponse, customRulesResponse, hashStatusResponse, sourceInfoResponse, mergeStatsResponse, whitelistResponse]) => {
         const rulesData = rulesResponse.response;
         const metadata = metadataResponse.response;
         const customRules = customRulesResponse.response;
         const hashStatus = hashStatusResponse.response;
         const sourceInfo = sourceInfoResponse.response || {};
         const mergeStats = mergeStatsResponse.response || {};
+        const whitelist = Array.isArray(whitelistResponse.response) ? whitelistResponse.response : [];
         const statusElement = document.getElementById('bundled_rules_status');
         
         const statusLabel = translate('rules_status_label');
@@ -2296,6 +1905,14 @@ function displayBundledRulesInfo() {
                     <strong>${totalProvidersLabel}</strong> ${getLocalizedNumber(providerCount)}<br>
                     <strong>${totalRulesLabel}</strong> ${getLocalizedNumber(ruleCount)}
                 `;
+
+                const whitelistTotalLabel = translate('rules_whitelist_total_label');
+                const whitelistCount = getLocalizedNumber(whitelist.length);
+                html += `<br><strong>${whitelistTotalLabel}</strong> ${whitelistCount}`;
+
+                const whitelistRecommendation = translate('rules_whitelist_manage_recommendation');
+                const openEditorText = translate('rules_whitelist_open_editor');
+                html += `<br>${whitelistRecommendation} <a href="#" id="open-custom-rules-editor-link">${openEditorText}</a>`;
                 
                 // Add rule source information
                 if (sourceInfo.source) {
@@ -2511,6 +2128,14 @@ function displayBundledRulesInfo() {
                 
                 setHTMLContent(statusElement, html);
                 statusElement.style.color = 'var(--button-success)';
+
+                const openEditorLink = statusElement.querySelector('#open-custom-rules-editor-link');
+                if (openEditorLink) {
+                    openEditorLink.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        browser.tabs.create({ url: browser.runtime.getURL('./html/customrules.html') });
+                    });
+                }
             }
         } else {
             if (statusElement) {
@@ -2796,9 +2421,6 @@ setElementText('remote_rules_enabled_description', 'remote_rules_enabled_descrip
 setElementText('language_selector_label', 'language_selector_label');
 setElementText('language_selector_description', 'language_selector_description');
 
-// Whitelist examples
-setElementHTML('whitelist_examples_text', 'whitelist_examples_text');
-    
     // Feature toggles section
     setElementText('feature_toggles_title', 'feature_toggles_title');
     setElementText('domain_blocking_enabled', 'domain_blocking_enabled');
@@ -2820,13 +2442,6 @@ setElementHTML('whitelist_examples_text', 'whitelist_examples_text');
     setElementText('overload_mode_enabled', 'overload_mode_enabled');
     setElementText('overload_mode_enabled_description', 'overload_mode_enabled_description');
     
-    // Whitelist section
-    setElementText('whitelist_section_title', 'whitelist_section_title');
-    setElementText('whitelist_section_description', 'whitelist_section_description');
-    setElementText('whitelist_add_label', 'whitelist_add_label');
-    setElementText('whitelist_add_button', 'whitelist_add_button');
-    setElementText('whitelist_list_label', 'whitelist_list_label');
-
     // Rules section
     setElementText('bundled_rules_section_title', 'bundled_rules_section_title');
     setElementText('bundled_rules_description', 'bundled_rules_description');

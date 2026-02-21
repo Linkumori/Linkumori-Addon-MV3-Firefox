@@ -111,6 +111,10 @@
         "message": "Tools",
         "description": "This string is used for the tools button on the popup page."
     },
+    "popup_html_whitelist_button": {
+        "message": "Whitelist",
+        "description": "This string is used for the whitelist button on the popup page."
+    },
     "popup_html_tools_button_title": {
         "message": "Open cleaning tools",
         "description": "This string is used as a title for the tools button on the popup page."
@@ -486,6 +490,18 @@
         "message": "Total Rules:",
         "description": "Label for total rules count."
     },
+    "rules_whitelist_total_label": {
+        "message": "Total Whitelist Domains:",
+        "description": "Label for total whitelist domain count in rules information section."
+    },
+    "rules_whitelist_manage_recommendation": {
+        "message": "To add, edit, or remove whitelist domains ",
+        "description": "Recommendation text in rules information section for whitelist management."
+    },
+    "rules_whitelist_open_editor": {
+        "message": "Click here",
+        "description": "Link text to open custom rules editor from rules information section."
+    },
     "rules_status_not_loaded": {
         "message": "No rules loaded",
         "description": "Value for when no rules are loaded."
@@ -678,6 +694,14 @@
     "message": "Add",
     "description": "Text for the add domain button"
   },
+  "whitelist_import_button": {
+    "message": "Import",
+    "description": "Button text for importing whitelist domains"
+  },
+  "whitelist_export_button": {
+    "message": "Export",
+    "description": "Button text for exporting whitelist domains"
+  },
   "whitelist_remove_button": {
     "message": "Remove",
     "description": "Text for the remove domain button"
@@ -693,6 +717,18 @@
   "whitelist_input_placeholder": {
     "message": "example.com or *.example.com",
     "description": "Placeholder text for the domain input field"
+  },
+  "whitelist_search_placeholder": {
+    "message": "Search whitelisted domains",
+    "description": "Placeholder text for searching whitelisted domains"
+  },
+  "customRulesEditor_nav_rules": {
+    "message": "Custom Rules",
+    "description": "Navigation label for custom rules view"
+  },
+  "customRulesEditor_nav_whitelist": {
+    "message": "Whitelist",
+    "description": "Navigation label for whitelist view"
   },
   "whitelist_empty": {
     "message": "No domains whitelisted",
@@ -733,6 +769,34 @@
   "whitelist_remove_failed": {
     "message": "Failed to remove domain from whitelist",
     "description": "Error message when removing domain fails"
+  },
+  "whitelist_import_parse_failed": {
+    "message": "Failed to parse whitelist file",
+    "description": "Error shown when whitelist import file is invalid JSON"
+  },
+  "whitelist_import_invalid_format": {
+    "message": "Invalid whitelist format. Use a JSON array of domains.",
+    "description": "Error shown when imported whitelist structure is not supported"
+  },
+  "whitelist_import_no_valid_domain": {
+    "message": "No valid domains found in whitelist file",
+    "description": "Error shown when imported whitelist has no valid domain entries"
+  },
+  "whitelist_import_done": {
+    "message": "Imported %s domain(s) to whitelist",
+    "description": "Success message for whitelist import. %s is replaced with imported domain count"
+  },
+  "whitelist_export_empty": {
+    "message": "Whitelist is empty. Nothing to export.",
+    "description": "Info message when user tries to export an empty whitelist"
+  },
+  "whitelist_export_failed": {
+    "message": "Failed to export whitelist",
+    "description": "Error shown when whitelist export fails"
+  },
+  "whitelist_export_done": {
+    "message": "Whitelist exported successfully",
+    "description": "Success message when whitelist export completes"
   },
 
   "popup_nav_main": {
@@ -1223,7 +1287,7 @@
     "message": "Custom Rules Editor - ClearURLs"
   },
   "customRulesEditor_pageTitle": {
-    "message": "Custom Rules Editor"
+    "message": "Custom Rules Editor and Whitelist Management"
   },
   "customRulesEditor_customProviders": {
     "message": "Custom Providers"
@@ -2304,6 +2368,107 @@
     "message": "Invalid log file format.",
     "description": "Error message when imported file is not valid JSON log format"
   },
+  "log_nav_dashboard": {
+    "message": "Dashboard",
+    "description": "Tab label for dashboard view on log page"
+  },
+  "log_nav_logs": {
+    "message": "Logs",
+    "description": "Tab label for logs view on log page"
+  },
+  "log_stats_total_entries": {
+    "message": "Total Entries",
+    "description": "Stats card label for total log entries"
+  },
+  "log_stats_changed_urls": {
+    "message": "Changed URLs",
+    "description": "Stats card label for entries where URL changed"
+  },
+  "log_stats_unique_rules": {
+    "message": "Unique Rules",
+    "description": "Stats card label for unique applied rules"
+  },
+  "log_stats_unique_domains": {
+    "message": "Unique Domains",
+    "description": "Stats card label for unique source domains"
+  },
+  "log_stats_earliest": {
+    "message": "Earliest",
+    "description": "Stats card label for earliest timestamp"
+  },
+  "log_stats_latest": {
+    "message": "Latest",
+    "description": "Stats card label for latest timestamp"
+  },
+  "log_stats_top_rules": {
+    "message": "Top Rules",
+    "description": "Stats section title for top rules"
+  },
+  "log_stats_top_domains": {
+    "message": "Top Domains",
+    "description": "Stats section title for top domains"
+  },
+  "log_stats_daily_activity": {
+    "message": "Daily Activity (Last 14 days)",
+    "description": "Stats section title for daily activity chart/table"
+  },
+  "log_stats_rule_col": {
+    "message": "Rule",
+    "description": "Column header for rule name in stats"
+  },
+  "log_stats_domain_col": {
+    "message": "Domain",
+    "description": "Column header for domain name in stats"
+  },
+  "log_stats_count_col": {
+    "message": "Count",
+    "description": "Column header for count in stats tables"
+  },
+  "log_stats_date_col": {
+    "message": "Date",
+    "description": "Column header for date in daily stats table"
+  },
+  "log_stats_entries_col": {
+    "message": "Entries",
+    "description": "Column header for entries count in daily stats table"
+  },
+  "log_stats_no_rules": {
+    "message": "No rules",
+    "description": "Fallback row label when no rules are available in stats"
+  },
+  "log_stats_no_domains": {
+    "message": "No domains",
+    "description": "Fallback row label when no domains are available in stats"
+  },
+  "log_stats_no_activity": {
+    "message": "No activity",
+    "description": "Fallback row label when no daily activity is available in stats"
+  },
+  "log_stats_chart_title": {
+    "message": "Stats Chart",
+    "description": "Title for selectable chart section in log dashboard"
+  },
+  "log_stats_chart_type": {
+    "message": "Chart Type",
+    "description": "Label for chart type selector"
+  },
+  "log_stats_chart_type_pie": {
+    "message": "Pie",
+    "description": "Option label for pie chart"
+  },
+  "log_stats_chart_type_line": {
+    "message": "Line",
+    "description": "Option label for line chart"
+  },
+  "log_stats_chart_type_bar": {
+    "message": "Bar",
+    "description": "Option label for bar chart"
+  },
+  "log_stats_chart_no_data": {
+    "message": "No chart data",
+    "description": "Empty-state label when no data is available for chart"
+  },
+ 
   "datatable_showing_entries": {
     "message": "Showing $1 to $2 of $3 entries",
     "description": "Pagination info showing current range. $1=start, $2=end, $3=total"
@@ -3417,6 +3582,26 @@
     "message": "Please review our privacy policy below.",
     "description": "Description text for privacy policy section"
   },
+  "privacyVersionLabel": {
+    "message": "Privacy Policy ",
+    "description": "Label for selecting English privacy policy version"
+  },
+  "privacyVersionDescription": {
+    "message": "Choose which Translation of privacy policy You wanted to see.Please note that only English version is available for now, and other languages may be added in the future.",
+    "description": "Helper description for privacy version selector"
+  },
+  "privacyVersionEnGlobal": {
+    "message": "English ",
+    "description": "Option label for global English privacy policy file"
+  },
+  "privacyVersionLoadFailed": {
+    "message": "Selected policy file not found. Loaded default privacy policy instead.",
+    "description": "Notification shown when selected privacy version file cannot be loaded"
+  },
+  "privacyVersionMapLoadFailed": {
+    "message": "Failed to load privacy policy version map.",
+    "description": "Notification shown when privacy version mapping config cannot be loaded"
+  },
   "licenseSection": {
     "message": "License Information",
     "description": "Section header for license information"
@@ -3457,14 +3642,88 @@
     "message": "All required permissions optional granted.",
     "description": "Status text when all permissions are granted"
   },
+  "loadingContent": {
+    "message": "Loading content...",
+    "description": "Generic loading message for about/legal content areas"
+  },
+  "fileEmptyError": {
+    "message": "File is empty or unreadable",
+    "description": "Error shown when a legal/privacy file is empty or unreadable"
+  },
+  "loadError": {
+    "message": "Error loading content",
+    "description": "Error title shown when legal/privacy content fails to load"
+  },
+  "nothingToCopy": {
+    "message": "Nothing to copy!",
+    "description": "Toast message when copy action has no content"
+  },
+  "copyFailed": {
+    "message": "Failed to copy!",
+    "description": "Toast message when copy action fails"
+  },
+  "nothingToDownload": {
+    "message": "Nothing to download!",
+    "description": "Toast message when download action has no content"
+  },
+  "downloadFailed": {
+    "message": "Failed to download!",
+    "description": "Toast message when download action fails"
+  },
+  "switchToDarkTheme": {
+    "message": "Switch to dark theme",
+    "description": "ARIA label for theme toggle when current theme is light"
+  },
+  "switchToLightTheme": {
+    "message": "Switch to light theme",
+    "description": "ARIA label for theme toggle when current theme is dark"
+  },
+  "licenseCopied": {
+    "message": "License copied!",
+    "description": "Toast message after copying license content"
+  },
+  "licenseDownloaded": {
+    "message": "License downloaded!",
+    "description": "Toast message after downloading license content"
+  },
+  "privacyCopied": {
+    "message": "Privacy policy copied!",
+    "description": "Toast message after copying privacy policy content"
+  },
+  "privacyDownloaded": {
+    "message": "Privacy policy downloaded!",
+    "description": "Toast message after downloading privacy policy content"
+  },
+  "sunIconAlt": {
+    "message": "sun icon",
+    "description": "Alt text for sun theme icon"
+  },
+  "moonIconAlt": {
+    "message": "moon icon",
+    "description": "Alt text for moon theme icon"
+  },
+  "popup_consent_title": {
+    "message": "Consent required",
+    "description": "Title for popup consent gate"
+  },
+  "popup_consent_description": {
+    "message": "Please read the Privacy Policy and License before using this popup. We do not collect your data. All data is stored on your device and is not transmitted to us.",
+    "description": "Description for popup consent gate"
+  },
+  "popup_consent_checkbox": {
+    "message": "I have read and accept the Privacy Policy and License.",
+    "description": "Consent checkbox label for popup gate"
+  },
+  "popup_consent_legal_button": {
+    "message": "Read Legal",
+    "description": "Button label to open legal page from popup consent gate"
+  },
+  "popup_consent_accept_button": {
+    "message": "Accept and continue",
+    "description": "Button label to accept popup consent gate"
+  },
   "permissionsMissing": {
     "message": "Some permissions are missing. Please grant the required permissions. by clicking the grant permissions button.",
     "description": "Status text when some permissions are missing"
   }
 }
-
-
-
-
-
-

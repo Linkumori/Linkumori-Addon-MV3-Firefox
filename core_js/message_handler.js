@@ -227,19 +227,34 @@ function handleReloadCustomRules(request) {
 function handleGetCustomRulesStats(request) {
     try {
         // Get custom rules
-        const customRules = (typeof window.getData === 'function') ? 
-            window.getData('custom_rules') || { providers: {} } : 
-            { providers: {} };
-        
+        const customRulesRaw = (typeof window.getData === 'function')
+            ? window.getData('custom_rules') || { providers: {} }
+            : { providers: {} };
+
+        const customRules = (customRulesRaw && typeof customRulesRaw === 'object' && !Array.isArray(customRulesRaw))
+            ? (customRulesRaw.providers && typeof customRulesRaw.providers === 'object'
+                ? customRulesRaw
+                : { providers: customRulesRaw })
+            : { providers: {} };
+
         const customProviderCount = Object.keys(customRules.providers || {}).length;
         
         // Get built-in rules
-        const builtInRules = (typeof window.getData === 'function') ? 
-            window.getData('ClearURLsData') || { providers: {} } : 
-            { providers: {} };
-        
-        const totalProviderCount = Object.keys(builtInRules.providers || {}).length;
-        const builtInProviderCount = Math.max(0, totalProviderCount - customProviderCount);
+        const mergedRules = (typeof window.getData === 'function')
+            ? window.getData('ClearURLsData') || { providers: {} }
+            : { providers: {} };
+
+        const totalProviderCount = Object.keys(mergedRules.providers || {}).length;
+
+        // Use merge stats from storage as source of truth for built-in count.
+        // "total - custom" is incorrect when custom providers are merged/deduplicated by key.
+        const mergeStats = (typeof window.getData === 'function')
+            ? window.getData('mergeStats') || {}
+            : {};
+
+        const builtInProviderCount = (typeof mergeStats.bundledProviders === 'number')
+            ? Math.max(0, mergeStats.bundledProviders)
+            : Math.max(0, totalProviderCount - customProviderCount);
         
         // Get hash status
         const hashStatus = (typeof window.getData === 'function') ? 

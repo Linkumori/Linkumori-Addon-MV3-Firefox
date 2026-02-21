@@ -23,6 +23,17 @@ Then follow these steps:
 1. Select **Setup Project**
 2. Select **Generate Commit History**
 
+Commit history generation requires a real Git clone (with `.git` history).  
+Without `git clone`, you cannot generate commit history.
+
+Clone command:
+```bash
+git clone https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox.git
+```
+
+For every official release, the source package downloadable from GitHub Releases (`source code.zip`) includes `COMMIT_HISTORY.md`.
+For all other source distributions, you must generate `COMMIT_HISTORY.md` manually.
+
 **Requirements:**
 - Node.js: Download from [nodejs.org](https://nodejs.org/en)
 - Or Bun: [bun.com/docs/installation](https://bun.com/docs/installation)
@@ -33,6 +44,7 @@ Then follow these steps:
 - Review individual modified source files for earlier notices
 - Some files may not contain notices within the file itself or may not be listed in `COMMIT_HISTORY.md`; a separate notice file may be provided instead
 - Not all source code files have been modified, but review notices in all source files and any separate notice files (`.md` or `.txt`)
+- `git clone` is required before running **Generate Commit History**; otherwise commit history generation will not work
 
 # Build Instructions
 
@@ -55,6 +67,8 @@ bun start
 ```
 
 Then select: **Build Extension (Full Build)**
+
+When prompted for rules source mode (online/offline), select **offline** for an exact reproducible build.
 
 Output will be in `web-ext-artifacts/`
 
@@ -101,6 +115,8 @@ bun start
 ```
 
 Select: **Build & Sign Extension**
+
+When prompted for rules source mode (online/offline), select **offline** for an exact reproducible build.
 
 Your signed extension will now be generated.
 

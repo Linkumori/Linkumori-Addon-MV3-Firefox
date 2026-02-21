@@ -1,7 +1,7 @@
 /**
  * 
  * ClearURLs / Linkumori - Core Storage & Rule Management System
-
+ *
  * Original ClearURLs Copyright (c) 2017-2020 Kevin Röbert
  * Modified Version Copyright (c) 2025 Subham Mahesh parts only 
  * 
@@ -30,6 +30,9 @@
  * • RESILIENCE: Graceful degradation with multiple recovery mechanisms
  * • INTEGRITY: SHA-256 hash verification without storage persistence conflicts
  * • MONITORING: Detailed merge statistics and verification status tracking
+ * • ENHANCED MERGING: Grouping by domainPatterns when urlPattern missing
+ * • NAME COLLISION RESOLUTION: Unique provider names to prevent overwrites
+ * • NORMALIZATION: domainPatterns can be string or array, handled consistently
  * 
  * Rule minification algorithm derived from ClearURLs build tools:
  * https://github.com/ClearURLs/Addon/blob/master/build_tools/minifyDataJSON.js
@@ -39,8 +42,8 @@
  */
 /**
  * first modified:  Jun 14, 2025  by Subham Mahesh
- *secound modified:  august 21, 2025  by Subham Mahesh
- third modified:  september 5, 2025  by Subham Mahesh
+ * secound modified:  august 21, 2025  by Subham Mahesh
+ * third modified:  september 5, 2025  by Subham Mahesh
  * Due to constraints, later modifications are not tracked inline.
  * To view the full modification history, run:
  *
@@ -58,6 +61,72 @@ var tempVerificationCache = {
     isRemoteVerified: false,
     isCacheUsed: false
 };
+
+/**
+ * Generate a grouping key for a provider based on its urlPattern or domainPatterns.
+ * @param {object} providerData - The provider object.
+ * @param {string} providerName - The provider's name (used as fallback).
+ * @returns {string} A key string for grouping.
+ */
+function getProviderGroupKey(providerData, providerName) {
+    const urlPattern = (typeof providerData?.urlPattern === 'string')
+        ? providerData.urlPattern.trim()
+        : '';
+    if (urlPattern) {
+        return `url:${urlPattern}`;
+    }
+
+    const domainPatterns = [];
+    if (Array.isArray(providerData?.domainPatterns)) {
+        providerData.domainPatterns.forEach(pattern => {
+            if (typeof pattern === 'string' && pattern.trim()) {
+                domainPatterns.push(pattern.trim());
+            }
+        });
+    } else if (typeof providerData?.domainPatterns === 'string' && providerData.domainPatterns.trim()) {
+        domainPatterns.push(providerData.domainPatterns.trim());
+    }
+
+    if (Array.isArray(providerData?.domainPattern)) {
+        providerData.domainPattern.forEach(pattern => {
+            if (typeof pattern === 'string' && pattern.trim()) {
+                domainPatterns.push(pattern.trim());
+            }
+        });
+    } else if (typeof providerData?.domainPattern === 'string' && providerData.domainPattern.trim()) {
+        domainPatterns.push(providerData.domainPattern.trim());
+    }
+
+    if (domainPatterns.length > 0) {
+        const normalized = [...new Set(domainPatterns)].sort((a, b) => a.localeCompare(b));
+        return `domain:${normalized.join('||')}`;
+    }
+
+    return `no-pattern:${providerName}`;
+}
+
+function normalizeProviderEntries(providers, primaryProviderNames = new Set()) {
+    if (Array.isArray(providers)) {
+        return providers
+            .filter(provider => provider && typeof provider === 'object')
+            .map(provider => ({
+                name: provider.name,
+                data: provider.data,
+                isPrimarySource: provider.isPrimarySource === true
+            }));
+    }
+
+    const normalized = [];
+    Object.entries(providers || {}).forEach(([providerName, providerData]) => {
+        normalized.push({
+            name: providerName,
+            data: providerData,
+            isPrimarySource: primaryProviderNames.has(providerName)
+        });
+    });
+
+    return normalized;
+}
 
 function normalizeRemoteRuleSetEntry(entry) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
@@ -147,8 +216,17 @@ function mergeRemoteProviderGroup(providerGroup) {
         if (Array.isArray(data.redirections)) {
             merged.redirections = [...new Set([...merged.redirections, ...data.redirections])];
         }
-        if (Array.isArray(data.domainPatterns)) {
-            merged.domainPatterns = [...new Set([...merged.domainPatterns, ...data.domainPatterns])];
+        // Handle domainPatterns: could be array or string
+        if (data.domainPatterns) {
+            let patterns = [];
+            if (Array.isArray(data.domainPatterns)) {
+                patterns = data.domainPatterns;
+            } else if (typeof data.domainPatterns === 'string') {
+                patterns = [data.domainPatterns];
+            }
+            if (patterns.length > 0) {
+                merged.domainPatterns = [...new Set([...merged.domainPatterns, ...patterns])];
+            }
         }
         if (Array.isArray(data.domainExceptions)) {
             merged.domainExceptions = [...new Set([...merged.domainExceptions, ...data.domainExceptions])];
@@ -203,54 +281,74 @@ function createMergedRemoteProviderName(providerGroup) {
 }
 
 function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new Set()) {
-    const urlPatternGroups = {};
+    const providerGroups = {}; // key → array of providers
 
-    Object.entries(providers || {}).forEach(([providerName, providerData]) => {
-        const pattern = providerData?.urlPattern || `__NO_PATTERN__${providerName}`;
+    const normalizedProviders = normalizeProviderEntries(providers, primaryProviderNames);
 
-        if (!urlPatternGroups[pattern]) {
-            urlPatternGroups[pattern] = [];
+    normalizedProviders.forEach(provider => {
+        const providerName = typeof provider.name === 'string' && provider.name.trim() !== ''
+            ? provider.name
+            : 'provider';
+        const providerData = provider.data;
+        const key = getProviderGroupKey(providerData, providerName);
+        if (key.startsWith('no-pattern:')) {
+            return;
         }
-
-        urlPatternGroups[pattern].push({
+        if (!providerGroups[key]) {
+            providerGroups[key] = [];
+        }
+        providerGroups[key].push({
             name: providerName,
             data: providerData,
-            isPrimarySource: primaryProviderNames.has(providerName)
+            isPrimarySource: provider.isPrimarySource === true
         });
     });
 
     const mergedProviders = {};
+    const usedNames = new Set();
 
-    Object.values(urlPatternGroups).forEach(providerGroup => {
+    Object.values(providerGroups).forEach(providerGroup => {
         if (providerGroup.length === 1) {
-            const onlyProvider = providerGroup[0];
-            mergedProviders[onlyProvider.name] = onlyProvider.data;
+            // Single provider – keep original data, but ensure name uniqueness
+            const provider = providerGroup[0];
+            let baseName = provider.name;
+            let finalName = baseName;
+            let counter = 1;
+            while (usedNames.has(finalName)) {
+                finalName = `${baseName}_${counter++}`;
+            }
+            usedNames.add(finalName);
+            mergedProviders[finalName] = provider.data;
             return;
         }
 
+        // Multiple providers to merge
         const mergedProvider = mergeRemoteProviderGroup(providerGroup);
-        const mergedName = createMergedRemoteProviderName(providerGroup);
-        mergedProviders[mergedName] = mergedProvider;
+        let baseName = createMergedRemoteProviderName(providerGroup);
+        let finalName = baseName;
+        let counter = 1;
+        while (usedNames.has(finalName)) {
+            finalName = `${baseName}_${counter++}`;
+        }
+        usedNames.add(finalName);
+        mergedProviders[finalName] = mergedProvider;
     });
 
     return mergedProviders;
 }
 
 function mergeRemoteRulesSources(successfulSources, failedSources = []) {
-    const combinedProviders = {};
-    const primaryProviderNames = new Set();
+    const combinedProviders = [];
     let mergedMetadata = null;
 
     successfulSources.forEach((source, sourceIndex) => {
         const providers = source.rules?.providers || {};
-        const providerNames = Object.keys(providers);
-
-        if (sourceIndex === 0) {
-            providerNames.forEach(providerName => primaryProviderNames.add(providerName));
-        }
-
-        providerNames.forEach(providerName => {
-            combinedProviders[providerName] = providers[providerName];
+        Object.entries(providers).forEach(([providerName, providerData]) => {
+            combinedProviders.push({
+                name: providerName,
+                data: providerData,
+                isPrimarySource: sourceIndex === 0
+            });
         });
 
         if (!mergedMetadata && source.rules?.metadata) {
@@ -258,7 +356,7 @@ function mergeRemoteRulesSources(successfulSources, failedSources = []) {
         }
     });
 
-    const mergedProviders = mergeRemoteProvidersByUrlPattern(combinedProviders, primaryProviderNames);
+    const mergedProviders = mergeRemoteProvidersByUrlPattern(combinedProviders);
     const mergedRules = { providers: mergedProviders };
     const mergedProviderCount = Object.keys(mergedProviders).length;
 
@@ -317,12 +415,25 @@ function mergeRemoteRulesSources(successfulSources, failedSources = []) {
 function mergeRemoteWithBundledRules(remoteRules, bundledRules) {
     const remoteProviders = remoteRules?.providers || {};
     const bundledProviders = bundledRules?.providers || {};
-    const primaryProviderNames = new Set(Object.keys(remoteProviders));
-    const combinedProviders = {
-        ...bundledProviders,
-        ...remoteProviders
-    };
-    const mergedProviders = mergeRemoteProvidersByUrlPattern(combinedProviders, primaryProviderNames);
+    const combinedProviders = [];
+
+    Object.entries(bundledProviders).forEach(([providerName, providerData]) => {
+        combinedProviders.push({
+            name: providerName,
+            data: providerData,
+            isPrimarySource: false
+        });
+    });
+
+    Object.entries(remoteProviders).forEach(([providerName, providerData]) => {
+        combinedProviders.push({
+            name: providerName,
+            data: providerData,
+            isPrimarySource: true
+        });
+    });
+
+    const mergedProviders = mergeRemoteProvidersByUrlPattern(combinedProviders);
     const mergedProviderCount = Object.keys(mergedProviders).length;
 
     const remoteMetadata = (remoteRules?.metadata && typeof remoteRules.metadata === 'object' && !Array.isArray(remoteRules.metadata))
@@ -1210,46 +1321,122 @@ function mergeCustomRules(bundledRules) {
                     storage.hashStatus = "bundled_rules_loaded";
                 }
             } else {
-                // Build match keys for base providers
+                // Build match keys while preserving all providers (including duplicate keys).
                 const baseProviders = bundledRules.providers || {};
-                const baseKeys = new Map(); // key -> { name, data }
-                for (const [name, data] of Object.entries(baseProviders)) {
-                    const key = getProviderGroupKey(name, data);
-                    baseKeys.set(key, { name, data });
-                }
+                const baseEntries = Object.entries(baseProviders).map(([name, data]) => ({
+                    name,
+                    data,
+                    key: getProviderGroupKey(data, name)
+                })).filter(entry => !entry.key.startsWith('no-pattern:'));
+
+                const baseGroupsByKey = new Map();
+                baseEntries.forEach(entry => {
+                    if (!baseGroupsByKey.has(entry.key)) {
+                        baseGroupsByKey.set(entry.key, []);
+                    }
+                    baseGroupsByKey.get(entry.key).push({
+                        name: entry.name,
+                        data: entry.data,
+                        isPrimarySource: true
+                    });
+                });
                 
-                // Build match keys for custom providers
                 const customProviders = customRules.providers || {};
-                const customKeys = new Map(); // key -> { name, data }
-                for (const [name, data] of Object.entries(customProviders)) {
-                    const key = getProviderGroupKey(name, data);
-                    customKeys.set(key, { name, data });
-                }
-                
-                // Determine overridden base providers (those whose keys exist in customKeys)
-                const overriddenKeys = new Set();
-                const overriddenProviderNames = [];
-                for (const key of baseKeys.keys()) {
-                    if (customKeys.has(key)) {
-                        overriddenKeys.add(key);
-                        overriddenProviderNames.push(baseKeys.get(key).name);
+                const customEntries = Object.entries(customProviders).map(([name, data]) => ({
+                    name,
+                    data,
+                    key: getProviderGroupKey(data, name)
+                })).filter(entry => !entry.key.startsWith('no-pattern:'));
+
+                const customGroupsByKey = new Map();
+                customEntries.forEach(entry => {
+                    if (!customGroupsByKey.has(entry.key)) {
+                        customGroupsByKey.set(entry.key, []);
                     }
-                }
+                    customGroupsByKey.get(entry.key).push({
+                        name: entry.name,
+                        data: entry.data,
+                        isPrimarySource: true
+                    });
+                });
                 
-                // Build final providers
+                const customKeysSet = new Set(customEntries.map(entry => entry.key));
+                const baseKeysSet = new Set(baseEntries.map(entry => entry.key));
+                const overriddenBaseEntries = baseEntries.filter(entry => customKeysSet.has(entry.key));
+                const nonOverriddenBaseKeys = Array.from(baseGroupsByKey.keys()).filter(key => !customKeysSet.has(key));
+                const overridingCustomEntries = customEntries.filter(entry => baseKeysSet.has(entry.key));
+                const overriddenProviderNames = overriddenBaseEntries.map(entry => entry.name);
+
                 const finalProviders = {};
-                
-                // Add base providers that are NOT overridden
-                for (const [key, { name, data }] of baseKeys.entries()) {
-                    if (!overriddenKeys.has(key)) {
-                        finalProviders[name] = data;
+                const usedNames = new Set();
+
+                // Add merged base providers by key that are NOT overridden
+                for (const key of nonOverriddenBaseKeys) {
+                    const baseGroup = baseGroupsByKey.get(key) || [];
+                    if (baseGroup.length === 0) {
+                        continue;
                     }
+                    const mergedProvider = mergeRemoteProviderGroup(baseGroup);
+                    const mergedName = createMergedRemoteProviderName(baseGroup);
+                    let baseName = mergedName;
+                    let finalName = baseName;
+                    let counter = 1;
+                    while (usedNames.has(finalName)) {
+                        finalName = `${baseName}_${counter++}`;
+                    }
+                    usedNames.add(finalName);
+                    finalProviders[finalName] = mergedProvider;
                 }
                 
-                // Add all custom providers (they replace any with same key)
-                for (const [key, { name, data }] of customKeys.entries()) {
-                    finalProviders[name] = data;
+                // Add merged custom providers by key (they replace any with same key)
+                for (const customGroup of customGroupsByKey.values()) {
+                    const mergedProvider = mergeRemoteProviderGroup(customGroup);
+                    const mergedName = createMergedRemoteProviderName(customGroup);
+                    let baseName = mergedName;
+                    let finalName = baseName;
+                    let counter = 1;
+                    while (usedNames.has(finalName)) {
+                        finalName = `${baseName}_${counter++}`;
                     }
+                    usedNames.add(finalName);
+                    finalProviders[finalName] = mergedProvider;
+                }
+
+                // Remove duplicate domain patterns across providers while keeping providers separate.
+                const claimedDomainPatterns = new Set();
+                Object.keys(finalProviders).forEach(providerName => {
+                    const provider = finalProviders[providerName];
+                    if (!provider || typeof provider !== 'object') {
+                        return;
+                    }
+
+                    const hasUrlPattern = typeof provider.urlPattern === 'string' && provider.urlPattern.trim() !== '';
+                    const domainPatterns = Array.isArray(provider.domainPatterns)
+                        ? provider.domainPatterns.filter(pattern => typeof pattern === 'string' && pattern.trim() !== '')
+                        : [];
+
+                    if (domainPatterns.length > 0) {
+                        const uniqueForProvider = [];
+                        domainPatterns.forEach(pattern => {
+                            const normalized = pattern.trim();
+                            if (!claimedDomainPatterns.has(normalized)) {
+                                claimedDomainPatterns.add(normalized);
+                                uniqueForProvider.push(normalized);
+                            }
+                        });
+
+                        if (uniqueForProvider.length > 0) {
+                            provider.domainPatterns = uniqueForProvider;
+                        } else {
+                            delete provider.domainPatterns;
+                        }
+                    }
+
+                    const hasDomainPatterns = Array.isArray(provider.domainPatterns) && provider.domainPatterns.length > 0;
+                    if (!hasUrlPattern && !hasDomainPatterns) {
+                        delete finalProviders[providerName];
+                    }
+                });
                 
                 const mergedRules = {
                     providers: finalProviders
@@ -1260,18 +1447,18 @@ function mergeCustomRules(bundledRules) {
                 }
                 
                 // Compute stats
-                const bundledProviderNames = Array.from(baseKeys.values()).map(v => v.name);
-                const customProviderNames = Array.from(customKeys.values()).map(v => v.name);
+                const bundledProviderNames = baseEntries.map(entry => entry.name);
+                const customProviderNames = customEntries.map(entry => entry.name);
                 
                 storage.mergeStats = {
                     source: bundledRules?.metadata?.source || 'bundled',
                     bundledProviders: bundledProviderNames.length,
                     customProviders: customProviderNames.length,
-                    overriddenProviders: overriddenKeys.size,
+                    overriddenProviders: overriddenBaseEntries.length,
                     totalProviders: Object.keys(finalProviders).length,
                     overriddenProviderNames: overriddenProviderNames,
-                    filteredBundledProviders: bundledProviderNames.length - overriddenKeys.size,
-                    newCustomProviders: customProviderNames.length - overriddenKeys.size
+                    filteredBundledProviders: nonOverriddenBaseKeys.length,
+                    newCustomProviders: customProviderNames.length - overridingCustomEntries.length
                 };
                 
                 storage.ClearURLsData = mergedRules;
@@ -1354,35 +1541,7 @@ function isValidRuleURL(url) {
     }
 }
 
-function getFallbackRules() {
-    return {
-        "metadata": {
-            "name": "Fallback Rules",
-            "version": "1.0.0",
-            "license": "LGPL-3.0-or-later",
-            "author": "Linkumori",
-            "source": "fallback"
-        },
-        "providers": {
-            "globalRules": {
-                "urlPattern": ".*",
-                "rules": [
-                    "(?:%3F)?utm(?:_[a-z_]*)?",
-                    "(?:%3F)?ga_[a-z_]+",
-                    "(?:%3F)?fbclid",
-                    "(?:%3F)?gclid",
-                    "(?:%3F)?_ga",
-                    "(?:%3F)?_gl"
-                ],
-                "referralMarketing": [],
-                "exceptions": [],
-                "redirections": [],
-                "forceRedirection": false,
-                "patternType": "original"
-            }
-        }
-    };
-}
+   
 
 function normalizeRemoteRulescacheShape() {
     const v = storage.remoteRulescache;

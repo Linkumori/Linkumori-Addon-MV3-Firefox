@@ -336,6 +336,43 @@ Fourth modified:  14.02.2026 (February)  by Subham Mahesh
             flex-shrink: 0;
         }
 
+        .tools-icon-btn {
+            background: var(--bg-primary-theme);
+            padding: 4px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .tools-icon-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .tools-icon-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--button-primary);
+        }
+
+        .tools-icon-btn img {
+            width: 14px;
+            height: 14px;
+            display: block;
+            filter: brightness(0) invert(1);
+        }
+
+        :root[data-theme="light"] .tools-icon-btn img {
+            filter: brightness(0) saturate(100%);
+        }
+
         .theme-toggle-btn:hover {
             background: var(--bg-tertiary);
         }
@@ -727,10 +764,81 @@ Fourth modified:  14.02.2026 (February)  by Subham Mahesh
         body::-webkit-scrollbar-thumb:hover {
             background: var(--text-secondary);
         }
-     
+
+        /* Popup consent gate */
+        #popupConsentGate {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(2, 6, 23, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        #popupConsentGate.hidden {
+            display: none;
+        }
+
+        .popup-consent-card {
+            width: 100%;
+            max-width: 360px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+        }
+
+        .popup-consent-title {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        .popup-consent-description {
+            margin: 0 0 12px 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .popup-consent-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 0 0 12px 0;
+        }
+
+        #popupConsentAccept {
+            flex: 1;
+        }
+
+        #popupConsentAccept:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .popup-consent-actions {
+            margin: 0 0 10px 0;
+            font-size: 12px;
+        }
+
+        #popupConsentLegalLink {
+            color: var(--button-primary);
+            text-decoration: underline;
+        }
+
+        #popupConsentLegalLink:hover {
+            color: var(--button-hover);
+        }
+
     </style>
 </head>
-<body>
+<body class="consent-locked">
     <div class="header">
         <div class="header-content">
             <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
@@ -754,6 +862,9 @@ Fourth modified:  14.02.2026 (February)  by Subham Mahesh
             </div>
         </div>
         <div class="header-actions">
+            <button id="cleaning_tools_icon" class="tools-icon-btn" aria-label="Open cleaning tools" title="Open cleaning tools">
+                <img src="paintbrush.svg" alt="paintbrush icon" aria-hidden="true">
+            </button>
             <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle theme">
                 <img src="sun.svg" alt="sun icon" class="sun-icon">
                 <img src="moon.svg" alt="moon icon" class="moon-icon">
@@ -827,7 +938,7 @@ Fourth modified:  14.02.2026 (February)  by Subham Mahesh
 
         <div class="button-group">
              <button id="customrules"></button>
-            <button id="cleaning_tools"></button>
+            <button id="whitelist_page"></button>
             <button id="settings"></button>
         </div>
      
@@ -871,6 +982,22 @@ Fourth modified:  14.02.2026 (February)  by Subham Mahesh
             </div>
         </div>
 
+    <div id="popupConsentGate" role="dialog" aria-modal="true" aria-labelledby="popupConsentTitle">
+        <div class="popup-consent-card">
+            <h2 id="popupConsentTitle" class="popup-consent-title">Consent required</h2>
+            <p id="popupConsentDescription" class="popup-consent-description">Please read privacy policy and license. We do not collect your data. All data is stored on your device and is not transmitted to us.</p>
+            <label class="popup-consent-check" for="popupConsentCheckbox">
+                <input type="checkbox" id="popupConsentCheckbox">
+                <span id="popupConsentCheckboxLabel">I have read and accept the Privacy Policy and License.</span>
+            </label>
+            <div class="popup-consent-actions">
+                <a id="popupConsentLegalLink" href="/html/legal.html" target="_blank" rel="noopener noreferrer">Read Legal</a>
+            </div>
+            <button id="popupConsentAccept" type="button" disabled>Accept and continue</button>
+        </div>
+    </div>
+
+<script src="../core_js/popup_consent_config.js"></script>
 <script type="module" src="../core_js/popup.js"></script>
     <script src="../core_js/write_version.js"></script>
     <script src="../external_js/linkumori-i18n.js"></script>

@@ -23,7 +23,8 @@ This file is part of LINKUMORI.
      Configuration
   ----------------------------*/
   const LICENSE_PATH = '../License.md';
-  const PRIVACY_PATH = '../privacy.md';
+  const CONSENT_STORAGE_KEY = 'popupConsentAccepted';
+  const PRIVACY_VERSION_CONFIG_PATH = 'data/privacy-policy-map.json';
 
   /* ---------------------------
      State Management
@@ -31,6 +32,9 @@ This file is part of LINKUMORI.
   let state = {
     licenseContent: '',
     privacyContent: '',
+    currentPrivacyVersion: '',
+    privacyVersionMap: {},
+    defaultPrivacyVersion: '',
     isInitialized: false,
   };
 
@@ -407,6 +411,7 @@ This file is part of LINKUMORI.
       } else {
         setHTMLContent(target, processTextContent(text));
       }
+      target.scrollTop = 0;
       
       // Call success callback
       if (typeof onSuccess === 'function') {
@@ -439,17 +444,113 @@ This file is part of LINKUMORI.
     }
   }
 
+  async function loadPrivacyVersionMap() {
+    const response = await fetch(browser.runtime.getURL(PRIVACY_VERSION_CONFIG_PATH), {
+      cache: 'no-cache',
+      headers: { 'Accept': 'application/json,*/*' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const config = await response.json();
+    if (!config || !Array.isArray(config.versions) || config.versions.length === 0) {
+      throw new Error('Invalid privacy policy map config');
+    }
+
+    const mapped = {};
+    config.versions.forEach(entry => {
+      if (!entry || typeof entry !== 'object') return;
+      if (typeof entry.key !== 'string' || !entry.key.trim()) return;
+      if (typeof entry.path !== 'string' || !entry.path.trim()) return;
+      mapped[entry.key] = {
+        path: entry.path,
+        labelKey: typeof entry.labelKey === 'string' ? entry.labelKey : null,
+        label: typeof entry.label === 'string' ? entry.label : null
+      };
+    });
+
+    if (Object.keys(mapped).length === 0) {
+      throw new Error('No valid privacy version entries');
+    }
+
+    state.privacyVersionMap = mapped;
+    state.defaultPrivacyVersion = (typeof config.defaultVersion === 'string' && mapped[config.defaultVersion])
+      ? config.defaultVersion
+      : Object.keys(mapped)[0];
+    state.currentPrivacyVersion = state.defaultPrivacyVersion;
+  }
+
+  function initializePrivacyVersionSelector() {
+    const selector = $('privacyVersionSelector');
+    if (!selector) {
+      return;
+    }
+
+    selector.replaceChildren();
+    const versionEntries = Object.entries(state.privacyVersionMap);
+    if (versionEntries.length === 0) {
+      selector.disabled = true;
+      return;
+    }
+
+    selector.disabled = false;
+    versionEntries.forEach(([versionKey, value]) => {
+      const option = document.createElement('option');
+      option.value = versionKey;
+      option.textContent = value.labelKey ? i18n(value.labelKey, versionKey) : (value.label || versionKey);
+      selector.appendChild(option);
+    });
+
+    selector.value = state.currentPrivacyVersion;
+    selector.addEventListener('change', async () => {
+      const selectedVersion = selector.value;
+      if (!state.privacyVersionMap[selectedVersion]) {
+        return;
+      }
+
+      state.currentPrivacyVersion = selectedVersion;
+      await loadPrivacyContent(selectedVersion);
+    });
+  }
+
+  async function loadPrivacyContent(versionKey = state.currentPrivacyVersion) {
+    const versionConfig = state.privacyVersionMap[versionKey] || state.privacyVersionMap[state.defaultPrivacyVersion];
+    if (!versionConfig) {
+      return false;
+    }
+    state.currentPrivacyVersion = versionKey in state.privacyVersionMap ? versionKey : state.defaultPrivacyVersion;
+
+    disableActionButtons('privacy');
+    const loaded = await loadTextFile(versionConfig.path, 'privacyContent', (text) => {
+      state.privacyContent = text;
+      enableActionButtons('privacy');
+    });
+
+    if (!loaded && state.currentPrivacyVersion !== state.defaultPrivacyVersion) {
+      showNotification(i18n('privacyVersionLoadFailed', 'Selected policy file not found. Loaded default privacy policy instead.'), 'error');
+      state.currentPrivacyVersion = state.defaultPrivacyVersion;
+      const selector = $('privacyVersionSelector');
+      if (selector) selector.value = state.defaultPrivacyVersion;
+      return loadPrivacyContent(state.defaultPrivacyVersion);
+    }
+
+    return loaded;
+  }
+
+  async function loadLicenseContent() {
+    disableActionButtons('license');
+    return loadTextFile(LICENSE_PATH, 'licenseContent', (text) => {
+      state.licenseContent = text;
+      enableActionButtons('license');
+    });
+  }
+
   async function loadAllContent() {
     const results = await Promise.allSettled([
-      loadTextFile(LICENSE_PATH, 'licenseContent', (text) => {
-        state.licenseContent = text;
-        enableActionButtons('license');
-      }),
-      
-      loadTextFile(PRIVACY_PATH, 'privacyContent', (text) => {
-        state.privacyContent = text;
-        enableActionButtons('privacy');
-      })
+      loadLicenseContent(),
+      loadPrivacyContent(state.currentPrivacyVersion)
     ]);
     
     const loadedCount = results.filter(r => r.status === 'fulfilled').length;
@@ -469,6 +570,24 @@ This file is part of LINKUMORI.
         if (btn) {
           btn.disabled = false;
           btn.style.opacity = '1';
+        }
+      });
+    }
+  }
+
+  function disableActionButtons(type) {
+    const buttons = {
+      license: ['copyLicenseBtn', 'downloadLicenseBtn'],
+      privacy: ['copyPrivacyBtn', 'downloadPrivacyBtn']
+    };
+
+    const buttonIds = buttons[type];
+    if (buttonIds) {
+      buttonIds.forEach(id => {
+        const btn = $(id);
+        if (btn) {
+          btn.disabled = true;
+          btn.style.opacity = '0.6';
         }
       });
     }
@@ -876,10 +995,36 @@ ${htmlContent}
               updateThemeButtonAria(newTheme);
             }
           }
+
+          if (changes[CONSENT_STORAGE_KEY]) {
+            initializeSettingsButtonVisibility().catch(() => {
+              updateSettingsButtonVisibility(false);
+            });
+          }
         });
       }
     } catch (e) {
     }
+  }
+
+  async function initializeSettingsButtonVisibility() {
+    try {
+      if (typeof browser === 'undefined' || !browser.storage || !browser.storage.local) {
+        updateSettingsButtonVisibility(false);
+        return;
+      }
+
+      const result = await browser.storage.local.get([CONSENT_STORAGE_KEY]);
+      updateSettingsButtonVisibility(result[CONSENT_STORAGE_KEY] === true);
+    } catch (e) {
+      updateSettingsButtonVisibility(false);
+    }
+  }
+
+  function updateSettingsButtonVisibility(consentAccepted) {
+    const settingsButton = $('openSettingsBtn');
+    if (!settingsButton) return;
+    settingsButton.style.display = consentAccepted ? '' : 'none';
   }
 
   /* --------------------------- 
@@ -915,6 +1060,14 @@ ${htmlContent}
         element.setAttribute('aria-label', i18n(key, fallback));
       });
 
+      // Set all data-i18n-alt elements
+      const altElements = document.querySelectorAll('[data-i18n-alt]');
+      altElements.forEach(element => {
+        const key = element.getAttribute('data-i18n-alt');
+        const fallback = element.getAttribute('alt') || key;
+        element.setAttribute('alt', i18n(key, fallback));
+      });
+
     } catch (error) {
     }
   }
@@ -937,8 +1090,15 @@ ${htmlContent}
       }
       
       // Initialize in proper order
+      try {
+        await loadPrivacyVersionMap();
+      } catch (error) {
+        showNotification(i18n('privacyVersionMapLoadFailed', 'Failed to load privacy policy version map.'), 'error');
+      }
       setLocalizedContent();
+      initializePrivacyVersionSelector();
       initializeTheme();
+      await initializeSettingsButtonVisibility();
       bindEventListeners();
       
       // Load content files
@@ -954,8 +1114,15 @@ ${htmlContent}
       
       // Fallback initialization
       try {
+        try {
+          await loadPrivacyVersionMap();
+        } catch (error) {
+          showNotification(i18n('privacyVersionMapLoadFailed', 'Failed to load privacy policy version map.'), 'error');
+        }
         setLocalizedContent();
+        initializePrivacyVersionSelector();
         initializeTheme();
+        await initializeSettingsButtonVisibility();
         bindEventListeners();
         state.isInitialized = true;
       } catch (fallbackError) {

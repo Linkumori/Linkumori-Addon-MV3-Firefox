@@ -103,16 +103,36 @@ and have separate attribution in that file.
         }
 
         .import-export-buttons {
-          display: flex;
-          flex-direction: column;   /* stack vertically */
-          gap: 8px;                 /* space between buttons */
-          align-items: flex-start;  /* keep them aligned left */
-          margin: 10px 0;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin: 10px 0 12px;
+          padding: 10px;
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          background: var(--bg-tertiary);
         }
 
         .import-export-buttons button {
-          width: 100%;   /* optional: make them all same width */
+          width: 100%;
+          justify-content: center;
+          align-items: center;
+          gap: 6px;
+          min-height: 30px;
+          padding: 6px 8px;
+          font-size: 11px;
         }
+
+        #provider-list-btn svg {
+            width: 12px;
+            height: 12px;
+            display: block;
+            fill: currentColor;
+            flex-shrink: 0;
+            opacity: 1;
+            visibility: visible;
+        }
+
 
         /* Pattern Type Selector Styles */
         .pattern-type-selector {
@@ -645,6 +665,38 @@ and have separate attribution in that file.
             min-height: calc(100vh - 100px);
         }
 
+        .view-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .view-nav-btn {
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: "Old-Country-Nobility", serif;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .view-nav-btn.active {
+            background: var(--button-primary);
+            color: #fff;
+            border-color: var(--button-primary);
+        }
+
+        .view-panel {
+            display: none;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
         /* Sidebar */
         .sidebar {
             background: var(--bg-secondary);
@@ -670,6 +722,153 @@ and have separate attribution in that file.
             margin: 0;
             max-height: 400px;
             overflow-y: auto;
+        }
+
+        .whitelist-section {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+        }
+
+        .whitelist-page {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .whitelist-section-title {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .whitelist-section-description {
+            margin: 0 0 8px 0;
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .whitelist-input-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .whitelist-action-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            justify-content: flex-end;
+        }
+
+        .whitelist-input,
+        .whitelist-search {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            padding: 8px 10px;
+            font-size: 12px;
+            font-family: "Old-Country-Nobility", serif;
+        }
+
+        .whitelist-input:focus,
+        .whitelist-search:focus {
+            outline: none;
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .whitelist-search {
+            margin-bottom: 8px;
+        }
+
+        .whitelist-examples {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .whitelist-examples code {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-family: "Old-Country-Nobility", serif;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .whitelist-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 170px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+        }
+
+        .whitelist-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 7px 9px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .whitelist-item:last-child {
+            border-bottom: none;
+        }
+
+        .whitelist-domain {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .whitelist-empty {
+            padding: 12px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .whitelist-status {
+            margin-top: 8px;
+            min-height: 14px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .whitelist-count {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .whitelist-status.success {
+            color: var(--button-success);
+        }
+
+        .whitelist-status.error {
+            color: var(--button-danger);
         }
 
         .provider-item {
@@ -1200,6 +1399,22 @@ and have separate attribution in that file.
             border-radius: 6px;
             border: 1px solid var(--border-color);
             font-family: "Old-Country-Nobility", serif;
+        }
+
+        .provider-list-page {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .provider-list-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
         .provider-list-search {
@@ -1857,6 +2072,20 @@ and have separate attribution in that file.
                 <h1 id="page_title" data-i18n="customRulesEditor_pageTitle"></h1>
                 <span class="version-badge" id="version"></span>
             </div>
+        </div>
+        <div class="header-actions">
+            <button class="faq-btn" id="faq-btn">
+                <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor">
+                    <path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+                </svg>
+                <span data-i18n="faq_title"></span>
+            </button>
+            <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+                <img src="sun.svg" alt="sun icon" class="sun-icon">
+                <img src="moon.svg" alt="moon icon" class="moon-icon">
+            </button>
+        </div>
+    </div>
 
     <!-- FAQ Modal -->
     <div class="modal" id="faq-modal">
@@ -2371,45 +2600,13 @@ admin.example.com
         </div>
     </div>
 
-    <!-- Provider List Modal -->
-  <!-- Provider List Modal -->
-<div class="modal" id="provider-list-modal">
-    <div class="modal-content modal-large">
-        <div class="modal-header">
-            <h3 class="modal-title" data-i18n="providerList_title"></h3>
-            <button class="modal-close" id="provider-list-modal-close">&times;</button>
-        </div>
-        
-        <input type="text" class="provider-list-search" id="provider-list-search" data-i18n-placeholder="providerList_searchPlaceholder" />
-        
-        <div class="provider-list-modal-content" id="provider-list-modal-content">
-            <!-- Provider list will be populated here -->
-        </div>
-
-        <div class="modal-footer">
-            <button class="btn btn-primary" id="provider-list-close-btn" data-i18n="button_close"></button>
-        </div>
-    </div>
-</div>
-
-        </div>
-        <div class="header-actions">
-            <button class="faq-btn" id="faq-btn">
-                <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor">
-                    <path d="M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
-                </svg>
-                <span data-i18n="faq_title"></span>
-            </button>
-            <button class="theme-toggle-btn" id="theme-toggle" 
-            aria-label="Toggle theme">
-                <!-- Icons from Feather Icons - https://feathericons.com/ (MIT License) -->
-                <img src="sun.svg" alt="sun icon" class="sun-icon">
-                <img src="moon.svg" alt="moon icon" class="moon-icon">
-            </button>
-        </div>
-    </div>
-
     <div class="container">
+        <div class="view-nav">
+            <button type="button" id="nav-custom-rules" class="view-nav-btn active" data-i18n="customRulesEditor_nav_rules"></button>
+            <button type="button" id="nav-whitelist" class="view-nav-btn" data-i18n="customRulesEditor_nav_whitelist"></button>
+        </div>
+
+        <div id="custom-rules-view" class="view-panel active">
         <div class="main-layout">
             <!-- Sidebar with provider list -->
             <div class="sidebar">
@@ -2445,30 +2642,21 @@ admin.example.com
                 
 <div class="import-export-buttons">
     <button class="btn btn-primary btn-sm" id="import-rules-btn" data-i18n="customRulesEditor_importTooltip">
-                       
     </button>
     <button class="btn btn-success btn-sm" id="export-rules-btn" data-i18n="customRulesEditor_exportTooltip">
-                        
+    </button>
+    <button class="btn btn-info btn-sm" id="provider-list-btn">
+        <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor">
+            <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+        </svg>
+        <span data-i18n="providerList_button"></span>
     </button>
     <button class="btn btn-warning btn-sm" id="import-from-rules-btn">
         <span data-i18n="providerImport_button"></span>
     </button>
-    
-    <!-- NEW: Provider List Button -->
-  <!-- NEW: Provider List Button -->
-<button class="btn btn-info btn-sm" id="provider-list-btn">
-    <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor">
-        <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
-    </svg>
-    <span data-i18n="providerList_button"></span>
-</button>
 
                 </div>
 
-                <ul class="provider-list" id="provider-list">
-                    <!-- Providers will be populated here -->
-                </ul>
-                
                 <button class="btn btn-primary add-provider-btn" id="add-provider-btn">
                     <svg width="14" height="14" viewBox="0 -960 960 960" fill="currentColor">
                         <path d="M440-120v-320H120v-80h320v-320h80v320h320v80H520v320h-80Z"/>
@@ -2515,6 +2703,40 @@ admin.example.com
                             <span data-i18n="customRulesEditor_createFirst"></span>
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div id="whitelist-view" class="view-panel">
+            <div class="whitelist-page">
+                <div class="whitelist-section" style="margin-top: 0;">
+                    <h4 class="whitelist-section-title" data-i18n="whitelist_section_title"></h4>
+                    <p class="whitelist-section-description" data-i18n="whitelist_section_description"></p>
+                    <div class="whitelist-input-row">
+                        <input id="customrules-whitelist-input" class="whitelist-input" type="text" data-i18n-placeholder="whitelist_input_placeholder">
+                        <button class="btn btn-primary btn-sm" id="customrules-whitelist-add-btn" data-i18n="whitelist_add_button"></button>
+                    </div>
+                    <div class="whitelist-action-row">
+                        <button class="btn btn-primary btn-sm" id="customrules-whitelist-import-btn" data-i18n="whitelist_import_button"></button>
+                        <button class="btn btn-primary btn-sm" id="customrules-whitelist-export-btn" data-i18n="whitelist_export_button"></button>
+                    </div>
+                    <div id="whitelist_examples_text" class="whitelist-examples"></div>
+                    <input id="customrules-whitelist-search" class="whitelist-search" type="text" data-i18n-placeholder="whitelist_search_placeholder">
+                    <ul id="customrules-whitelist-list" class="whitelist-list"></ul>
+                    <div id="customrules-whitelist-count" class="whitelist-count"></div>
+                    <div id="customrules-whitelist-status" class="whitelist-status"></div>
+                </div>
+            </div>
+        </div>
+        <div id="provider-list-view" class="view-panel">
+            <div class="provider-list-page">
+                <div class="provider-list-page-header">
+                    <h3 class="modal-title" data-i18n="providerList_title"></h3>
+                    <button class="btn btn-secondary btn-sm" id="provider-list-close-btn" data-i18n="button_close"></button>
+                </div>
+                <input type="text" class="provider-list-search" id="provider-list-search" data-i18n-placeholder="providerList_searchPlaceholder" />
+                <div class="provider-list-modal-content" id="provider-list-modal-content">
+                    <!-- Provider list will be populated here -->
                 </div>
             </div>
         </div>
@@ -2584,10 +2806,11 @@ admin.example.com
 
     <!-- Import file input -->
     <input type="file" id="import-file-input" accept=".json" style="display: none;">
+    <input type="file" id="customrules-whitelist-import-input" accept=".json,application/json" style="display: none;">
 
     <!-- Scripts -->
-    <script src="../core_js/custom_rules_editor.js"></script>
-     <script src="../external_js/linkumori-i18n.js"></script>
+    <script src="../external_js/linkumori-i18n.js"></script>
+    <script type="module" src="../core_js/custom_rules_editor.js"></script>
     <script src="../core_js/write_version.js"></script>
 </body>
 </html>
