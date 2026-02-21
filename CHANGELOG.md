@@ -9,6 +9,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add features from the milestone [%1](https://gitlab.com/KevinRoebert/ClearUrls/-/milestones/1)
 - Dedicated documentation page like [docs.drasyl.org](https://docs.drasyl.org)
 
+## [v28.0] - 2026-02-21
+## [v27.0] - 2026-02-21
+
+### Linkumori Fork (MV3 Consolidation)
+
+### Added
+- Migrated to Manifest V3 with updated extension architecture, permissions, and action model (`manifest.json`).
+- Added a full Custom Rules system with UI/editor support:
+  - `customrules.html`
+  - `custom_rules_editor.js`
+- Added Legal + Consent flow:
+  - `legal.html`
+  - `popup_consent_config.js`
+  - Popup consent gate in `popup.html` + `popup.js`
+- Added remote rules security model:
+  - `ruleURL` / `hashURL` configuration
+  - hash verification
+  - security confirmation modal
+  - support for multiple remote rule sets
+- Added Linkumori i18n runtime (`linkumori-i18n.js`) with localized numbers/dates across popup/settings/log pages.
+- Added CLI tooling and package metadata:
+  - `linkumori-cli-tool.js`
+  - `package.json`
+- Added new bundled data assets:
+  - `linkumori-clearurls-min.json`
+  - `custom-rules.json`
+  - `downloaded-official-rules.json`
+  - `privacy-policy-map.json`
+
+### Changed
+- Reworked the storage/rule pipeline in `storage.js`:
+  - fallback chain for rules
+  - merge statistics and metadata
+  - exclusion handling and stronger rule-source tracking
+- Rule management now supports:
+  - merging multiple remote rule sets
+  - combining built-in + remote + custom rules
+  - overriding remote/built-in rules via custom rules
+  - disabling rules/providers entirely
+- Significant UI/UX improvements across popup, settings, log, legal, and custom-rules pages.
+
+### New Settings Toggles
+- `remoteRulesEnabled`
+- `builtInRulesEnabled`
+- `overloadModeEnabled`
+
+### Notes
+- `v27.0` is the first Linkumori release line (there is no Linkumori `v1` release line).
+- Many additional refinements, fixes, and both major and minor UI/UX changes are included throughout the Linkumori fork beyond the items listed above.
+
 ## [1.XX.0] - 2022-XX-XX
 
 ### Compatibility note
