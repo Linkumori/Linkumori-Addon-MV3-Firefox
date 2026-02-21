@@ -219,6 +219,10 @@ class Multimap {
 
 
 function matchDomainPattern(url, patterns) {
+    if (typeof patterns === 'string') {
+        patterns = [patterns];
+    }
+    if (!Array.isArray(patterns)) return false;
     if (!patterns || patterns.length === 0) return false;
 
     try {
@@ -260,11 +264,52 @@ function matchDomainPattern(url, patterns) {
                 return '^' + regexPattern + '$';
             }
 
+            function matchRootDomainWildcardTld(hostnameValue, domainPattern) {
+                // Strict: google.* => google.com / google.co.uk / www.google.com
+                // but not books.google.com or other non-www subdomains.
+                const base = domainPattern.slice(0, -2); // remove trailing ".*"
+                if (!base) return false;
+
+                const hostLabels = hostnameValue.toLowerCase().split('.');
+                const baseLabels = base.toLowerCase().split('.');
+                const tldCountDirect = hostLabels.length - baseLabels.length;
+                const tldCountWithWww = hostLabels.length - (baseLabels.length + 1);
+
+                // Direct root host: google.<tld...>
+                let directMatch = tldCountDirect >= 1;
+                if (directMatch) {
+                    for (let i = 0; i < baseLabels.length; i++) {
+                        if (hostLabels[i] !== baseLabels[i]) {
+                            directMatch = false;
+                            break;
+                        }
+                    }
+                    if (directMatch) return true;
+                }
+
+                // Allow exactly "www." prefix: www.google.<tld...>
+                let wwwMatch = tldCountWithWww >= 1 && hostLabels[0] === 'www';
+                if (wwwMatch) {
+                    for (let i = 0; i < baseLabels.length; i++) {
+                        if (hostLabels[i + 1] !== baseLabels[i]) {
+                            wwwMatch = false;
+                            break;
+                        }
+                    }
+                }
+
+                return wwwMatch;
+            }
+
             // Handle AdBlock-style patterns: ||example.com^
             if (p.startsWith('||') && p.endsWith('^')) {
-                const domain = p.slice(2, -1).toLowerCase();
+                const domain = p.slice(2, -1).toLowerCase().trim();
 
                 if (domain.includes('*')) {
+                    const rootTldOnly = domain.endsWith('.*') && !domain.startsWith('*.');
+                    if (rootTldOnly) {
+                        return matchRootDomainWildcardTld(hostname, domain);
+                    }
                     return new RegExp(wildcardDomainToRegex(domain), 'i').test(hostname);
                 }
 
@@ -274,10 +319,14 @@ function matchDomainPattern(url, patterns) {
             // ----- NEW: handle patterns that start with '||' but don't match above -----
             if (p.startsWith('||')) {
                 // treat as hostname (possibly with wildcard), strip leading '||'
-                const domainPattern = p.slice(2);
+                const domainPattern = p.slice(2).trim();
                 // if contains '/', treat as domain+path handled earlier; otherwise domain wildcard
                 if (!domainPattern.includes('/')) {
                     if (domainPattern.includes('*')) {
+                        const rootTldOnly = domainPattern.endsWith('.*') && !domainPattern.startsWith('*.');
+                        if (rootTldOnly) {
+                            return matchRootDomainWildcardTld(hostname, domainPattern);
+                        }
                         return new RegExp(wildcardDomainToRegex(domainPattern), 'i').test(hostname);
                     } else {
                         return hostname === domainPattern.toLowerCase() || hostname.endsWith('.' + domainPattern.toLowerCase());
