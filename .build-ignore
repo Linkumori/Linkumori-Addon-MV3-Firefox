@@ -40,6 +40,7 @@ downloaded-official-rules.min.hash
 .build-ignore
 linkumori-cli-tool.js
 Template.md
+COMMIT_HISTORY.md
 
 # Environment
 .env
