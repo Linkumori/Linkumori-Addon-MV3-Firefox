@@ -6,13 +6,11 @@
 ## Table of Contents
 
 1. [First-Party Components](#1-first-party-components)
-2. [Third-Party Components (Unmodified)](#2-third-party-components-unmodified)
-3. [Third-Party Components from ClearURLs (Unmodified)](#3-third-party-components-from-clearurls-unmodified)
-4. [Modified Third-Party Components](#4-modified-third-party-components)
-5. [Third-Party Components from ClearURLs (Modified by Third Party)](#5-third-party-components-from-clearurls-modified-by-third-party)
-6. [Modified ClearURLs Core Components](#6-modified-clearurls-core-components)
-7. [Font Components](#7-font-components)
-8. [License Information](#8-license-information)
+2. [Third-Party Components from ClearURLs and Other Sources (Unmodified)](#2-third-party-components-from-clearurls-and-other-sources-unmodified)
+3. [Modified Third-Party Components](#3-modified-third-party-components)
+4. [Third-Party Components from ClearURLs (Modified by Third Party)](#4-third-party-components-from-clearurls-modified-by-third-party)
+5. [Modified ClearURLs Core Components](#5-modified-clearurls-core-components)
+6. [Font Components](#6-font-components)
 
 ---
 
@@ -42,24 +40,9 @@
 
 ---
 
-## 2. Third-Party Components (Unmodified)
+## 2. Third-Party Components from ClearURLs and Other Sources (Unmodified)
 
-### 2.1 Punycode.js
-
-**File:** `external_js/punycode.js`
-
-**Copyright:** Mathias Bynens  
-**Website:** <https://mathiasbynens.be/>
-
-**License:** MIT License
-
-{{LICENSE:MIT}}
-
----
-
-## 3. Third-Party Components from ClearURLs or any other sources (Unmodified)
-
-### 3.1 PureCleaning.js
+### 2.1 PureCleaning.js
 
 **File:** `core_js/pureCleaning.js`  
 **File:** `data/downloaded-official-rules.json`
@@ -71,7 +54,7 @@
 
 {{LICENSE:LGPL-3.0}}
 
-#### 3.2 Paintbrush SVG (`html/paintbrush.svg`)
+### 2.2 Paintbrush SVG (`html/paintbrush.svg`)
 
 **Upstream Source:** <https://lucide.dev/icons/paintbrush>  
 **Created:** v0.62.0  
@@ -134,15 +117,15 @@ SOFTWARE.
 
 ---
 
-## 4. Modified Third-Party Components
+## 3. Modified Third-Party Components
 
 **Description:** Third-party components modified by first party, excluding ClearURLs project.
 
-### 4.1 Decode-URI-Component.js
+### 3.1 Decode-URI-Component.js
 
 **File:** `external_js/decode-uri-component.js`
 
-#### 4.1.1 Original Copyright
+#### 3.1.1 Original Copyright
 
 **Copyright:** © 2017 Sam Verschueren  
 **Contact:** <sam.verschueren@gmail.com>  
@@ -152,7 +135,7 @@ SOFTWARE.
 
 {{LICENSE:MIT}}
 
-#### 4.1.2 First-Party Modifications
+#### 3.1.2 First-Party Modifications
 **Author:** © 2025 Subham Mahesh
 
 **Modifications Made:**
@@ -167,13 +150,13 @@ SOFTWARE.
 
 ---
 
-### 4.2 Linkumori-Pickr
+### 3.2 Linkumori-Pickr
 
 **Files:**
 - `external_js/linkumori-pickr.js`
 - `css/linkumori-pickr.min.css`
 
-#### 4.2.1 Original Copyright
+#### 3.2.1 Original Copyright
 
 **Copyright:** © 2018-2021 Simon Reinisch
 
@@ -181,7 +164,7 @@ SOFTWARE.
 
 {{LICENSE:MIT}}
 
-#### 4.2.2 First-Party Modifications
+#### 3.2.2 First-Party Modifications
 
 **Copyright:** © 2025 Subham Mahesh
 
@@ -191,11 +174,11 @@ SOFTWARE.
 
 ---
 
-### 4.3 SHA256.js
+### 3.3 SHA256.js
 
 **File:** `external_js/sha256.js`
 
-#### 4.3.1 Original Copyright
+#### 3.3.1 Original Copyright
 
 **Copyright:** © 2014-2025 Chen, Yi-Cyuan
 
@@ -203,7 +186,7 @@ SOFTWARE.
 
 {{LICENSE:MIT}}
 
-#### 4.3.2 First-Party Modifications
+#### 3.3.2 First-Party Modifications
 
 **Copyright:** © 2025 Subham Mahesh
 
@@ -213,14 +196,37 @@ SOFTWARE.
 
 ---
 
-### 4.4 Custom Rules Editor & Settings
+### 3.4 Light-Punycode.js
+
+**File:** `external_js/light-punycode.js`
+
+#### 3.4.1 Original Copyright
+
+**Copyright:** Mathias Bynens  
+**Website:** <https://mathiasbynens.be/>
+
+**License:** MIT License
+
+{{LICENSE:MIT}}
+
+#### 3.4.2 First-Party Modifications
+
+**Author:** © 2025 Subham Mahesh
+
+**License for Modified Portions:** GNU Lesser General Public License (LGPL) v3.0 or later
+
+{{LICENSE:LGPL-3.0}}
+
+---
+
+### 3.5 Custom Rules Editor & Settings
 
 **Files:**
 - `core_js/custom_rules_editor.js`
 - `html/custom_rules_editor.html`
 - `html/settings.html`
 
-#### 4.4.1 Custom Rules Editor (`html/custom_rules_editor.html`)
+#### 3.5.1 Custom Rules Editor (`html/custom_rules_editor.html`)
 
 **Title:** LINKUMORI - Custom Rules Editor (i18n) with Provider Import Feature and Provider List Modal
 
@@ -274,7 +280,7 @@ The following enhancements have been implemented:
 - Added provider list modal for quick overview and editing
 - Fully internationalized (i18n) provider list interface
 
-#### 4.4.2 Settings Page Attribution (`html/settings.html`)
+#### 3.5.2 Settings Page Attribution (`html/settings.html`)
 
 **Based On:** Linkumori Settings Page / ClearURLs Settings Page
 
@@ -321,7 +327,7 @@ The following enhancements have been implemented:
 
 {{LICENSE:LGPL-3.0}}
 
-#### 4.4.3 core_js/custom_rules_editor.js
+#### 3.5.3 core_js/custom_rules_editor.js
 
 Copyright (c) 2025 Subham Mahesh
 
@@ -380,15 +386,15 @@ Google Material Icons License Information:
 
 ---
 
-## 5. Third-Party Components from ClearURLs (Modified by Third Party)
+## 4. Third-Party Components from ClearURLs (Modified by Third Party)
 
-### 5.1 Google & Yandex Link Fix
+### 4.1 Google & Yandex Link Fix
 
 **Files:**
 - `core_js/google_link_fix.js`
 - `core_js/yandex_link_fix.js`
 
-#### 5.1.1 Copyright & License
+#### 4.1.1 Copyright & License
 
 **Copyright:** © 2017-2025 Kevin Röbert
 
@@ -396,7 +402,7 @@ Google Material Icons License Information:
 
 {{LICENSE:LGPL-3.0}}
 
-#### 5.1.2 Based On
+#### 4.1.2 Based On
 
 **Project:** Remove Google Redirection  
 **Repository:** <https://github.com/kodango/Remove-Google-Redirection>  
@@ -407,11 +413,11 @@ Google Material Icons License Information:
 
 ---
 
-## 6. Modified ClearURLs Core Components
+## 5. Modified ClearURLs Core Components
 
 **Description:** Core ClearURLs components modified by first party.
 
-### 6.1 Component Files
+### 5.1 Component Files
 
 | Category | Files |
 |----------|-------|
@@ -420,7 +426,7 @@ Google Material Icons License Information:
 | **Localization** | `_locales/en/messages.json` |
 | **Other** | `linkumori-cli-tool.js`<br>`linkumori-clearurls-min.json` |
 
-### 6.2 Original Copyright
+### 5.2 Original Copyright
 
 **Copyright:** © 2017-2025 Kevin Röbert
 
@@ -428,7 +434,7 @@ Google Material Icons License Information:
 
 {{LICENSE:LGPL-3.0}}
 
-### 6.3 First-Party Modifications
+### 5.3 First-Party Modifications
 
 **Copyright:** © 2025 Subham Mahesh
 
@@ -438,9 +444,9 @@ Google Material Icons License Information:
 
 ---
 
-## 7. Font Components
+## 6. Font Components
 
-### 7.1 Old Country Nobility Font
+### 6.1 Old Country Nobility Font
 
 **Font Files:**
 - `Old-Country-Nobility/Old-Country-Nobility.ttf`
@@ -451,7 +457,7 @@ Google Material Icons License Information:
 **Modified By:** Subham Mahesh  
 **Modification Date:** September 5, 2025
 
-#### 7.1.1 Original Source Fonts
+#### 6.1.1 Original Source Fonts
 
 | Source Font | Copyright | License | Repository/Source |
 |-------------|-----------|---------|-------------------|
@@ -468,11 +474,11 @@ Google Material Icons License Information:
 **Website:** <http://www.monotypeimaging.com>  
 **Type Designer Showcase:** <http://www.monotypeimaging.com/ProductsServices/TypeDesignerShowcase>
 
-#### 7.1.2 Description
+#### 6.1.2 Description
 
 Old Country Nobility is a merged font combining Google Tinos fonts (digitized 2010-2012 by Google Corporation, Apache License 2.0) and MFB Oldstyle (released under CC0 1.0 Universal).
 
-#### 7.1.3 Modifications Performed
+#### 6.1.3 Modifications Performed
 
 Font modifications performed by Subham Mahesh on September 5, 2025 include:
 
@@ -487,7 +493,7 @@ Font modifications performed by Subham Mahesh on September 5, 2025 include:
 
 **Version:** 1.0
 
-#### 7.1.4 License for Modified Font
+#### 6.1.4 License for Modified Font
 
 **Modified Portions License:** GNU Lesser General Public License Version 3 (LGPL v3)
 
