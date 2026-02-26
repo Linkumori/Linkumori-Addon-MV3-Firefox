@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Crawl DeepWiki Documentation
-        uses: your-username/deepwiki-action@v1
+        uses: linkumori/deepwiki-action@v1
         with:
           repository: ${{ github.repository }}  # Optional: defaults to current repo
           max_concurrency: '3'                  # Optional: default 3
