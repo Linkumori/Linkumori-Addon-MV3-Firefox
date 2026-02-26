@@ -1,1 +1,251 @@
-The content has been copied to your clipboard. Please paste it here to complete the file creation.
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce Linkumori, explain what it does (URL cleaning/privacy), its relationship to ClearURLs, and key differentiating features",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Architecture",
+      "purpose": "Explain the overall Linkumori architecture, component layers, and how they interact",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Extension Core",
+      "purpose": "Document background scripts, message handlers, browser API integration, and core extension runtime",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "URL Cleaning Pipeline",
+      "purpose": "Explain how URLs are intercepted, processed through rules, and cleaned before page load",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Storage System",
+      "purpose": "Document data persistence, browser storage abstraction, and how settings/rules/logs are stored",
+      "parent": "Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Rule Management System",
+      "purpose": "Overview of the three-tier rule system (built-in, remote, custom) and how they work together",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Rule Types and Sources",
+      "purpose": "Detailed explanation of built-in rules, remote rules, and custom rules, including their precedence",
+      "parent": "Rule Management System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Rule Merging and Overload Mode",
+      "purpose": "Explain the overload mode feature that merges built-in and remote rules, and how custom rules override",
+      "parent": "Rule Management System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Custom Rules Editor",
+      "purpose": "Document the custom rules editor UI, provider import system, JSON editor, and rule creation workflow",
+      "parent": "Rule Management System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Whitelist System",
+      "purpose": "Explain the per-domain whitelist feature, how to add/remove domains, and import/export functionality",
+      "parent": "Rule Management System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Disabled Rules Management",
+      "purpose": "Document how users can disable specific rules or entire rule sets and restore them later",
+      "parent": "Rule Management System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "User Interface Components",
+      "purpose": "Overview of all user-facing interfaces and how they interact with the extension core",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Popup Interface",
+      "purpose": "Document the browser action popup, statistics display, quick toggles, and navigation",
+      "parent": "User Interface Components",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Settings Page",
+      "purpose": "Comprehensive guide to the settings page, including all configuration options and security modals",
+      "parent": "User Interface Components",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Log Viewer",
+      "purpose": "Document the log page, dashboard view, detailed log table, and statistics visualization",
+      "parent": "User Interface Components",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Additional UI Pages",
+      "purpose": "Cover the URL cleaning tool, site blocked alert, and legal information pages",
+      "parent": "User Interface Components",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Security and Privacy",
+      "purpose": "Overview of Linkumori's privacy-first architecture and security features",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Privacy Architecture",
+      "purpose": "Explain local-only processing, zero telemetry, data isolation, and privacy guarantees",
+      "parent": "Security and Privacy",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Remote Rules Security (Gatekeeper)",
+      "purpose": "Document the Gatekeeper system, security modals, confirmation phrases, and risk disclosures for remote rules",
+      "parent": "Security and Privacy",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Development Guide",
+      "purpose": "Overview of development tools, build process, and contribution workflow",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Build System",
+      "purpose": "Document linkumori-cli-tool.js, web-ext integration, and building unsigned/signed extensions",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CI/CD Pipeline",
+      "purpose": "Explain GitHub Actions workflows for building, signing, versioning, and releasing the extension",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Contributing Guidelines",
+      "purpose": "How to contribute bug reports, feature requests, translations, and code changes",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Internationalization (i18n)",
+      "purpose": "Document the i18n system, supported locales, translation workflow, and LinkumoriI18n engine",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Licensing and Attribution",
+      "purpose": "Document LGPL v3 license, third-party components, ClearURLs fork relationship, and attribution requirements",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
