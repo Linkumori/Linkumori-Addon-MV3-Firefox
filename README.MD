@@ -1,4 +1,4 @@
-[<img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" alt="for Firefox" height="60px">]()
+[<img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" alt="for Firefox" height="60px">](https://addons.mozilla.org/en-US/firefox/addon/linkumori/)
 # <sub><img src="https://raw.githubusercontent.com/Linkumori/Linkumori-Addon-MV3-Firefox/main/img/linkumori_icons.svg" width="64px" height="64px"></sub> Linkumori — Clean URLs for Firefox
 
 
@@ -106,7 +106,7 @@ You can also load your own rule sources or disable any rule you don't want.
 
 ## Install
 
-**[→ Get it on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/linkumori-clean-urls/)**
+**[→ Get it on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/linkumori/)**
 
 Or download a signed build from [Releases](https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox/releases/).
 

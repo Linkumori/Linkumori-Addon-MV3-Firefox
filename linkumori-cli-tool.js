@@ -722,7 +722,7 @@ documentation when you run the build process.
         "Notice-Of-Modification":"It can be found in data/NOTICE.md file",
         "urls": {
           "repository": "https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox",
-          "homepage": "https://addons.mozilla.org/en-US/firefox/addon/linkumori-clean-urls/",
+          "homepage": "https://addons.mozilla.org/en-US/firefox/addon/linkumori/",
           "orginal-clearurls-rulesSource-URL": "https://github.com/ClearURLs/Rules",
           "cleaurls-repo-addon": "https://github.com/ClearURLs/Addon",
           "License-URL": "https://www.gnu.org/licenses/lgpl-3.0.en.html",
@@ -1606,7 +1606,7 @@ This ensures each build has a unique version identifier based on when it was cre
 
 This enhanced version includes metadata for the Linkumori URL cleaning project:
 - **Repository**: https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox
-- **Homepage**: https://addons.mozilla.org/en-US/firefox/addon/linkumori-clean-urls/
+- **Homepage**: https://addons.mozilla.org/en-US/firefox/addon/linkumori/
 - **Issues**: https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox/issues
 - **This script written by subham mahesh in 2026 some significated part taken from cleaurls Kevin Röbert which is licensed under LGPL 3.0**
 - **custom-rules.json** file created by subham mahesh in 2026 and licensed under LGPL 3.0

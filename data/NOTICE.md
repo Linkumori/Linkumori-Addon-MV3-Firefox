@@ -30,7 +30,7 @@ This ensures each build has a unique version identifier based on when it was cre
 
 This enhanced version includes metadata for the Linkumori URL cleaning project:
 - **Repository**: https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox
-- **Homepage**: https://addons.mozilla.org/en-US/firefox/addon/linkumori-clean-urls/
+- **Homepage**: https://addons.mozilla.org/en-US/firefox/addon/linkumori/
 - **Issues**: https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox/issues
 - **This script written by subham mahesh in 2026 some significated part taken from cleaurls Kevin Röbert which is licensed under LGPL 3.0**
 - **custom-rules.json** file created by subham mahesh in 2026 and licensed under LGPL 3.0
