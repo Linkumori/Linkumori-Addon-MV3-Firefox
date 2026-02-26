@@ -1,9 +1,11 @@
 [<img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" alt="for Firefox" height="60px">](https://addons.mozilla.org/en-US/firefox/addon/linkumori/)
 # <sub><img src="https://raw.githubusercontent.com/Linkumori/Linkumori-Addon-MV3-Firefox/main/img/linkumori_icons.svg" width="64px" height="64px"></sub> Linkumori — Clean URLs for Firefox
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Linkumori/Linkumori-Addon-MV3-Firefox)
+
 
 > ClearURLs hasn't shipped a user whitelist in **four years** of requests. We did.
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Linkumori/Linkumori-Addon-MV3-Firefox)
 
 Linkumori automatically strips tracking parameters from URLs — silently, instantly, without breaking your browsing. It's built from the ground up for Firefox's Manifest V3 and ships the features that ClearURLs users have been asking for since 2020.
 
