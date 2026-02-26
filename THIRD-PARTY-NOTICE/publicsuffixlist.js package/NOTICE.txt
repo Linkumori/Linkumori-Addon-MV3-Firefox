@@ -1,0 +1,43 @@
+/*******************************************************************************
+
+    publicsuffixlist.js - an efficient javascript implementation to deal with
+    Mozilla Foundation's Public Suffix List <http://publicsuffix.org/list/>
+
+    Copyright (C) 2013-present Raymond Hill
+
+    License: pick the one which suits you:
+      GPL v3 see <https://www.gnu.org/licenses/gpl.html>
+      APL v2 see <http://www.apache.org/licenses/LICENSE-2.0>
+
+*/
+
+/*
+Linkumori Modification Notice on 25 febuary 2026 (25/02/2026)
+
+=============================
+
+This file contains modifications for the Linkumori project.
+
+Copyright (c) 2026 Subham Mahesh
+
+The Linkumori-modified portions of this file are licensed under the
+GNU Lesser General Public License, version 3 or later (LGPL-3.0-or-later).
+
+Summary of Linkumori changes:
+1. Removed optional WebAssembly acceleration code and related state/methods
+   (`enableWASM`, `disableWASM`, `_wasmMemory`, `_wasmPromise`,
+   `_getPublicSuffixPosWASM`), keeping a JS-only implementation.
+2. Simplified buffer allocation to use standard JavaScript typed arrays only,
+   with no WASM memory growth path.
+3. Retained the core PSL parsing/matching behavior while adapting this file for
+   Linkumori runtime integration and maintenance.
+
+For Linkumori distribution and compliance tracking, Linkumori chooses to comply
+with the **Apache License 2.0** option offered by the upstream dual license for
+`external_js/publicsuffixlist.js`.
+
+Original upstream notices and licensing statements for non-modified portions
+remain above and continue to apply to their respective code sections.
+*/
+
+/*! Home: https://github.com/gorhill/publicsuffixlist.js -- GPLv3 APLv2 */

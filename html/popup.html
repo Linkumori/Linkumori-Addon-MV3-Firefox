@@ -1,0 +1,988 @@
+<!-- clearURLs
+ * Copyright (c) 2017-2025 Kevin Röbert
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Modified Version:
+ * @author      Subham Mahesh (c) 2025
+ * @license     LGPL-3.0-or-later
+ * @repository  https://github.com/linkumori/linkumori
+ * 
+ 
+ * 
+ * Modifications include:
+ * - new css and aditional button and nav bar
+ * - Whitelist functionality
+  * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!--
+   * first modified:  Jun 14, 2025  by Subham Mahesh
+ *secound modified:  august 21, 2025  by Subham Mahesh
+ third modified:  september 5, 2025  by Subham Mahesh
+Fourth modified:  14.02.2026 (February)  by Subham Mahesh
+  Due to constraints, subsequent modifications are not visible inline.
+  To view the full modification history, run:
+
+    node linkumori-cli-tool.js
+
+  Then select "Generate Commit History". This will create a Markdown file
+  where you can browse who modified which files and on what date.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Linkumori</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <style>
+        @font-face {
+            font-family: 'Old-Country-Nobility';
+            src: url('../Old-Country-Nobility/Old-Country-Nobility.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            /* Primary Background Colors - Default Dark Theme */
+            --bg-primary: #0f172a;      
+            --bg-secondary: #1e293b;    
+            --bg-tertiary: #334155;     
+            --bg-tertiary-license: #334155;
+            --bg-primary-theme: #1e293b; 
+            
+            /* Interactive Elements */
+            --button-primary: #2563eb;  
+            --button-hover: #3b82f6;    
+            --button-danger: #dc2626;   
+            --button-danger-hover: #ef4444;
+            --button-success: #2563eb;  
+            --button-success-hover: #2563eb;
+            --logo-bg: #ffffff;          
+            --logo-accent: #2563eb; 
+            
+            /* Text Colors */
+            --text-primary: #f8fafc;     
+            --text-primary-domain: #f8fafc;    
+            --text-secondary: #cbd5e1;  
+            --text-muted: #94a3b8;      
+
+            /* Border and Shadow Colors */
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.25);
+
+            /* Input and Interactive Element Colors */
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: #3b82f6;
+            --button-primary-toogle: rgba(255, 255, 255, 0.2);
+
+            /* Navigation Colors */
+            --nav-bg: #1e293b;
+            --nav-item-hover: #334155;
+            --nav-item-active: #2563eb;
+            --nav-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Light theme */
+        :root[data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f1f5f9;
+            --bg-tertiary: #2563eb;
+            --bg-primary-theme: #f1f5f9;
+            --bg-tertiary-license: #818892;
+            --text-primary: #ffffff;
+            --text-secondary: #334155;
+            --text-primary-domain: #334155;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --input-bg: rgba(0, 0, 0, 0.05);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --button-primary: #2563eb;
+            --button-hover: #1e40af;      
+            --button-danger: #dc2626;
+            --button-danger-hover: #ef4444;
+            --button-success: #2563eb;
+            --button-success-hover: #2563eb;
+            --input-focus: #1e3a8a;
+            --logo-bg: #2563eb;          
+            --logo-accent: #f1f5f9;
+            --button-primary-toogle: #71a7ff;
+
+            /* Navigation Colors - Light Theme */
+            --nav-bg: #f1f5f9;
+            --nav-item-hover: #2563eb;
+            --nav-item-active: #2563eb;
+            --nav-border: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Midnight Blue theme */
+        :root[data-theme="midnight"] {
+            --bg-primary: #0c1524;
+            --bg-secondary: #1a2332;
+            --bg-tertiary: #2d3748;
+            --bg-tertiary-license: #2d3748;
+            --bg-primary-theme: #1a2332;
+            
+            --button-primary: #4299e1;
+            --button-hover: #63b3ed;
+            --button-danger: #dc2626;
+            --button-danger-hover: #ef4444;
+            --button-success: #4299e1;
+            --button-success-hover: #63b3ed;
+            --logo-bg: #ffffff;
+            --logo-accent: #4299e1;
+            
+            --text-primary: #e2e8f0;
+            --text-primary-domain: #e2e8f0;
+            --text-secondary: #cbd5e1;
+            --text-muted: #a0aec0;
+            
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.25);
+            
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: #63b3ed;
+            --button-primary-toogle: rgba(255, 255, 255, 0.2);
+            
+            --nav-bg: #1a2332;
+            --nav-item-hover: #2d3748;
+            --nav-item-active: #4299e1;
+            --nav-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Forest Green theme */
+        :root[data-theme="forest"] {
+            --bg-primary: #0f1814;
+            --bg-secondary: #1a2520;
+            --bg-tertiary: #2d4a3a;
+            --bg-tertiary-license: #2d4a3a;
+            --bg-primary-theme: #1a2520;
+            
+            --button-primary: #48bb78;
+            --button-hover: #68d391;
+            --button-danger: #dc2626;
+            --button-danger-hover: #ef4444;
+            --button-success: #48bb78;
+            --button-success-hover: #68d391;
+            --logo-bg: #ffffff;
+            --logo-accent: #48bb78;
+            
+            --text-primary: #e6fffa;
+            --text-primary-domain: #e6fffa;
+            --text-secondary: #b2dfdb;
+            --text-muted: #81c784;
+            
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.25);
+            
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: #68d391;
+            --button-primary-toogle: rgba(255, 255, 255, 0.2);
+            
+            --nav-bg: #1a2520;
+            --nav-item-hover: #2d4a3a;
+            --nav-item-active: #48bb78;
+            --nav-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sunset Orange theme */
+ :root[data-theme="sunset"] {
+    --bg-primary: #1a1320;
+    --bg-secondary: #241829;
+    --bg-tertiary: #3d2c47;
+    --bg-tertiary-license: #3d2c47;
+    --bg-primary-theme: #241829;
+    
+    --button-primary: #8b5cf6;
+    --button-hover: #a78bfa;
+    --button-danger: #dc2626;
+    --button-danger-hover: #ef4444;
+    --button-success: #8b5cf6;
+    --button-success-hover: #a78bfa;
+    --logo-bg: #ffffff;
+    --logo-accent: #8b5cf6;
+    
+    --text-primary: #f3f0ff;
+    --text-primary-domain: #f3f0ff;
+    --text-secondary: #e0d4fd;
+    --text-muted: #c4b5fd;
+    
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.25);
+    
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-border: rgba(255, 255, 255, 0.1);
+    --input-focus: #a78bfa;
+    --button-primary-toogle: rgba(255, 255, 255, 0.2);
+    
+    --nav-bg: #241829;
+    --nav-item-hover: #3d2c47;
+    --nav-item-active: #8b5cf6;
+    --nav-border: rgba(255, 255, 255, 0.1);
+}
+
+        .centered {
+            text-align: center;
+        }
+
+        body {
+            width: 300px;
+            margin: 0;
+            font-family: "Old-Country-Nobility", serif;
+            background: var(--bg-primary);
+            transition: background-color 0.2s;
+            /* FIXED: Changed from max-height: 500px; overflow: hidden; to allow proper scrolling */
+            min-height: 400px;
+            max-height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            position: relative;
+            /* FIXED: Prevent header from shrinking */
+            flex-shrink: 0;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .title-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            flex: 1;
+        }
+
+        .header h1 {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .version {
+            color: var(--text-muted);
+            font-size: 10px;
+            margin: 0;
+            line-height: 1;
+        }
+
+
+        /* Theme Toggle Styles */
+        .theme-toggle-btn {
+            background: var(--bg-primary-theme);
+            padding: 4px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            position: relative;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .tools-icon-btn {
+            background: var(--bg-primary-theme);
+            padding: 4px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .tools-icon-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .tools-icon-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--button-primary);
+        }
+
+        .tools-icon-btn img {
+            width: 14px;
+            height: 14px;
+            display: block;
+            filter: brightness(0) invert(1);
+        }
+
+        :root[data-theme="light"] .tools-icon-btn img {
+            filter: brightness(0) saturate(100%);
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .theme-toggle-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--button-primary);
+        }
+
+        .theme-toggle-btn img {
+            width: 12px;
+            height: 12px;
+            transition: opacity 0.2s;
+        }
+
+        .sun-icon {
+            opacity: 0;
+            position: absolute;
+        }
+
+        .moon-icon {
+            opacity: 1;
+        }
+
+        :root[data-theme="light"] .sun-icon {
+            opacity: 1;
+        }
+
+        :root[data-theme="light"] .moon-icon {
+            opacity: 0;
+        }
+
+        /* Navigation Bar Styles */
+        .nav-bar {
+            background: var(--nav-bg);
+            border-bottom: 1px solid var(--nav-border);
+            display: flex;
+            padding: 0;
+            margin: 0;
+            /* FIXED: Prevent nav from shrinking */
+            flex-shrink: 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: "Old-Country-Nobility", serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: var(--nav-item-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--nav-item-active);
+            background: var(--nav-item-hover);
+        }
+
+        .nav-item:focus {
+            outline: none;
+            box-shadow: inset 0 0 0 2px var(--button-primary);
+        }
+
+        .content {
+            display: none;
+        }
+
+        #mainContent {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px;
+            /* FIXED: Allow main content to grow and shrink as needed */
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        #licenseContent {
+            display: none;
+            padding: 8px;
+            /* FIXED: Allow license content to scroll when needed */
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        .license-section {
+            margin-bottom: 12px;
+        }
+
+        .license-section h3 {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin: 0 0 6px 0;
+            font-weight: bold;
+        }
+
+        .license-section p {
+            color: var(--text-muted);
+            font-size: 11px;
+            line-height: 1.3;
+            margin: 0 0 6px 0;
+        }
+
+        .license-section .version-info {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-style: italic;
+        }
+
+        .license-links {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+       
+
+        .license-link {
+            color: var(--button-primary);
+            text-decoration: none;
+            font-size: 11px;
+            padding: 2px 0;
+            transition: color 0.2s;
+        }
+
+        .license-link:hover {
+            color: var(--button-hover);
+            text-decoration: underline;
+        }
+
+        .license-link.header-style {
+            color: var(--text-secondary);
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .license-link.header-style:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            box-shadow: 0 1px 2px var(--shadow-color);
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 20px;
+            background: var(--button-primary-toogle);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .toggle-switch.active {
+            background: var(--button-primary);
+        }
+
+        .toggle-switch:before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: 0.2s;
+            box-shadow: 0 1px 3px var(--shadow-color);
+        }
+
+        .toggle-switch.active:before {
+            transform: translateX(18px);
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .empty-message {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 12px;
+            font-size: 12px;
+        }
+
+        button {
+            padding: 6px 10px;
+            background: var(--button-primary);
+            color: var(--text-primary);
+            border: none;
+            font-family: "Old-Country-Nobility";
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: var(--button-hover);
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.3);
+        }
+
+        /* Dynamic Whitelist Button Styles */
+        #singledynamicwhitelistunwhitelistbutton {
+            width: 100%;
+            background: var(--button-success);
+            margin: 4px 0;
+            /* FIXED: Make whitelist button smaller in height */
+            font-size: 10px;
+            padding: 6px 8px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        #singledynamicwhitelistunwhitelistbutton:hover {
+            background: var(--button-success-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        #singledynamicwhitelistunwhitelistbutton.whitelisted {
+            background: var(--button-danger);
+        }
+
+        #singledynamicwhitelistunwhitelistbutton.whitelisted:hover {
+            background: var(--button-danger-hover);
+        }
+
+        #singledynamicwhitelistunwhitelistbutton.not-whitelisted {
+            background: var(--button-success);
+        }
+
+        #singledynamicwhitelistunwhitelistbutton.not-whitelisted:hover {
+            background: var(--button-success-hover);
+        }
+
+        #singledynamicwhitelistunwhitelistbutton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #singledynamicwhitelistunwhitelistbutton:disabled:hover {
+            background: var(--button-success); /* Keep original color when disabled */
+            transform: none;
+            box-shadow: none;
+        }
+
+        #singledynamicwhitelistunwhitelistbutton.whitelisted:disabled:hover {
+            background: var(--button-danger); /* Keep original color when disabled */
+        }
+
+        /* Add smooth transitions for theme changes */
+        body * {
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .statistics-container {
+            background: var(--bg-secondary);
+            padding: 8px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px var(--shadow-color);
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-primary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 6px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--button-danger);
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 3px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .stat-value {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            /* FIXED: Ensure button group is always visible and doesn't shrink */
+            flex-shrink: 0;
+            padding-bottom: 8px;
+        }
+
+        .button-group button {
+            flex: 1;
+            /* FIXED: Make buttons smaller in height */
+            padding: 4px 8px;
+            font-size: 10px;
+            min-height: 24px;
+        }
+
+        /* Hide elements by default */
+        .content {
+            display: none;
+        }
+
+        /* Show elements when their toggle is active */
+        #statistic_section {
+            display: block;
+        }
+
+        #log_section {
+            display: block;
+        }
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
+        }
+
+        /* Firefox-safe custom scrollbar styling */
+        #licenseContent,
+        #mainContent,
+        body {
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-muted) var(--bg-primary);
+        }
+
+        /* Popup consent gate */
+        #popupConsentGate {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(2, 6, 23, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        #popupConsentGate.hidden {
+            display: none;
+        }
+
+        .popup-consent-card {
+            width: 100%;
+            max-width: 360px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+        }
+
+        .popup-consent-title {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .popup-consent-description {
+            margin: 0 0 12px 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .popup-consent-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 0 0 12px 0;
+        }
+
+        #popupConsentAccept {
+            flex: 1;
+        }
+
+        #popupConsentAccept:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .popup-consent-actions {
+            margin: 0 0 10px 0;
+            font-size: 12px;
+        }
+
+        #popupConsentLegalLink {
+            color: var(--button-primary);
+            text-decoration: underline;
+        }
+
+        #popupConsentLegalLink:hover {
+            color: var(--button-hover);
+        }
+
+    </style>
+</head>
+<body class="consent-locked">
+    <div class="header">
+        <div class="header-content">
+            <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="var(--logo-bg)"/>
+                <path d="M35 50 Q35 35, 50 35 L65 35 Q80 35, 80 50 Q80 65, 65 65 L60 65"
+                    fill="none"
+                    stroke="var(--logo-accent)"
+                    stroke-width="8"
+                    stroke-linecap="round"/>
+                <path d="M65 50 Q65 65, 50 65 L35 65 Q20 65, 20 50 Q20 35, 35 35 L40 35"
+                    fill="none"
+                    stroke="var(--logo-accent)"
+                    stroke-width="8"
+                    stroke-linecap="round"/>
+                <polygon points="75,20 78,28 86,31 78,34 75,42 72,34 64,31 72,28"
+                       fill="var(--logo-accent)"/>
+            </svg>
+            <div class="title-section">
+                <h1 id="name"></h1>
+                <span class="version" id="version"></span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button id="cleaning_tools_icon" class="tools-icon-btn" aria-label="Open cleaning tools" title="Open cleaning tools">
+                <img src="paintbrush.svg" alt="paintbrush icon" aria-hidden="true">
+            </button>
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                <img src="sun.svg" alt="sun icon" class="sun-icon">
+                <img src="moon.svg" alt="moon icon" class="moon-icon">
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <button class="nav-item active" id="navMain" data-target="mainContent">
+            <span id="nav_main_label"></span>
+        </button>
+        <button class="nav-item" id="navLicense" data-target="licenseContent">
+            <span id="nav_license_label"></span>
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent">
+        <div class="toggle-container">
+            <div class="toggle-switch" id="globalStatus"></div>
+            <span class="toggle-label" id="configs_switch_filter"></span>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle-switch" id="logging"></div>
+            <span class="toggle-label" id="configs_switch_log"></span>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle-switch" id="tabcounter"></div>
+            <span class="toggle-label" id="configs_switch_badges"></span>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle-switch" id="statistics"></div>
+            <span class="toggle-label" id="configs_switch_statistics"></span>
+        </div>
+
+        <div class="content" id="statistic_section">
+            <div class="statistics-container">
+                <div class="stat-row">
+                    <span class="stat-label" id="statistics_elements"></span>
+                    <span class="stat-value" style="color: var(--text-secondary);" id="statistics_total_elements">0</span>
+                </div>
+                
+                <div class="stat-row">
+                    <span class="stat-label" id="statistics_blocked"></span>
+                    <span class="stat-value" style="color: var(--button-danger);" id="statistics_value">0</span>
+                </div>
+                
+                <div class="stat-row">
+                    <span class="stat-label" id="statistics_percentage"></span>
+                    <span class="stat-value" style="color: var(--button-primary);" id="statistics_value_global_percentage"></span>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress_blocked"></div>
+                </div>
+
+                <button id="reset_counter_btn" style="width: 100%; background: var(--button-danger);"></button>
+            </div>
+        </div>
+
+        <div class="content" id="log_section">
+            <button id="loggingPage" style="width: 100%; background: var(--button-primary);"></button>
+        </div>
+
+        <!-- Dynamic Whitelist Button -->
+        <button id="singledynamicwhitelistunwhitelistbutton" style="display: none;"></button>
+
+        <div class="button-group">
+             <button id="customrules"></button>
+            <button id="whitelist_page"></button>
+            <button id="settings"></button>
+        </div>
+     
+    </div>
+
+    <!-- License Content -->
+    <div id="licenseContent">
+        <div class="license-section">
+            <h3 id="name"></h3>
+            <p class="version-info">Version: <span id="license_version"></span></p>
+    
+        </div>
+
+        <div class="license-section">
+            <h3 id="license_title">License</h3>
+            <p id="license_description">View detailed license and privacy information by clicking the Legal link below.</p>
+            <h3 id="license_links_title">Links</h3>
+        </div>
+            <div class="license-links">
+                <a href="#" id="legalLink" class="license-link">
+                    Legal
+                </a>
+                <a href="https://www.gnu.org/licenses/gpl-3.0.html" class="license-link" target="_blank">
+                    GNU General Public License v3.0
+                </a>
+                <a href="https://www.gnu.org/licenses/lgpl-3.0.html" class="license-link" target="_blank">
+                 GNU General Lesser Public License v3.0
+                </a>
+                <a href="https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox/" class="license-link" target="_blank">
+                    Source Code Repository
+                </a>
+                <a href="https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox/issues" class="license-link" target="_blank">
+                    Report Issues
+                </a>
+                <a href="https://gitlab.com/ClearURLs/ClearUrls/-/tree/m3-migration?ref_type=heads" class="license-link" target="_blank">
+                    ClearURLs MV3 Migration Repository
+                </a>
+                <a href="https://github.com/ClearURLs/Addon/tree/1.27.3" class="license-link" target="_blank">
+                    ClearURLs addons V1.27.3 Repository
+                </a>
+            </div>
+        </div>
+
+    <div id="popupConsentGate" role="dialog" aria-modal="true" aria-labelledby="popupConsentTitle">
+        <div class="popup-consent-card">
+            <h2 id="popupConsentTitle" class="popup-consent-title">Consent required</h2>
+            <p id="popupConsentDescription" class="popup-consent-description">Please read privacy policy and license. We do not collect your data. All data is stored on your device and is not transmitted to us.</p>
+            <label class="popup-consent-check" for="popupConsentCheckbox">
+                <input type="checkbox" id="popupConsentCheckbox">
+                <span id="popupConsentCheckboxLabel">I have read and accept the Privacy Policy and License.</span>
+            </label>
+            <div class="popup-consent-actions">
+                <a id="popupConsentLegalLink" href="/html/legal.html" target="_blank" rel="noopener noreferrer">Read Legal</a>
+            </div>
+            <button id="popupConsentAccept" type="button" disabled>Accept and continue</button>
+        </div>
+    </div>
+
+<script src="../core_js/popup_consent_config.js"></script>
+<script src="../core_js/popup.js"></script>
+<script src="../external_js/light-punycode.js"></script>
+
+    <script src="../core_js/write_version.js"></script>
+    <script src="../external_js/linkumori-i18n.js"></script>
+</body>
+</html>

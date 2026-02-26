@@ -1,0 +1,1422 @@
+/**
+ * Original ClearURLs Copyright (c) 2017-2021 Kevin Röbert
+ * Modified Version Copyright (c) 2025 Subham Mahesh
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * LICENSING NOTICE:
+ * This file is part of the Linkumori project and contains modifications to ClearURLs.
+ * 
+ * MAJOR MODIFICATIONS by Subham Mahesh:
+ * PERFORMANCE: Optimized provider initialization and rule matching
+ *  INTEGRATION: Enhanced integration with storage.js rule management
+ *  WHITELIST: Comprehensive whitelist support with wildcard patterns
+ *  RELIABILITY: Improved error handling and initialization retry logic
+ *  CLEANUP: Removed unnecessary permission requests and dependencies
+ *  EFFICIENCY: Streamlined rule application and URL reconstruction
+ *  COMPATIBILITY: Enhanced browser compatibility and method checking
+ *  SIMPLICITY: Simple domain pattern matching without complex TLD handling
+ * 
+ * This modification is part of the larger Linkumori project providing
+ * privacy-focused URL cleaning with advanced rule management capabilities.
+ * 
+ *  * first modified:  Jun 14, 2025  by Subham Mahesh
+ *secound modified:  august 21, 2025  by Subham Mahesh
+ third modified:  september 5, 2025  by Subham Mahesh
+ * Due to constraints, later modifications are not tracked inline.
+ * To view the full modification history, run:
+ *
+ *   node linkumori-cli-tool.js
+ *
+ * Then select "Generate Commit History". This will create a Markdown file
+ * where you can browse who modified which files and on what date.
+ * Repository: https://github.com/linkumori/linkumori
+ * License: LGPL-3.0-or-later
+ */
+
+var providers = [];
+var prvKeys = [];
+var siteBlockedAlert = 'javascript:void(0)';
+var dataHash;
+var localDataHash;
+var os;
+var initializationComplete = false;
+var linkumoriPatternRegexCache = new Map();
+var pslSupport = {
+    status: 'idle',
+    parser: null,
+    service: null,
+    loadPromise: null,
+    error: null
+};
+
+function normalizeAsciiHostname(value) {
+    const host = String(value || '').trim().toLowerCase();
+    if (!host) return null;
+
+    if (/^[\x00-\x7F]+$/.test(host)) {
+        return host.endsWith('.') ? host.slice(0, -1) : host;
+    }
+
+    try {
+        return new URL('http://' + host).hostname.toLowerCase();
+    } catch (e) {
+        return host.endsWith('.') ? host.slice(0, -1) : host;
+    }
+}
+
+function initPslSupport() {
+    if (pslSupport.status === 'loading' || pslSupport.status === 'ready') {
+        return pslSupport.loadPromise;
+    }
+
+    pslSupport.status = 'loading';
+    pslSupport.loadPromise = (async () => {
+        try {
+            const runtimeAPI = browser.runtime;
+
+            if (!runtimeAPI || typeof fetch !== 'function') {
+                throw new Error('PSL module/runtime API unavailable');
+            }
+
+            const pslService = (typeof globalThis !== 'undefined' && globalThis.linkumoriPsl)
+                ? globalThis.linkumoriPsl
+                : null;
+
+            if (
+                !pslService ||
+                typeof pslService.init !== 'function'
+            ) {
+                throw new Error('linkumoriPsl service missing in external_js/publicsuffixlist.js');
+            }
+
+            await pslService.init({
+                dataPath: 'data/public_suffix_list.dat',
+                runtimeAPI
+            });
+
+            if (
+                pslService.status !== 'ready' ||
+                !pslService.parser ||
+                typeof pslService.parser.getPublicSuffix !== 'function' ||
+                typeof pslService.parser.getDomain !== 'function'
+            ) {
+                throw new Error('PSL service initialized without usable parser');
+            }
+
+            pslSupport.parser = pslService.parser;
+            pslSupport.service = pslService;
+            pslSupport.status = 'ready';
+            pslSupport.error = null;
+        } catch (e) {
+            pslSupport.status = 'failed';
+            pslSupport.error = e;
+            pslSupport.parser = null;
+            pslSupport.service = null;
+        }
+    })();
+
+    return pslSupport.loadPromise;
+}
+
+function parseHostnameWithPsl(hostnameInput) {
+    const normalizedHostname = normalizeAsciiHostname(hostnameInput);
+    if (!normalizedHostname) return null;
+
+    if (
+        pslSupport.status === 'ready' &&
+        pslSupport.service &&
+        typeof pslSupport.service.parseNormalizedHostname === 'function'
+    ) {
+        const parsed = pslSupport.service.parseNormalizedHostname(
+            normalizedHostname
+        );
+
+        if (parsed && parsed.listed && parsed.tld) {
+            return {
+                hostname: parsed.hostname || normalizedHostname,
+                tld: parsed.tld || null,
+                domain: parsed.domain || null,
+                subdomain: parsed.subdomain || null,
+                listed: true
+            };
+        }
+    }
+
+    if (
+        pslSupport.status === 'ready' &&
+        pslSupport.service &&
+        typeof pslSupport.service.lookupNormalized === 'function'
+    ) {
+        const lookup = pslSupport.service.lookupNormalized(normalizedHostname);
+        if (lookup) return lookup;
+    }
+
+    if (
+        pslSupport.status !== 'ready' ||
+        !pslSupport.parser ||
+        typeof pslSupport.parser.getPublicSuffix !== 'function' ||
+        typeof pslSupport.parser.getDomain !== 'function'
+    ) {
+        return null;
+    }
+
+    const hostname = normalizedHostname;
+
+    try {
+        const tld = pslSupport.parser.getPublicSuffix(hostname) || null;
+        if (!tld) return null;
+
+        const domain = pslSupport.parser.getDomain(hostname) || null;
+        let subdomain = null;
+        if (domain && hostname !== domain && hostname.endsWith('.' + domain)) {
+            const suffixToken = '.' + domain;
+            subdomain = hostname.slice(0, -suffixToken.length) || null;
+        }
+
+        return {
+            hostname,
+            tld,
+            domain,
+            subdomain,
+            listed: true
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+function matchRootDomainWildcardTldWithPsl(hostnameValue, domainPattern) {
+    if (pslSupport.status !== 'ready') return false;
+
+    const normalizedHost = normalizeAsciiHostname(hostnameValue);
+    const normalizedPattern = normalizeAsciiHostname(domainPattern);
+    if (!normalizedHost || !normalizedPattern || !normalizedPattern.endsWith('.*')) {
+        return false;
+    }
+
+    const base = normalizedPattern.slice(0, -2);
+    if (!base) return false;
+
+    const parsed = parseHostnameWithPsl(normalizedHost);
+    if (!parsed || !parsed.tld) return false;
+
+    const suffixToken = '.' + parsed.tld;
+    if (!normalizedHost.endsWith(suffixToken)) return false;
+
+    const prefix = normalizedHost.slice(0, -suffixToken.length);
+    if (!prefix) return false;
+
+    return prefix === base || prefix === ('www.' + base);
+}
+
+// Tracks tab/frame URLs so that subrequests from a whitelisted page context
+// can be skipped even if the subrequest URL itself is not whitelisted.
+var requestContextManager = {
+    initialized: false,
+    tabs: new Map(),
+
+    ensureTab(tabId) {
+        let tabCtx = this.tabs.get(tabId);
+        if (!tabCtx) {
+            tabCtx = { url: '', frames: new Map() };
+            this.tabs.set(tabId, tabCtx);
+        }
+        return tabCtx;
+    },
+
+    setTabURL(tabId, url) {
+        if (typeof tabId !== 'number' || tabId < 0) return;
+        if (typeof url !== 'string' || url === '') return;
+        const tabCtx = this.ensureTab(tabId);
+        tabCtx.url = url;
+        tabCtx.frames.set(0, { url, parentFrameId: -1 });
+    },
+
+    setFrameURL(tabId, frameId, url, parentFrameId = -1) {
+        if (typeof tabId !== 'number' || tabId < 0) return;
+        if (typeof frameId !== 'number' || frameId < 0) return;
+        if (typeof url !== 'string' || url === '') return;
+        const tabCtx = this.ensureTab(tabId);
+        tabCtx.frames.set(frameId, { url, parentFrameId });
+        if (frameId === 0) {
+            tabCtx.url = url;
+        }
+    },
+
+    collectContextURLs(requestDetails) {
+        const urls = [];
+        if (!requestDetails || typeof requestDetails !== 'object') {
+            return urls;
+        }
+
+        if (typeof requestDetails.documentUrl === 'string') urls.push(requestDetails.documentUrl);
+        if (typeof requestDetails.originUrl === 'string') urls.push(requestDetails.originUrl);
+        if (typeof requestDetails.initiator === 'string') urls.push(requestDetails.initiator);
+        if (typeof requestDetails.tabUrl === 'string') urls.push(requestDetails.tabUrl);
+        if (typeof requestDetails.referrer === 'string') urls.push(requestDetails.referrer);
+
+        const tabId = requestDetails.tabId;
+        if (typeof tabId === 'number' && tabId >= 0) {
+            const tabCtx = this.tabs.get(tabId);
+            if (tabCtx) {
+                if (typeof tabCtx.url === 'string' && tabCtx.url) {
+                    urls.push(tabCtx.url);
+                }
+
+                const walkAncestors = (startFrameId) => {
+                    if (typeof startFrameId !== 'number' || startFrameId < 0) return;
+                    let frameId = startFrameId;
+                    const visited = new Set();
+                    for (let i = 0; i < 16; i++) {
+                        if (visited.has(frameId)) break;
+                        visited.add(frameId);
+                        const entry = tabCtx.frames.get(frameId);
+                        if (!entry) break;
+                        if (typeof entry.url === 'string' && entry.url) {
+                            urls.push(entry.url);
+                        }
+                        if (typeof entry.parentFrameId !== 'number' || entry.parentFrameId < 0) break;
+                        frameId = entry.parentFrameId;
+                    }
+                };
+
+                walkAncestors(requestDetails.frameId);
+                walkAncestors(requestDetails.parentFrameId);
+            }
+        }
+
+        return Array.from(new Set(urls));
+    },
+
+    init() {
+        if (this.initialized) return;
+        this.initialized = true;
+
+        browser.tabs.query({}).then((tabs) => {
+            if (!Array.isArray(tabs)) return;
+            for (const tab of tabs) {
+                if (typeof tab?.id === 'number' && typeof tab?.url === 'string') {
+                    this.setTabURL(tab.id, tab.url);
+                }
+            }
+        }).catch(handleError);
+
+        browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+            const candidateUrl = (changeInfo && typeof changeInfo.url === 'string')
+                ? changeInfo.url
+                : (tab && typeof tab.url === 'string' ? tab.url : null);
+            if (candidateUrl) {
+                this.setTabURL(tabId, candidateUrl);
+            }
+        });
+
+        browser.tabs.onRemoved.addListener((tabId) => {
+            this.tabs.delete(tabId);
+        });
+
+        if (browser.webNavigation && browser.webNavigation.onCommitted) {
+            browser.webNavigation.onCommitted.addListener((details) => {
+                this.setFrameURL(details.tabId, details.frameId, details.url, details.parentFrameId);
+            });
+        }
+        if (browser.webNavigation && browser.webNavigation.onHistoryStateUpdated) {
+            browser.webNavigation.onHistoryStateUpdated.addListener((details) => {
+                this.setFrameURL(details.tabId, details.frameId, details.url, details.parentFrameId);
+            });
+        }
+        if (browser.webNavigation && browser.webNavigation.onReferenceFragmentUpdated) {
+            browser.webNavigation.onReferenceFragmentUpdated.addListener((details) => {
+                this.setFrameURL(details.tabId, details.frameId, details.url, details.parentFrameId);
+            });
+        }
+    }
+};
+
+"use strict";
+
+class URLHashParams {
+    constructor(url) {
+        Object.defineProperty(this, "_params", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        this._params = new Multimap();
+        const hash = url.hash.slice(1);
+        const params = hash.split('&');
+        for (const p of params) {
+            const param = p.split('=');
+            if (!param[0])
+                continue;
+            const key = param[0];
+            let value = null;
+            if (param.length === 2 && param[1]) {
+                value = param[1];
+            }
+            this._params.put(key, value);
+        }
+    }
+    append(name, value = null) {
+        this._params.put(name, value);
+    }
+    delete(name) {
+        this._params.delete(name);
+    }
+    get(name) {
+        const [first] = this._params.get(name);
+        if (first) {
+            return first;
+        }
+        return null;
+    }
+    getAll(name) {
+        return this._params.get(name);
+    }
+    keys() {
+        return this._params.keys();
+    }
+    toString() {
+        const rtn = [];
+        this._params.forEach((key, value) => {
+            if (value) {
+                rtn.push(key + '=' + value);
+            }
+            else {
+                rtn.push(key);
+            }
+        });
+        return rtn.join('&');
+    }
+}
+
+class Multimap {
+    constructor() {
+        Object.defineProperty(this, "_map", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        Object.defineProperty(this, "_size", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        this._size = 0;
+        this._map = new Map();
+    }
+    get size() {
+        return this._size;
+    }
+    get(key) {
+        const values = this._map.get(key);
+        if (values) {
+            return new Set(values);
+        }
+        else {
+            return new Set();
+        }
+    }
+    put(key, value) {
+        let values = this._map.get(key);
+        if (!values) {
+            values = new Set();
+        }
+        const count = values.size;
+        values.add(value);
+        if (values.size === count) {
+            return false;
+        }
+        this._map.set(key, values);
+        this._size++;
+        return true;
+    }
+    has(key) {
+        return this._map.has(key);
+    }
+    hasEntry(key, value) {
+        const values = this._map.get(key);
+        if (!values) {
+            return false;
+        }
+        return values.has(value);
+    }
+    delete(key) {
+        const values = this._map.get(key);
+        if (values && this._map.delete(key)) {
+            this._size -= values.size;
+            return true;
+        }
+        return false;
+    }
+    deleteEntry(key, value) {
+        const values = this._map.get(key);
+        if (values) {
+            if (!values.delete(value)) {
+                return false;
+            }
+            this._size--;
+            return true;
+        }
+        return false;
+    }
+    clear() {
+        this._map.clear();
+        this._size = 0;
+    }
+    entries() {
+        const self = this;
+        function* gen() {
+            for (const [key, values] of self._map.entries()) {
+                for (const value of values) {
+                    yield [key, value];
+                }
+            }
+        }
+        return gen();
+    }
+    values() {
+        const self = this;
+        function* gen() {
+            for (const [, value] of self.entries()) {
+                yield value;
+            }
+        }
+        return gen();
+    }
+    keys() {
+        return this._map.keys();
+    }
+    forEach(callback, thisArg) {
+        for (const [key, value] of this.entries()) {
+            callback.call(thisArg === undefined ? this : thisArg, key, value, this);
+        }
+    }
+    [Symbol.iterator]() {
+        return this.entries();
+    }
+}
+
+
+function matchDomainPattern(url, patterns) {
+    if (typeof patterns === 'string') {
+        patterns = [patterns];
+    }
+    if (!Array.isArray(patterns) || patterns.length === 0) return false;
+
+    function escapeRegexChar(char) {
+        return /[\\^$.*+?()[\]{}|]/.test(char) ? ('\\' + char) : char;
+    }
+
+    function linkumoriTokensToRegexSource(input) {
+        let output = '';
+        for (let i = 0; i < input.length; i++) {
+            const ch = input.charAt(i);
+            if (ch === '*') {
+                output += '.*';
+            } else if (ch === '^') {
+                output += '(?:[^0-9A-Za-z_\\-.%]|$)';
+            } else {
+                output += escapeRegexChar(ch);
+            }
+        }
+        return output;
+    }
+
+    function compileLinkumoriRegex(pattern) {
+        const cacheKey = String(pattern || '');
+        if (linkumoriPatternRegexCache.has(cacheKey)) {
+            return linkumoriPatternRegexCache.get(cacheKey);
+        }
+
+        let raw = cacheKey;
+        let domainAnchor = false;
+        let startAnchor = false;
+        let endAnchor = false;
+
+        if (raw.startsWith('||')) {
+            domainAnchor = true;
+            raw = raw.slice(2);
+        } else if (raw.startsWith('|')) {
+            startAnchor = true;
+            raw = raw.slice(1);
+        }
+
+        if (raw.endsWith('|')) {
+            endAnchor = true;
+            raw = raw.slice(0, -1);
+        }
+
+        const source = linkumoriTokensToRegexSource(raw);
+        const prefix = domainAnchor
+            ? '^[A-Za-z][A-Za-z0-9+.-]*:\\/+(?:[^/?#]*\\.)?'
+            : (startAnchor ? '^' : '');
+        const suffix = endAnchor ? '$' : '';
+
+        let regex = null;
+        try {
+            regex = new RegExp(prefix + source + suffix, 'i');
+        } catch (e) {
+            regex = null;
+        }
+
+        linkumoriPatternRegexCache.set(cacheKey, regex);
+        return regex;
+    }
+
+    function compileTailRegex(tail) {
+        let raw = String(tail || '');
+        let startAnchor = false;
+        let endAnchor = false;
+
+        if (raw.startsWith('|')) {
+            startAnchor = true;
+            raw = raw.slice(1);
+        }
+        if (raw.endsWith('|')) {
+            endAnchor = true;
+            raw = raw.slice(0, -1);
+        }
+
+        const source = linkumoriTokensToRegexSource(raw);
+        const prefix = startAnchor ? '^' : '';
+        const suffix = endAnchor ? '$' : '';
+        return new RegExp(prefix + source + suffix, 'i');
+    }
+
+    function firstSpecialIndex(input) {
+        const slashIndex = input.indexOf('/');
+        const caretIndex = input.indexOf('^');
+        const pipeIndex = input.indexOf('|');
+
+        let index = -1;
+        if (slashIndex !== -1) index = slashIndex;
+        if (caretIndex !== -1 && (index === -1 || caretIndex < index)) index = caretIndex;
+        if (pipeIndex !== -1 && (index === -1 || pipeIndex < index)) index = pipeIndex;
+        return index;
+    }
+
+    function isSimpleHostExpression(input) {
+        return /^[a-z0-9*.-]+$/i.test(input);
+    }
+
+    function matchWildcardSubdomainAcrossAnyTld(hostname, patternBase) {
+        const parsed = parseHostnameWithPsl(hostname);
+        if (!parsed || !parsed.tld) return false;
+
+        const suffixToken = '.' + parsed.tld;
+        if (!hostname.endsWith(suffixToken)) return false;
+
+        const prefix = hostname.slice(0, -suffixToken.length);
+        if (!prefix || prefix === patternBase) return false;
+        return prefix.endsWith('.' + patternBase);
+    }
+
+    function matchHostPattern(hostname, pattern) {
+        if (pslSupport.status !== 'ready') return false;
+
+        const normalizedHost = normalizeAsciiHostname(hostname);
+        const normalizedPattern = normalizeAsciiHostname(pattern);
+        if (!normalizedHost || !normalizedPattern) return false;
+
+        const hostParsed = parseHostnameWithPsl(normalizedHost);
+        if (!hostParsed || !hostParsed.tld) return false;
+
+        const wildcardSubdomain = normalizedPattern.startsWith('*.');
+        const corePattern = wildcardSubdomain ? normalizedPattern.slice(2) : normalizedPattern;
+        if (!corePattern) return false;
+
+        const wildcardTld = corePattern.endsWith('.*');
+        const basePattern = wildcardTld ? corePattern.slice(0, -2) : corePattern;
+        if (!basePattern) return false;
+
+        if (wildcardTld && wildcardSubdomain) {
+            return matchWildcardSubdomainAcrossAnyTld(normalizedHost, basePattern);
+        }
+
+        if (wildcardTld) {
+            return matchRootDomainWildcardTldWithPsl(normalizedHost, corePattern);
+        }
+
+        const patternParsed = parseHostnameWithPsl(basePattern);
+        if (!patternParsed || !patternParsed.tld) return false;
+
+        if (wildcardSubdomain) {
+            return normalizedHost !== basePattern && normalizedHost.endsWith('.' + basePattern);
+        }
+
+        return normalizedHost === basePattern || normalizedHost.endsWith('.' + basePattern);
+    }
+
+    function matchStructuredDomainAnchorPattern(pattern, urlObj, hostname) {
+        const body = String(pattern || '').slice(2).trim();
+        if (!body) return false;
+
+        const specialIndex = firstSpecialIndex(body);
+        const hostExpr = specialIndex === -1 ? body : body.slice(0, specialIndex);
+        const tail = specialIndex === -1 ? '' : body.slice(specialIndex);
+
+        if (!hostExpr || !isSimpleHostExpression(hostExpr)) {
+            return null;
+        }
+
+        if (!matchHostPattern(hostname, hostExpr)) {
+            return false;
+        }
+
+        let rest = tail;
+        if (rest.startsWith('^')) {
+            // Host boundary is already enforced by URL parsing + host matcher.
+            rest = rest.slice(1);
+        }
+
+        if (!rest) return true;
+
+        const pathTarget = (urlObj.pathname + urlObj.search + urlObj.hash).toLowerCase();
+        if (rest.startsWith('/') && !/[|*^]/.test(rest)) {
+            return pathTarget.startsWith(rest.toLowerCase());
+        }
+
+        try {
+            return compileTailRegex(rest.toLowerCase()).test(pathTarget);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    try {
+        const urlObj = new URL(url);
+        const hostname = normalizeAsciiHostname(urlObj.hostname);
+        if (!hostname) return false;
+        const fullUrl = url.toLowerCase();
+
+        return patterns.some((pattern) => {
+            const p = String(pattern || '').trim().toLowerCase();
+            if (!p) return false;
+
+            if (p.startsWith('||')) {
+                const structured = matchStructuredDomainAnchorPattern(p, urlObj, hostname);
+                if (structured !== null) {
+                    return structured;
+                }
+            }
+
+            const regex = compileLinkumoriRegex(p);
+            if (regex) {
+                return regex.test(fullUrl);
+            }
+
+            return fullUrl.includes(p);
+        });
+    } catch (e) {
+        return false;
+    }
+}
+
+
+
+function isHostnameWhitelisted(hostname) {
+    if (!storage.userWhitelist || storage.userWhitelist.length === 0) {
+        return false;
+    }
+
+    const normalizedHostname = String(hostname || '').toLowerCase().trim();
+    if (!normalizedHostname) {
+        return false;
+    }
+
+    return storage.userWhitelist.some((domainPattern) => {
+        return matchWhitelistHostnamePattern(normalizedHostname, domainPattern);
+    });
+}
+
+function matchWhitelistHostnamePattern(hostname, pattern) {
+    const normalizedHostname = normalizeAsciiHostname(hostname);
+    if (!normalizedHostname) return false;
+
+    const rawPattern = String(pattern || '').toLowerCase().trim();
+    if (!rawPattern) return false;
+
+    const cleanPattern = normalizeAsciiHostname(rawPattern.startsWith('||') ? rawPattern.slice(2).replace(/\^$/, '') : rawPattern);
+    if (!cleanPattern) return false;
+
+    // PSL-aware any-TLD wildcard: example.* or *.example.*
+    if (cleanPattern.endsWith('.*')) {
+        const parsed = parseHostnameWithPsl(normalizedHostname);
+        if (!parsed || !parsed.tld) return false;
+
+        const suffixToken = '.' + parsed.tld;
+        if (!normalizedHostname.endsWith(suffixToken)) return false;
+
+        const beforeSuffix = normalizedHostname.slice(0, -suffixToken.length);
+        if (!beforeSuffix) return false;
+
+        if (cleanPattern.startsWith('*.')) {
+            const base = cleanPattern.slice(2, -2);
+            if (!base) return false;
+            return beforeSuffix.endsWith('.' + base);
+        }
+
+        const base = cleanPattern.slice(0, -2);
+        if (!base) return false;
+        return beforeSuffix === base || beforeSuffix.endsWith('.' + base);
+    }
+
+    // Existing wildcard host behavior: *.example.com includes root + subdomains.
+    if (cleanPattern.startsWith('*.')) {
+        const baseDomain = cleanPattern.slice(2);
+        if (!baseDomain) return false;
+        return normalizedHostname === baseDomain || normalizedHostname.endsWith('.' + baseDomain);
+    }
+
+    return normalizedHostname === cleanPattern || normalizedHostname.endsWith('.' + cleanPattern);
+}
+
+function isUrlWhitelisted(url) {
+    if (!url || typeof url !== 'string') return false;
+
+    try {
+        const urlObj = new URL(url);
+        const hostname = urlObj.hostname.toLowerCase();
+        return isHostnameWhitelisted(hostname);
+    } catch (e) {
+        return false;
+    }
+}
+
+function isWhitelisted(url, requestDetails = null) {
+    if (!storage.userWhitelist || storage.userWhitelist.length === 0) {
+        return false;
+    }
+
+    if (isUrlWhitelisted(url)) {
+        return true;
+    }
+
+    const contextUrls = requestContextManager.collectContextURLs(requestDetails);
+    return contextUrls.some((contextUrl) => isUrlWhitelisted(contextUrl));
+}
+
+function removeFieldsFormURL(provider, pureUrl, quiet = false, request = null) {
+    let url = pureUrl;
+    let domain = "";
+    let fragments = "";
+    let fields = "";
+    let rules = provider.getRules();
+    let changes = false;
+    let rawRules = provider.getRawRules();
+    let urlObject = new URL(url);
+    const providerMatch = {
+        ...provider.getAppliedPatternForUrl(pureUrl),
+        logCategory: 'provider',
+        providerMethods: provider.getMethods(),
+        providerResourceTypes: provider.getResourceTypes(),
+        requestMethod: request && typeof request.method === 'string' ? request.method : null,
+        requestType: request && typeof request.type === 'string' ? request.type : null
+    };
+
+    if (storage.localHostsSkipping && checkLocalURL(urlObject)) {
+        return {
+            "changes": false,
+            "url": url,
+            "cancel": false
+        }
+    }
+
+    let re = provider.getRedirection(url);
+    if (re !== null) {
+        url = decodeURL(re);
+
+        if (!quiet) {
+            pushToLog(pureUrl, url, translate('log_redirect'), providerMatch);
+            increaseTotalCounter(1);
+            increaseBadged(false, request)
+        }
+
+        return {
+            "redirect": true,
+            "url": url
+        }
+    }
+
+    if (provider.isCaneling() && storage.domainBlocking) {
+        if (!quiet) pushToLog(pureUrl, pureUrl, translate('log_domain_blocked'), providerMatch);
+        increaseTotalCounter(1);
+        increaseBadged(false, request);
+        return {
+            "cancel": true,
+            "url": url
+        }
+    }
+
+    rawRules.forEach(function (rawRule) {
+        let beforeReplace = url;
+        url = url.replace(new RegExp(rawRule, "gi"), "");
+
+        if (beforeReplace !== url) {
+            if (storage.loggingStatus && !quiet) {
+                pushToLog(beforeReplace, url, rawRule, providerMatch);
+            }
+
+            increaseBadged(false, request);
+            changes = true;
+        }
+    });
+
+    urlObject = new URL(url);
+    fields = urlObject.searchParams;
+    fragments = extractFragments(urlObject);
+    domain = urlWithoutParamsAndHash(urlObject).toString();
+
+    if (fields.toString() !== "" || fragments.toString() !== "") {
+        rules.forEach(rule => {
+            const beforeFields = fields.toString();
+            const beforeFragments = fragments.toString();
+            let localChange = false;
+
+            const fieldsToDelete = [];
+            for (const field of fields.keys()) {
+                if (new RegExp("^"+rule+"$", "gi").test(field)) {
+                    fieldsToDelete.push(field);
+                    localChange = true;
+                }
+            }
+            fieldsToDelete.forEach(field => fields.delete(field));
+
+            const fragmentsToDelete = [];
+            for (const fragment of fragments.keys()) {
+                if (new RegExp("^"+rule+"$", "gi").test(fragment)) {
+                    fragmentsToDelete.push(fragment);
+                    localChange = true;
+                }
+            }
+            fragmentsToDelete.forEach(fragment => fragments.delete(fragment));
+
+            if (localChange) {
+                changes = true;
+                
+                if (storage.loggingStatus) {
+                    let tempURL = domain;
+                    let tempBeforeURL = domain;
+
+                    if (fields.toString() !== "") tempURL += "?" + fields.toString();
+                    if (fragments.toString() !== "") tempURL += "#" + fragments.toString();
+                    if (beforeFields.toString() !== "") tempBeforeURL += "?" + beforeFields.toString();
+                    if (beforeFragments.toString() !== "") tempBeforeURL += "#" + beforeFragments.toString();
+
+                    if (!quiet) pushToLog(tempBeforeURL, tempURL, rule, providerMatch);
+                }
+
+                increaseBadged(false, request);
+            }
+        });
+
+        let finalURL = domain;
+
+        if (fields.toString() !== "") finalURL += "?" + urlSearchParamsToString(fields);
+        if (fragments.toString() !== "") finalURL += "#" + fragments.toString();
+
+        url = finalURL.replace(new RegExp("\\?&"), "?").replace(new RegExp("#&"), "#");
+    }
+
+    return {
+        "changes": changes,
+        "url": url
+    }
+}
+
+function start() {
+    initPslSupport();
+    requestContextManager.init();
+
+    function getKeys(obj) {
+        prvKeys = [];
+        for (const key in obj) {
+            prvKeys.push(key);
+        }
+    }
+
+    function createProviders() {
+        let data = storage.ClearURLsData;
+        
+        if (!data || !data.providers) {
+            return;
+        }
+
+        providers = [];
+
+        for (let p = 0; p < prvKeys.length; p++) {
+            providers.push(new Provider(prvKeys[p], data.providers[prvKeys[p]].getOrDefault('completeProvider', false),
+                data.providers[prvKeys[p]].getOrDefault('forceRedirection', false)));
+
+            let urlPattern = data.providers[prvKeys[p]].getOrDefault('urlPattern', '');
+            let domainPatterns = data.providers[prvKeys[p]].getOrDefault('domainPatterns', []);
+            
+            if (urlPattern) {
+                providers[p].setURLPattern(urlPattern);
+            } else if (domainPatterns.length > 0) {
+                providers[p].setURLDomainPattern(domainPatterns);
+            }
+
+            let rules = data.providers[prvKeys[p]].getOrDefault('rules', []);
+            for (let r = 0; r < rules.length; r++) {
+                providers[p].addRule(rules[r]);
+            }
+
+            let rawRules = data.providers[prvKeys[p]].getOrDefault('rawRules', []);
+            for (let raw = 0; raw < rawRules.length; raw++) {
+                providers[p].addRawRule(rawRules[raw]);
+            }
+
+            let referralMarketingRules = data.providers[prvKeys[p]].getOrDefault('referralMarketing', []);
+            for (let referralMarketing = 0; referralMarketing < referralMarketingRules.length; referralMarketing++) {
+                providers[p].addReferralMarketing(referralMarketingRules[referralMarketing]);
+            }
+
+            let exceptions = data.providers[prvKeys[p]].getOrDefault('exceptions', []);
+            for (let e = 0; e < exceptions.length; e++) {
+                providers[p].addException(exceptions[e]);
+            }
+            
+            let domainExceptions = data.providers[prvKeys[p]].getOrDefault('domainExceptions', []);
+            for (let ude = 0; ude < domainExceptions.length; ude++) {
+                providers[p].addDomainException(domainExceptions[ude]);
+            }
+
+            let redirections = data.providers[prvKeys[p]].getOrDefault('redirections', []);
+            for (let re = 0; re < redirections.length; re++) {
+                providers[p].addRedirection(redirections[re]);
+            }
+            
+            let domainRedirections = data.providers[prvKeys[p]].getOrDefault('domainRedirections', []);
+            for (let udr = 0; udr < domainRedirections.length; udr++) {
+                providers[p].addDomainRedirection(domainRedirections[udr]);
+            }
+
+            let methods = data.providers[prvKeys[p]].getOrDefault('methods', []);
+            for (let re = 0; re < methods.length; re++) {
+                providers[p].addMethod(methods[re]);
+            }
+
+            let resourceTypes = data.providers[prvKeys[p]].getOrDefault('resourceTypes', []);
+            for (let rt = 0; rt < resourceTypes.length; rt++) {
+                providers[p].addResourceType(resourceTypes[rt]);
+            }
+        }
+    }
+
+    function initializeProviders() {
+        if (!storage.ClearURLsData || !storage.ClearURLsData.providers) {
+            return false;
+        }
+
+        getKeys(storage.ClearURLsData.providers);
+        createProviders();
+        
+        setupWebRequestListener();
+        
+        return true;
+    }
+
+    function setupWebRequestListener() {
+        if (browser.webRequest.onBeforeRequest.hasListener(promise)) {
+            return;
+        }
+
+        function promise(requestDetails) {
+            if (requestDetails && requestDetails.tabId >= 0) {
+                if (requestDetails.type === 'main_frame') {
+                    requestContextManager.setTabURL(requestDetails.tabId, requestDetails.url);
+                } else if (requestDetails.type === 'sub_frame') {
+                    requestContextManager.setFrameURL(
+                        requestDetails.tabId,
+                        requestDetails.frameId,
+                        requestDetails.url,
+                        requestDetails.parentFrameId
+                    );
+                }
+            }
+
+            if (isDataURL(requestDetails)) {
+                return {};
+            } else {
+                return clearUrl(requestDetails);
+            }
+        }
+
+        function isDataURL(requestDetails) {
+            const s = requestDetails.url;
+            return s.substring(0, 4) === "data";
+        }
+
+        browser.webRequest.onBeforeRequest.addListener(
+            promise,
+            {urls: ["<all_urls>"], types: getData("types").concat(getData("pingRequestTypes"))},
+            ["blocking"]
+        );
+    }
+
+    let initAttempts = 0;
+    const maxInitAttempts = 50;
+    
+    function tryInitialize() {
+        initAttempts++;
+        
+        if (initializeProviders()) {
+            initializationComplete = true;
+            return;
+        }
+        
+        if (initAttempts < maxInitAttempts) {
+            setTimeout(tryInitialize, 200);
+        } else {
+            setupWebRequestListener();
+            console.warn('ClearURLs initialized with limited functionality');
+        }
+    }
+    
+    tryInitialize();
+
+    loadOldDataFromStore();
+    setBadgedStatus();
+
+    function Provider(_name, _completeProvider = false, _forceRedirection = false, _isActive = true) {
+        let name = _name;
+        let urlPattern;
+        let urlPatternSource = '';
+        let domainPatterns = [];
+        let enabled_rules = {};
+        let disabled_rules = {};
+        let enabled_exceptions = {};
+        let disabled_exceptions = {};
+        let enabled_domain_exceptions = [];
+        let enabled_domain_redirections = [];
+        let canceling = _completeProvider;
+        let enabled_redirections = {};
+        let disabled_redirections = {};
+        let active = _isActive;
+        let enabled_rawRules = {};
+        let disabled_rawRules = {};
+        let enabled_referralMarketing = {};
+        let disabled_referralMarketing = {};
+        let methods = [];
+        let resourceTypes = [];
+
+        if (_completeProvider) {
+            enabled_rules[".*"] = true;
+        }
+
+        this.shouldForceRedirect = function () {
+            return _forceRedirection;
+        };
+
+        this.getName = function () {
+            return name;
+        };
+
+        this.setURLPattern = function (urlPatterns) {
+            urlPatternSource = urlPatterns || '';
+            urlPattern = new RegExp(urlPatterns, "i");
+        };
+
+        this.setURLDomainPattern = function (patterns) {
+            domainPatterns = patterns || [];
+        };
+
+        this.getAppliedPatternForUrl = function (url) {
+            if (urlPattern && urlPattern.test(url)) {
+                return {
+                    providerName: name,
+                    patternType: 'urlPattern',
+                    patternValue: urlPatternSource || urlPattern.source || ''
+                };
+            }
+
+            if (domainPatterns.length > 0) {
+                for (const pattern of domainPatterns) {
+                    if (matchDomainPattern(url, [pattern])) {
+                        return {
+                            providerName: name,
+                            patternType: 'domainPattern',
+                            patternValue: pattern
+                        };
+                    }
+                }
+            }
+
+            return {
+                providerName: name,
+                patternType: null,
+                patternValue: null
+            };
+        };
+
+        this.isCaneling = function () {
+            return canceling;
+        };
+
+        this.matchURL = function (url) {
+            if (urlPattern) {
+                return urlPattern.test(url) && !(this.matchException(url));
+            } else if (domainPatterns.length > 0) {
+                return matchDomainPattern(url, domainPatterns) && !(this.matchException(url));
+            }
+            return false;
+        };
+
+        this.applyRule = (enabledRuleArray, disabledRulesArray, rule, isActive = true) => {
+            if (isActive) {
+                enabledRuleArray[rule] = true;
+
+                if (disabledRulesArray[rule] !== undefined) {
+                    delete disabledRulesArray[rule];
+                }
+            } else {
+                disabledRulesArray[rule] = true;
+
+                if (enabledRuleArray[rule] !== undefined) {
+                    delete enabledRuleArray[rule];
+                }
+            }
+        };
+
+        this.addRule = function (rule, isActive = true) {
+            this.applyRule(enabled_rules, disabled_rules, rule, isActive);
+        };
+
+        this.getRules = function () {
+            if (!storage.referralMarketing) {
+                return Object.keys(Object.assign(enabled_rules, enabled_referralMarketing));
+            }
+
+            return Object.keys(enabled_rules);
+        };
+
+        this.addRawRule = function (rule, isActive = true) {
+            this.applyRule(enabled_rawRules, disabled_rawRules, rule, isActive);
+        };
+
+        this.getRawRules = function () {
+            return Object.keys(enabled_rawRules);
+        };
+
+        this.addReferralMarketing = function (rule, isActive = true) {
+            this.applyRule(enabled_referralMarketing, disabled_referralMarketing, rule, isActive);
+        };
+
+        this.addException = function (exception, isActive = true) {
+            if (isActive) {
+                enabled_exceptions[exception] = true;
+
+                if (disabled_exceptions[exception] !== undefined) {
+                    delete disabled_exceptions[exception];
+                }
+            } else {
+                disabled_exceptions[exception] = true;
+
+                if (enabled_exceptions[exception] !== undefined) {
+                    delete enabled_exceptions[exception];
+                }
+            }
+        };
+
+        this.addDomainException = function (exception) {
+            if (enabled_domain_exceptions.indexOf(exception) === -1) {
+                enabled_domain_exceptions.push(exception);
+            }
+        };
+
+        this.addMethod = function (method) {
+            if (methods.indexOf(method) === -1) {
+                methods.push(method);
+            }
+        }
+
+        this.getMethods = function () {
+            return methods.slice();
+        };
+
+        this.matchMethod = function (details) {
+            if (!methods.length) return true;
+            return methods.indexOf(details['method']) > -1;
+        }
+
+        this.addResourceType = function (resourceType) {
+            if (resourceTypes.indexOf(resourceType) === -1) {
+                resourceTypes.push(resourceType);
+            }
+        };
+
+        this.getResourceTypes = function () {
+            return resourceTypes.slice();
+        };
+
+        this.matchResourceType = function (details) {
+            if (!resourceTypes.length) {
+                if (storage.types && storage.types.length > 0) {
+                    return storage.types.indexOf(details['type']) > -1;
+                }
+                return true;
+            }
+            return resourceTypes.indexOf(details['type']) > -1;
+        };
+
+        this.matchException = function (url) {
+            let result = false;
+
+            if (url === siteBlockedAlert) return true;
+
+            for (const exception in enabled_exceptions) {
+                if (result) break;
+
+                let exception_regex = new RegExp(exception, "i");
+                result = exception_regex.test(url);
+            }
+            
+            if (!result && enabled_domain_exceptions.length > 0) {
+                result = matchDomainPattern(url, enabled_domain_exceptions);
+            }
+
+            return result;
+        };
+
+        this.addRedirection = function (redirection, isActive = true) {
+            if (isActive) {
+                enabled_redirections[redirection] = true;
+
+                if (disabled_redirections[redirection] !== undefined) {
+                    delete disabled_redirections[redirection];
+                }
+            } else {
+                disabled_redirections[redirection] = true;
+
+                if (enabled_redirections[redirection] !== undefined) {
+                    delete enabled_redirections[redirection];
+                }
+            }
+        };
+
+        this.addDomainRedirection = function (redirection) {
+            if (enabled_domain_redirections.indexOf(redirection) === -1) {
+                enabled_domain_redirections.push(redirection);
+            }
+        };
+
+        this.getRedirection = function (url) {
+            let re = null;
+
+            for (const redirection in enabled_redirections) {
+                let result = (url.match(new RegExp(redirection, "i")));
+
+                if (result && result.length > 0 && redirection) {
+                    re = (new RegExp(redirection, "i")).exec(url)[1];
+
+                    break;
+                }
+            }
+            
+            if (!re && enabled_domain_redirections.length > 0) {
+                for (const domainRedirection of enabled_domain_redirections) {
+                    if (domainRedirection.includes('$redirect=')) {
+                        const [pattern, redirectTarget] = domainRedirection.split('$redirect=');
+                        if (matchDomainPattern(url, [pattern.trim()])) {
+                            re = redirectTarget;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return re;
+        };
+    }
+
+    function clearUrl(request) {
+        if (isWhitelisted(request.url, request)) {
+            if (storage.loggingStatus) {
+                pushToLog(request.url, request.url, translate('log_whitelist_bypass'), {
+                    logCategory: 'feature',
+                    requestMethod: request && typeof request.method === 'string' ? request.method : null,
+                    requestType: request && typeof request.type === 'string' ? request.type : null
+                });
+            }
+            return {};
+        }
+
+        const URLbeforeReplaceCount = countFields(request.url);
+
+        increaseTotalCounter(URLbeforeReplaceCount);
+
+        if (storage.globalStatus) {
+            let result = {
+                "changes": false,
+                "url": "",
+                "redirect": false,
+                "cancel": false
+            };
+
+            if (storage.pingBlocking && storage.pingRequestTypes.includes(request.type)) {
+                pushToLog(request.url, request.url, translate('log_ping_blocked'), {
+                    logCategory: 'feature',
+                    requestMethod: request && typeof request.method === 'string' ? request.method : null,
+                    requestType: request && typeof request.type === 'string' ? request.type : null
+                });
+                increaseBadged(false, request);
+                increaseTotalCounter(1);
+                return {cancel: true};
+            }
+
+            for (let i = 0; i < providers.length; i++) {
+                if (!providers[i].matchMethod(request)) continue;
+                if (!providers[i].matchResourceType(request)) continue;
+                if (providers[i].matchURL(request.url)) {
+                    result = removeFieldsFormURL(providers[i], request.url, false, request);
+                }
+
+                if (result.redirect) {
+                    if (providers[i].shouldForceRedirect() &&
+                        request.type === 'main_frame') {
+                        browser.tabs.update(request.tabId, {url: result.url}).catch(handleError);
+                        return {cancel: true};
+                    }
+
+                    return {
+                        redirectUrl: result.url
+                    };
+                }
+
+                if (result.cancel) {
+                    if (request.type === 'main_frame') {
+                        const blockingPage = browser.runtime.getURL("html/siteBlockedAlert.html?source=" + encodeURIComponent(request.url));
+                        browser.tabs.update(request.tabId, {url: blockingPage}).catch(handleError);
+
+                        return {cancel: true};
+                    } else {
+                        return {
+                            redirectUrl: siteBlockedAlert
+                        };
+                    }
+                }
+
+                if (result.changes) {
+                    return {
+                        redirectUrl: result.url
+                    };
+                }
+            }
+        }
+
+        return {};
+    }
+}
