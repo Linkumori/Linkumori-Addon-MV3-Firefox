@@ -1,8 +1,8 @@
 {
   "metadata": {
     "name": "Linkumori URL Cleaning Rules",
-    "version": "27.02.2026.0001",
-    "buildTimestamp": "2026-02-26T18:31:43.001Z",
+    "version": "27.02.2026.0046",
+    "buildTimestamp": "2026-02-26T19:16:14.866Z",
     "description": "Comprehensive URL cleaning rules for tracking parameter removal and privacy protection",
     "license": "GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.",
     "license-Url": "https://www.gnu.org/licenses/lgpl-3.0.en.html",
@@ -13,7 +13,7 @@
     "Notice-Of-Modification": "It can be found in data/NOTICE.md file",
     "urls": {
       "repository": "https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox",
-      "homepage": "https://addons.mozilla.org/en-US/firefox/addon/linkumori-clean-urls/",
+      "homepage": "https://addons.mozilla.org/en-US/firefox/addon/linkumori/",
       "orginal-clearurls-rulesSource-URL": "https://github.com/ClearURLs/Rules",
       "cleaurls-repo-addon": "https://github.com/ClearURLs/Addon",
       "License-URL": "https://www.gnu.org/licenses/lgpl-3.0.en.html",
