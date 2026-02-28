@@ -5,7 +5,7 @@
 
 > ClearURLs hasn't shipped a user whitelist in **four years** of requests. We did.
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Linkumori/Linkumori-Addon-MV3-Firefox)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Linkumori/Linkumori-Addon-MV3-Firefox)  [![Build and Sign Extension](https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox/actions/workflows/build-and-sign.yml/badge.svg?branch=main)](https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox/actions/workflows/build-and-sign.yml)
 
 Linkumori automatically strips tracking parameters from URLs — silently, instantly, without breaking your browsing. It's built from the ground up for Firefox's Manifest V3 and ships the features that ClearURLs users have been asking for since 2020.
 
