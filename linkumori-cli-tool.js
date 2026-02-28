@@ -1026,9 +1026,7 @@ documentation when you run the build process.
         ? providerName
         : 'provider';
       const key = this.getProviderGroupKey(providerData, safeName);
-      if (key.startsWith('no-pattern:')) {
-        return;
-      }
+      // no-pattern providers still get their own unique key — do NOT drop them
       if (!providerGroups[key]) {
         providerGroups[key] = [];
       }
