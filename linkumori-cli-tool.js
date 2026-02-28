@@ -1522,6 +1522,337 @@ ${commit.message}
     };
   }
 
+  // Lint a ClearURLs rules JSON file by replaying clearurls.js logic.
+  // Accepts both formats:
+  //   • flat  { providerName: { urlPattern, rules, ... }, ... }  ← custom-rules.json
+  //   • wrapped { providers: { providerName: {...}, ... } }       ← linkumori-clearurls-min.json
+  async lintClearURLsRules(rulesFile = null) {
+    this.section('🔍 ClearURLs Rules Linter');
+
+    // ── 0. File selection prompt ──────────────────────────────────────────────
+    if (rulesFile === null) {
+      const customFile  = 'data/custom-rules.json';
+      const builtFile   = 'data/linkumori-clearurls-min.json';
+      const customExists = fs.existsSync(customFile);
+      const builtExists  = fs.existsSync(builtFile);
+
+      if (this.isInteractive()) {
+        this.log('');
+        this.log('Which file do you want to lint?', 'cyan');
+        this.log('');
+        this.log(`  1) 📝 Custom rules   — ${customFile}${customExists ? '' : '  (not found)'}`, 'white');
+        this.log(`  2) 📦 Built output   — ${builtFile}${builtExists ? '' : '  (not found)'}`, 'white');
+        this.log('');
+        process.stdout.write('Enter your choice (1 or 2, default=1): ');
+        const choice = await this.getInput();
+
+        if (choice === '2') {
+          rulesFile = builtFile;
+          this.info(`📦 Selected: ${builtFile}`);
+        } else {
+          rulesFile = customFile;
+          this.info(`📝 Selected: ${customFile}`);
+        }
+        this.log('');
+      } else {
+        // Non-interactive (piped / CI): default to custom-rules.json
+        rulesFile = customFile;
+      }
+    }
+
+    this.info(`📂 Target file: ${rulesFile}`);
+
+    // ── 1. File exists ────────────────────────────────────────────────────────
+    if (!fs.existsSync(rulesFile)) {
+      this.error(`❌ Rules file not found: ${rulesFile}`);
+      if (rulesFile.includes('custom-rules')) {
+        this.info('Edit data/custom-rules.json to add your custom rules.');
+      } else {
+        this.info('Run the "clearurls" command first to build the rules file.');
+      }
+      return false;
+    }
+
+    // ── 2. JSON parse ─────────────────────────────────────────────────────────
+    let data;
+    try {
+      const raw = fs.readFileSync(rulesFile, 'utf8');
+      data = JSON.parse(raw);
+    } catch (err) {
+      this.error(`❌ JSON parse error: ${err.message}`);
+      return false;
+    }
+
+    // ── 3. Auto-detect format and extract providers object ────────────────────
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      this.error('❌ Root must be a JSON object');
+      return false;
+    }
+
+    let providersObj;
+    let formatLabel;
+    if (data.providers && typeof data.providers === 'object' && !Array.isArray(data.providers)) {
+      // Wrapped format: { metadata?: {...}, providers: { ... } }
+      providersObj = data.providers;
+      formatLabel  = 'wrapped ({ providers: {...} })';
+    } else {
+      // Flat format: { providerName: { urlPattern, rules, ... }, ... }
+      // Validate that values look like provider objects (not metadata fields)
+      const values = Object.values(data);
+      const looksFlat = values.every(v => v === null || typeof v === 'object');
+      if (!looksFlat) {
+        this.error('❌ Cannot determine JSON format — root values must be provider objects');
+        return false;
+      }
+      providersObj = data;
+      formatLabel  = 'flat (custom-rules style)';
+    }
+
+    const providerEntries = Object.entries(providersObj);
+    this.info(`📋 Format detected: ${formatLabel}`);
+    this.info(`📦 Providers found: ${providerEntries.length}`);
+
+    const errors   = [];
+    const warnings = [];
+    let totalRegexChecked = 0;
+
+    // helper — try to compile a regex, push error on failure
+    const tryRegex = (pattern, flags, label) => {
+      try {
+        new RegExp(pattern, flags);
+        totalRegexChecked++;
+        return true;
+      } catch (e) {
+        errors.push(`${label} → ${e.message}`);
+        return false;
+      }
+    };
+
+    // ── 4. Per-provider validation ────────────────────────────────────────────
+    this.info('🔎 Validating provider patterns & rules...');
+
+    for (const [name, provider] of providerEntries) {
+      const tag = `[${name}]`;
+
+      // urlPattern / domainPatterns
+      const hasUrlPattern    = typeof provider.urlPattern === 'string' && provider.urlPattern.trim() !== '';
+      const hasDomainPattern = Array.isArray(provider.domainPatterns) && provider.domainPatterns.length > 0;
+
+      if (!hasUrlPattern && !hasDomainPattern) {
+        warnings.push(`${tag} No urlPattern or domainPatterns — provider will never match any URL`);
+      }
+
+      if (hasUrlPattern) {
+        tryRegex(provider.urlPattern, 'i', `${tag} urlPattern`);
+      }
+
+      if (hasDomainPattern) {
+        for (const dp of provider.domainPatterns) {
+          if (typeof dp !== 'string' || dp.trim() === '') {
+            warnings.push(`${tag} Empty/non-string entry in domainPatterns`);
+          }
+        }
+      }
+
+      // rules
+      for (const rule of (Array.isArray(provider.rules) ? provider.rules : [])) {
+        tryRegex(`^${rule}$`, 'gi', `${tag} rule "${rule}"`);
+      }
+
+      // rawRules
+      for (const raw of (Array.isArray(provider.rawRules) ? provider.rawRules : [])) {
+        tryRegex(raw, 'gi', `${tag} rawRule "${raw}"`);
+      }
+
+      // referralMarketing
+      for (const rm of (Array.isArray(provider.referralMarketing) ? provider.referralMarketing : [])) {
+        tryRegex(`^${rm}$`, 'gi', `${tag} referralMarketing "${rm}"`);
+      }
+
+      // exceptions
+      for (const ex of (Array.isArray(provider.exceptions) ? provider.exceptions : [])) {
+        tryRegex(ex, 'i', `${tag} exception "${ex.substring(0, 60)}..."`);
+      }
+
+      // redirections — must be a valid regex AND contain at least one capture group
+      for (const rd of (Array.isArray(provider.redirections) ? provider.redirections : [])) {
+        const ok = tryRegex(rd, 'i', `${tag} redirection "${rd.substring(0, 60)}..."`);
+        if (ok && !rd.includes('(')) {
+          warnings.push(`${tag} Redirection has no capture group (destination will be undefined): "${rd.substring(0, 60)}..."`);
+        }
+      }
+
+      // domainExceptions / domainRedirections — confirm they are string arrays
+      for (const field of ['domainExceptions', 'domainRedirections']) {
+        const arr = provider[field];
+        if (arr !== undefined && !Array.isArray(arr)) {
+          errors.push(`${tag} "${field}" must be an array`);
+        }
+      }
+
+      // completeProvider / forceRedirection must be boolean if present
+      for (const flag of ['completeProvider', 'forceRedirection']) {
+        if (provider[flag] !== undefined && typeof provider[flag] !== 'boolean') {
+          errors.push(`${tag} "${flag}" must be a boolean, got ${typeof provider[flag]}`);
+        }
+      }
+    }
+
+    // ── 5. Functional smoke tests ─────────────────────────────────────────────
+    // Mirrors clearurls.js removeFieldsFormURL.
+    // Finds ALL providers whose urlPattern matches the test URL and applies
+    // their rules — works for any file regardless of provider naming.
+    this.info('🧪 Running functional smoke tests...');
+
+    // Apply every matching provider's rules to a URL string
+    const applyAllMatchingProviders = (inputUrl) => {
+      let urlStr = inputUrl;
+      for (const [, provider] of providerEntries) {
+        if (typeof provider.urlPattern !== 'string') continue;
+        let re;
+        try { re = new RegExp(provider.urlPattern, 'i'); } catch { continue; }
+        if (!re.test(urlStr)) continue;
+
+        // rawRules (full-string replace)
+        for (const rawRule of (Array.isArray(provider.rawRules) ? provider.rawRules : [])) {
+          try { urlStr = urlStr.replace(new RegExp(rawRule, 'gi'), ''); } catch { /* bad regex already reported */ }
+        }
+
+        // rules + referralMarketing (query-param name matching)
+        let urlObj;
+        try { urlObj = new URL(urlStr); } catch { continue; }
+        const params = urlObj.searchParams;
+        const allRules = [
+          ...(Array.isArray(provider.rules) ? provider.rules : []),
+          ...(Array.isArray(provider.referralMarketing) ? provider.referralMarketing : [])
+        ];
+        for (const rule of allRules) {
+          const toDelete = [];
+          for (const key of params.keys()) {
+            // Fresh RegExp each time — avoids stateful lastIndex with 'g' flag
+            if (new RegExp(`^${rule}$`, 'gi').test(key)) toDelete.push(key);
+          }
+          for (const key of toDelete) params.delete(key);
+        }
+        urlObj.search = params.toString() ? `?${params.toString()}` : '';
+        urlStr = urlObj.toString();
+      }
+      return urlStr;
+    };
+
+    const smokeTests = [
+      {
+        label: 'Amazon — removes qid, pd_rd_r, tag; keeps keepme',
+        url: 'https://www.amazon.com/dp/B09V3KXJPB?tag=ref-20&pd_rd_r=abc&qid=1234&keepme=1',
+        expectAbsent:  ['tag', 'pd_rd_r', 'qid'],
+        expectPresent: ['keepme']
+      },
+      {
+        label: 'Global UTM — removes utm_source, utm_medium, fbclid; keeps keepme',
+        url: 'https://example.com/page?utm_source=nl&utm_medium=email&fbclid=x&keepme=1',
+        expectAbsent:  ['utm_source', 'utm_medium', 'fbclid'],
+        expectPresent: ['keepme']
+      },
+      {
+        label: 'Google — removes ved, ei, source; keeps q, keepme',
+        url: 'https://www.google.com/search?q=hello&ved=abc&ei=xyz&source=web&keepme=1',
+        expectAbsent:  ['ved', 'ei', 'source'],
+        expectPresent: ['q', 'keepme']
+      },
+      {
+        label: 'YouTube — removes si, feature; keeps v, keepme',
+        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&si=abc&feature=share&keepme=1',
+        expectAbsent:  ['si', 'feature'],
+        expectPresent: ['v', 'keepme']
+      },
+      {
+        label: 'Facebook — removes hc_ref; keeps fbid, keepme',
+        url: 'https://www.facebook.com/photo?fbid=123&hc_ref=ARSxyz&keepme=1',
+        expectAbsent:  ['hc_ref'],
+        expectPresent: ['fbid', 'keepme']
+      }
+    ];
+
+    let smokePass = 0;
+    let smokeFail = 0;
+    let smokeSkip = 0;
+
+    for (const test of smokeTests) {
+      try {
+        const originalObj = new URL(test.url);
+        const cleaned     = applyAllMatchingProviders(test.url);
+        const cleanedObj  = new URL(cleaned);
+        const cleanParams = cleanedObj.searchParams;
+
+        const stillPresent   = test.expectAbsent.filter(p => cleanParams.has(p));
+        const wronglyRemoved = (test.expectPresent || []).filter(p =>
+          originalObj.searchParams.has(p) && !cleanParams.has(p)
+        );
+        const anyRemoved     = test.expectAbsent.some(p => !cleanParams.has(p));
+
+        if (!anyRemoved) {
+          // Zero params cleaned → no matching rules in this file for these params → skip
+          this.log(`  ⏭️  ${test.label} (skipped — no rules for these params in this file)`, 'dim');
+          smokeSkip++;
+          continue;
+        }
+
+        if (wronglyRemoved.length > 0) {
+          // Over-removal is always a real problem (a rule is too greedy)
+          let msg = `  ⚠️  ${test.label}`;
+          msg += `\n       Over-removed (should stay): ${wronglyRemoved.join(', ')}`;
+          if (stillPresent.length) msg += `\n       Also not removed     : ${stillPresent.join(', ')}`;
+          this.warning(msg);
+          warnings.push(`Smoke test [${test.label}]: over-removed=[${wronglyRemoved.join(',')}]`);
+          smokeFail++;
+        } else if (stillPresent.length === 0) {
+          // All expected params removed, nothing over-removed → full pass
+          this.success(`  ✅ ${test.label}`);
+          smokePass++;
+        } else {
+          // Some params removed, some not → partial coverage, informational only
+          this.info(`  ℹ️  ${test.label} — partial (not in this file): ${stillPresent.join(', ')}`);
+          smokePass++;
+        }
+      } catch (e) {
+        this.error(`  ❌ ${test.label}: ${e.message}`);
+        errors.push(`Smoke test error [${test.label}]: ${e.message}`);
+        smokeFail++;
+      }
+    }
+
+    // ── 6. Summary ────────────────────────────────────────────────────────────
+    this.section('📊 Lint Summary');
+    this.info(`  File        : ${rulesFile}`);
+    this.info(`  Format      : ${formatLabel}`);
+    this.info(`  Providers   : ${providerEntries.length}`);
+    this.info(`  Regex checks: ${totalRegexChecked}`);
+    this.info(`  Smoke tests : ${smokePass} passed, ${smokeFail} failed, ${smokeSkip} skipped`);
+    this.info(`  Errors      : ${errors.length}`);
+    this.info(`  Warnings    : ${warnings.length}`);
+
+    if (errors.length > 0) {
+      this.log('');
+      this.error(`❌ ${errors.length} error(s):`);
+      for (const e of errors) this.error(`   • ${e}`);
+    }
+
+    if (warnings.length > 0) {
+      this.log('');
+      this.warning(`⚠️  ${warnings.length} warning(s):`);
+      for (const w of warnings) this.warning(`   • ${w}`);
+    }
+
+    this.log('');
+    if (errors.length === 0) {
+      this.success(`✅ Lint passed — ${providerEntries.length} providers, 0 errors, ${warnings.length} warning(s)`);
+      return true;
+    } else {
+      this.error(`❌ Lint FAILED — ${errors.length} error(s) must be fixed`);
+      return false;
+    }
+  }
+
   // NEW: Create or append to NOTICE.md file (from superior script)
   createNoticeFile(outputFiles, stats, version) {
     const noticeFile = config.noticeFile;
@@ -2665,6 +2996,7 @@ coverage/**
       { key: '6', name: 'Build Old Country Nobility Font Only', action: () => this.buildOldCountryNobilityFont() },
       { key: '7', name: 'Build ClearURLs Rules Only (Minified)', action: () => this.buildCustomClearURLs() },
       { key: '8', name: 'Unminify ClearURLs Rules', action: () => this.unminifyClearURLs() },
+      { key: 'r', name: 'Lint  Rules ', action: () => this.lintClearURLsRules() },
       { key: '9', name: 'Generate Commit History', action: () => this.createCommitHistoryMarkdown() },
       { key: 'g', name: 'Generate Copyright Documentation Only', action: () => this.generateCopyrightDocumentation() },
       { key: 't', name: 'Create Custom Rules Template', action: () => this.createCustomRulesTemplate() },
@@ -2684,7 +3016,7 @@ coverage/**
       this.log(`  ${colors.yellow}${option.key}${colors.reset}) ${option.name}`);
     }
 
-    this.log(`\n${colors.green}Choose an option (0-9, g, t, p, l, v, u, x, s, c, q): ${colors.reset}`, 'green');
+    this.log(`\n${colors.green}Choose an option (0-9, g, r, t, p, l, v, u, x, s, c, q): ${colors.reset}`, 'green');
     
     process.stdout.write('');
     const input = await this.getInput();
@@ -2901,6 +3233,11 @@ coverage/**
         case 'clearurls':
           await this.buildCustomClearURLs();
           break;
+        case 'lint-rules':
+        case 'lint-clearurls':
+          // pass explicit path if given; null triggers the interactive prompt
+          await this.lintClearURLsRules(args[1] || null);
+          break;
         case 'unminify':
         case 'unminify-clearurls':
           await this.unminifyClearURLs();
@@ -2990,6 +3327,8 @@ coverage/**
     this.log('  lint                  Lint extension code', 'white');
     this.log('  fonts                 Build Old Country Nobility Font only', 'white');
     this.log('  clearurls             Build ClearURLs minified rules only', 'white');
+    this.log('  lint-rules            Lint linkumori-clearurls-min.json (regex + smoke tests)', 'white');
+    this.log('  lint-clearurls        Alias for lint-rules', 'white');
     this.log('  unminify              Unminify ClearURLs rules to readable JSON', 'white');
     this.log('  commit-history        Create formatted markdown of git commit history', 'white');
     this.log('  clearurls-template    Create custom rules template', 'white');
@@ -3015,6 +3354,7 @@ coverage/**
     this.log('  bun run linkumori-cli-bun-merged.js licenses', 'dim');
     this.log('  bun run linkumori-cli-bun-merged.js copyright', 'dim');
     this.log('  bun run linkumori-cli-bun-merged.js clearurls', 'dim');
+    this.log('  bun run linkumori-cli-bun-merged.js lint-rules', 'dim');
     this.log('  bun run linkumori-cli-bun-merged.js unminify', 'dim');
     this.log('  bun run linkumori-cli-bun-merged.js commit-history', 'dim');
     this.log('  bun run linkumori-cli-bun-merged.js release', 'dim');
@@ -3095,6 +3435,25 @@ coverage/**
     this.log('  - Creates linkumori-clearurls.json with pretty formatting', 'dim');
     this.log('  - Shows size comparison and expansion details', 'dim');
     this.log('  - Useful for debugging and manual rule inspection', 'dim');
+
+    this.log('\nLint ClearURLs Rules (lint-rules / lint-clearurls):', 'cyan');
+    this.log('  Validates a rules JSON file by replaying clearurls.js logic.', 'white');
+    this.log('  Default target: data/custom-rules.json', 'white');
+    this.log('  Auto-detects both JSON formats:', 'dim');
+    this.log('    • Flat  { providerName: {...} }          ← custom-rules.json', 'dim');
+    this.log('    • Wrapped { providers: { ... } }         ← linkumori-clearurls-min.json', 'dim');
+    this.log('  Checks per provider:', 'dim');
+    this.log('    - urlPattern compiles as a valid JS regex', 'dim');
+    this.log('    - rules / rawRules / referralMarketing / exceptions all compile', 'dim');
+    this.log('    - redirections compile AND have a capture group', 'dim');
+    this.log('    - completeProvider / forceRedirection are boolean if present', 'dim');
+    this.log('  Functional smoke tests (URL-pattern based, no hardcoded provider names):', 'dim');
+    this.log('    Amazon qid/pd_rd_r/tag, Global utm_*/fbclid,', 'dim');
+    this.log('    Google ved/ei/source, YouTube si/feature, Facebook hc_ref', 'dim');
+    this.log('    Tests are skipped (not failed) when no provider in the file matches', 'dim');
+    this.log('  Optional path argument:', 'dim');
+    this.log('    bun linkumori-cli-tool.js lint-rules data/custom-rules.json', 'dim');
+    this.log('    bun linkumori-cli-tool.js lint-rules data/linkumori-clearurls-min.json', 'dim');
 
     this.log('\nCommit History Generator:', 'cyan');
     this.log('  The commit-history command creates a formatted markdown file with:', 'white');
