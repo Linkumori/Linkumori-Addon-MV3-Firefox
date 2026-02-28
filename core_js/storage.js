@@ -333,12 +333,70 @@ function mergeRemoteProviderGroup(providerGroup) {
     return merged;
 }
 
+function deriveNameFromUrlPattern(urlPattern) {
+    try {
+        // Unescape common regex escapes: \/ -> /  and  \. -> .
+        const s = urlPattern
+            .replace(/\\\//g, '/')
+            .replace(/\\\./g, '.');
+
+        // Strip protocol boilerplate: ^https?://
+        const withoutProtocol = s.replace(/^\^?https?\??:\/\//, '');
+
+        // Strip leading non-capturing group prefix e.g. (?:[a-z0-9-]+.)*?
+        const withoutPrefix = withoutProtocol.replace(/^\(\?:[^)]+\)\*\??/, '');
+
+        // Match a domain-like pattern at the start of what remains
+        const m = withoutPrefix.match(/^([a-z0-9][a-z0-9-]*(?:\.[a-z]{2,})*\.?)/i);
+        if (m && m[1]) {
+            return m[1].replace(/\.$/, '').toLowerCase();
+        }
+
+        // Fallback: find any domain-like token anywhere in the remaining string
+        const anyDomain = withoutPrefix.match(/\b([a-z0-9][a-z0-9-]+(?:\.[a-z]{2,})+)/i);
+        if (anyDomain) return anyDomain[1].toLowerCase();
+
+        // Last resort: strip all regex meta-chars and return text
+        const text = withoutPrefix
+            .replace(/[^a-z0-9.]/gi, '')
+            .replace(/^\.+|\.+$/g, '');
+        if (text.length >= 2) return text.toLowerCase();
+    } catch (_) {}
+    return null;
+}
+
+function deriveNameFromDomainPatterns(patterns) {
+    const nonWildcard = patterns.filter(p => !p.startsWith('*') && !p.startsWith('.'));
+    const candidates = nonWildcard.length > 0 ? nonWildcard : patterns;
+    const sorted = [...candidates].sort((a, b) => a.length - b.length);
+    return sorted[0].replace(/^\*\./, '').trim() || null;
+}
+
 function createMergedRemoteProviderName(providerGroup) {
-    const prioritized = providerGroup.filter(provider => provider.isPrimarySource);
-    if (prioritized.length > 0) {
-        return prioritized[0].name;
+    // 1. Try urlPattern from any provider in the group
+    for (const provider of providerGroup) {
+        const up = provider.data?.urlPattern;
+        if (typeof up === 'string' && up.trim()) {
+            const derived = deriveNameFromUrlPattern(up.trim());
+            if (derived) return derived;
+        }
     }
 
+    // 2. Try domainPatterns / domainPattern fields
+    const allDomainPatterns = [];
+    for (const provider of providerGroup) {
+        const dp = provider.data?.domainPatterns ?? provider.data?.domainPattern;
+        if (Array.isArray(dp)) allDomainPatterns.push(...dp.filter(Boolean));
+        else if (typeof dp === 'string' && dp.trim()) allDomainPatterns.push(dp.trim());
+    }
+    if (allDomainPatterns.length > 0) {
+        const derived = deriveNameFromDomainPatterns(allDomainPatterns);
+        if (derived) return derived;
+    }
+
+    // 3. Fallback: primary source name, or shortest existing name
+    const prioritized = providerGroup.filter(provider => provider.isPrimarySource);
+    if (prioritized.length > 0) return prioritized[0].name;
     const names = providerGroup.map(provider => provider.name);
     names.sort((a, b) => a.length - b.length);
     return names[0];
