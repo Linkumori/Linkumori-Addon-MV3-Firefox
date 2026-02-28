@@ -1,11 +1,50 @@
 # Git Commit History
 
-**Generated**: 2026-02-28T16:26:17.931Z
-**Total Commits**: 33
+**Generated**: 2026-02-28T18:40:18.714Z
+**Total Commits**: 35
 
 ---
 
-## Commit 1: Merge branch 'main' of https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox
+## Commit 1: fixed bugs in popup.js and added open_in_tab in manifest.json
+
+**Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
+**Date**: 2026-03-01 00:09:51 +0530
+**Commit Hash**: `fe314b60f4eeb810ebbcfc43ce3bad815051604d`
+**Short Hash**: `fe314b6`
+
+### Files Modified
+
+- **Modified**: `core_js/popup.js`
+- **Modified**: `manifest.json`
+
+### Commit Message
+
+```
+fixed bugs in popup.js and added open_in_tab in manifest.json
+```
+
+---
+
+## Commit 2: chore: update commit history
+
+**Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+**Date**: 2026-02-28 16:26:17 +0000
+**Commit Hash**: `e1aa5e9f85b17a7d4c4db592206c1c49e6d6bbc7`
+**Short Hash**: `e1aa5e9`
+
+### Files Modified
+
+- **Modified**: `COMMIT_HISTORY.md`
+
+### Commit Message
+
+```
+chore: update commit history
+```
+
+---
+
+## Commit 3: Merge branch 'main' of https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-28 21:56:04 +0530
@@ -24,7 +63,7 @@ Merge branch 'main' of https://github.com/Linkumori/Linkumori-Addon-MV3-Firefox
 
 ---
 
-## Commit 2: update name in rules in bundles rules during build
+## Commit 4: update name in rules in bundles rules during build
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-28 21:55:30 +0530
@@ -46,7 +85,7 @@ update name in rules in bundles rules during build
 
 ---
 
-## Commit 3: chore: update commit history
+## Commit 5: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-28 15:31:54 +0000
@@ -65,7 +104,7 @@ chore: update commit history
 
 ---
 
-## Commit 4: Update README.MD
+## Commit 6: Update README.MD
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-28 21:01:44 +0530
@@ -84,7 +123,7 @@ Update README.MD
 
 ---
 
-## Commit 5: chore: update commit history
+## Commit 7: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-28 10:00:23 +0000
@@ -103,7 +142,7 @@ chore: update commit history
 
 ---
 
-## Commit 6: fix all issue in custom-rules.json and linkumori-cli-tool.js  and update NOTICE.md with new changes
+## Commit 8: fix all issue in custom-rules.json and linkumori-cli-tool.js  and update NOTICE.md with new changes
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-28 15:29:32 +0530
@@ -125,7 +164,7 @@ fix all issue in custom-rules.json and linkumori-cli-tool.js  and update NOTICE.
 
 ---
 
-## Commit 7: chore: update commit history
+## Commit 9: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-28 07:41:14 +0000
@@ -144,7 +183,7 @@ chore: update commit history
 
 ---
 
-## Commit 8: added some rules to custom-rules.json and updated NOTICE.md and public_suffix_list.dat and and updaed linkumori-cli-tool.js to fix bugs.
+## Commit 10: added some rules to custom-rules.json and updated NOTICE.md and public_suffix_list.dat and and updaed linkumori-cli-tool.js to fix bugs.
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-28 13:09:17 +0530
@@ -167,7 +206,7 @@ added some rules to custom-rules.json and updated NOTICE.md and public_suffix_li
 
 ---
 
-## Commit 9: chore: update commit history
+## Commit 11: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 23:31:17 +0000
@@ -186,7 +225,7 @@ chore: update commit history
 
 ---
 
-## Commit 10: Update README.MD
+## Commit 12: Update README.MD
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 05:01:04 +0530
@@ -205,7 +244,7 @@ Update README.MD
 
 ---
 
-## Commit 11: chore: update commit history
+## Commit 13: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 20:55:36 +0000
@@ -224,7 +263,7 @@ chore: update commit history
 
 ---
 
-## Commit 12: Delete .github/workflows/Deepwiki.yaml
+## Commit 14: Delete .github/workflows/Deepwiki.yaml
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 02:25:24 +0530
@@ -243,7 +282,7 @@ Delete .github/workflows/Deepwiki.yaml
 
 ---
 
-## Commit 13: chore: update commit history
+## Commit 15: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 20:48:30 +0000
@@ -262,7 +301,7 @@ chore: update commit history
 
 ---
 
-## Commit 14: Update Deepwiki.yaml
+## Commit 16: Update Deepwiki.yaml
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 02:18:15 +0530
@@ -281,7 +320,7 @@ Update Deepwiki.yaml
 
 ---
 
-## Commit 15: chore: update commit history
+## Commit 17: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 20:46:47 +0000
@@ -300,7 +339,7 @@ chore: update commit history
 
 ---
 
-## Commit 16: Create Deepwiki.yaml
+## Commit 18: Create Deepwiki.yaml
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 02:16:33 +0530
@@ -319,7 +358,7 @@ Create Deepwiki.yaml
 
 ---
 
-## Commit 17: chore: update commit history
+## Commit 19: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 20:16:52 +0000
@@ -338,7 +377,7 @@ chore: update commit history
 
 ---
 
-## Commit 18: Update CHANGELOG.md
+## Commit 20: Update CHANGELOG.md
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 01:46:40 +0530
@@ -357,7 +396,7 @@ Update CHANGELOG.md
 
 ---
 
-## Commit 19: chore: update commit history
+## Commit 21: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 20:15:26 +0000
@@ -376,7 +415,7 @@ chore: update commit history
 
 ---
 
-## Commit 20: Update README.MD
+## Commit 22: Update README.MD
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 01:45:13 +0530
@@ -395,7 +434,7 @@ Update README.MD
 
 ---
 
-## Commit 21: chore: update commit history
+## Commit 23: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 19:57:52 +0000
@@ -414,7 +453,7 @@ chore: update commit history
 
 ---
 
-## Commit 22: Create wiki.json
+## Commit 24: Create wiki.json
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 01:27:29 +0530
@@ -433,7 +472,7 @@ Create wiki.json
 
 ---
 
-## Commit 23: Delete .devin/wiki.json
+## Commit 25: Delete .devin/wiki.json
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 01:27:16 +0530
@@ -452,7 +491,7 @@ Delete .devin/wiki.json
 
 ---
 
-## Commit 24: chore: update commit history
+## Commit 26: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 19:52:27 +0000
@@ -471,7 +510,7 @@ chore: update commit history
 
 ---
 
-## Commit 25: Update wiki.json
+## Commit 27: Update wiki.json
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 01:22:01 +0530
@@ -490,7 +529,7 @@ Update wiki.json
 
 ---
 
-## Commit 26: chore: update commit history
+## Commit 28: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 19:30:01 +0000
@@ -509,7 +548,7 @@ chore: update commit history
 
 ---
 
-## Commit 27: Update wiki.json
+## Commit 29: Update wiki.json
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 00:59:45 +0530
@@ -528,7 +567,7 @@ Update wiki.json
 
 ---
 
-## Commit 28: chore: update commit history
+## Commit 30: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 19:27:18 +0000
@@ -547,7 +586,7 @@ chore: update commit history
 
 ---
 
-## Commit 29: Create wiki.json
+## Commit 31: Create wiki.json
 
 **Author**: Subham Mahesh <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 00:57:00 +0530
@@ -566,7 +605,7 @@ Create wiki.json
 
 ---
 
-## Commit 30: chore: update commit history
+## Commit 32: chore: update commit history
 
 **Author**: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 **Date**: 2026-02-26 19:19:07 +0000
@@ -585,7 +624,7 @@ chore: update commit history
 
 ---
 
-## Commit 31: updated json and notice and commit history
+## Commit 33: updated json and notice and commit history
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 00:48:12 +0530
@@ -606,7 +645,7 @@ updated json and notice and commit history
 
 ---
 
-## Commit 32: Updated readme and added security policy
+## Commit 34: Updated readme and added security policy
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 00:44:59 +0530
@@ -628,7 +667,7 @@ Updated readme and added security policy
 
 ---
 
-## Commit 33: release of official v1.0
+## Commit 35: release of official v1.0
 
 **Author**: Linkumori <142691487+subham8907@users.noreply.github.com>
 **Date**: 2026-02-27 00:10:33 +0530
@@ -781,4 +820,4 @@ release of official v1.0
 
 *End of Commit History*
 
-**Generated by Linkumori CLI** - 2026-02-28T16:26:17.931Z
+**Generated by Linkumori CLI** - 2026-02-28T18:40:18.714Z
