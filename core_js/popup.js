@@ -1064,36 +1064,32 @@ function changeStatistics() {
         // Ensure we have valid numbers
         const cleaned = cleanedCounter || 0;
         const total = totalCounter || 0;
-        
-        // Calculate percentage safely
-        let percentage = 0;
-        if (total > 0) {
-            percentage = (cleaned / total) * 100;
-            percentage = Number(percentage.toFixed(3));
-        }
 
-        if (isNaN(percentage) || percentage < 0) {
-            percentage = 0;
+        // Calculate percentage: clamped to [0, 100], 1 decimal max, no trailing zero
+        let percentage = 0;
+        if (total > 0 && cleaned > 0) {
+            percentage = Math.min(100, (cleaned / total) * 100);
         }
-        
+        percentage = parseFloat(percentage.toFixed(1));
+        if (isNaN(percentage)) percentage = 0;
+
         globalPercentage = percentage;
 
-        // FIXED: Direct conversion using LinkumoriI18n only
         // Convert raw numbers directly to target locale
         const localizedCleaned = LinkumoriI18n.localizeNumbers(cleaned);
         const localizedTotal = LinkumoriI18n.localizeNumbers(total);
         const localizedPercentage = LinkumoriI18n.localizeNumbers(percentage);
-        
+
         // Get localized percentage symbol
         const percentageSymbol = LinkumoriI18n.getMessage('percentage_symbol') || '%';
-        
+
         // Update elements with localized numbers
         element.textContent = localizedCleaned;
         elGlobalPercentage.textContent = localizedPercentage + percentageSymbol;
         elTotal.textContent = localizedTotal;
-        
+
         // Progress bar width (always use standard percentage for CSS)
-        elProgressbar_blocked.style.width = Math.min(percentage, 100) + '%';
+        elProgressbar_blocked.style.width = percentage + '%';
         
     } catch (error) {
         console.error('Error in changeStatistics:', error);
