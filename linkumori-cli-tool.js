@@ -844,7 +844,7 @@ documentation when you run the build process.
       this.info(`   Last modified: ${new Date(stats.mtime).toLocaleString()}`);
       this.log('');
       this.log('Choose PSL mode:', 'cyan');
-      this.log('  1) 🌐 Online  – Download latest PSL data (recommended)', 'white');
+      this.log('  1) 🌐 Online  – Download latest PSL data (recommended) Read legal document https://publicsuffix.org/ ', 'white');
       this.log('  2) 💾 Offline – Use existing local PSL file', 'white');
       this.log('');
       process.stdout.write('Enter your choice (1 or 2, default=1): ');
@@ -1043,21 +1043,26 @@ documentation when you run the build process.
 
     Object.values(providerGroups).forEach(providerGroup => {
       let finalProvider;
-      let baseName;
 
       if (providerGroup.length === 1) {
         finalProvider = providerGroup[0].data;
-        baseName = providerGroup[0].name;
       } else {
         finalProvider = this.mergeProvidersGroup(providerGroup);
-        baseName = this.createMergedProviderName(providerGroup);
         totalMerged += providerGroup.length - 1;
       }
 
+      const baseName = this.createMergedProviderName(providerGroup);
+
       let finalName = baseName;
-      let counter = 1;
-      while (usedNames.has(finalName)) {
-        finalName = `${baseName}_${counter++}`;
+      if (usedNames.has(finalName)) {
+        // Try to qualify with a path segment before resorting to a counter
+        const pathName = this.derivePathQualifiedName(providerGroup, baseName);
+        if (pathName && !usedNames.has(pathName)) {
+          finalName = pathName;
+        } else {
+          let counter = 1;
+          do { finalName = `${baseName}_${counter++}`; } while (usedNames.has(finalName));
+        }
       }
       usedNames.add(finalName);
       mergedProviders[finalName] = finalProvider;
@@ -1196,6 +1201,20 @@ documentation when you run the build process.
     return sorted[0].replace(/^\*\./, '').trim() || null;
   }
 
+  // When baseName already collides, try to append the first meaningful path
+  // segment from the URL pattern: youtube.com + /pagead → youtube.com_pagead
+  derivePathQualifiedName(providerGroup, baseName) {
+    for (const provider of providerGroup) {
+      const up = provider.data?.urlPattern;
+      if (typeof up !== 'string') continue;
+      const s = up.replace(/\\\//g, '/').replace(/\\\./g, '.').replace(/\\\-/g, '-');
+      // Match first path segment that follows a domain-like token
+      const m = s.match(/[a-z0-9](?:\.[a-z]{2,})*\/?\/([a-z][a-z0-9_-]{1,})/i);
+      if (m && m[1]) return `${baseName}_${m[1].toLowerCase()}`;
+    }
+    return null;
+  }
+
   // Derive elegant provider name from pattern data; fall back to existing names
   createMergedProviderName(providerGroup) {
     // 1. Try urlPattern from any provider in the group
@@ -1219,12 +1238,15 @@ documentation when you run the build process.
       if (derived) return derived;
     }
 
-    // 3. Fallback: primary source name, or shortest existing name
+    // 3. Fallback: primary source name, or shortest existing name.
+    // Strip artificial _N suffixes added during key-dedup in mergeOfficialWithCustomRules
+    // so that e.g. "dell.com_1" recovers its clean name "dell.com".
+    const stripSuffix = name => name.replace(/_\d+$/, '');
     const prioritized = providerGroup.filter(provider => provider.isPrimarySource);
-    if (prioritized.length > 0) return prioritized[0].name;
+    if (prioritized.length > 0) return stripSuffix(prioritized[0].name);
     const names = providerGroup.map(provider => provider.name);
     names.sort((a, b) => a.length - b.length);
-    return names[0];
+    return stripSuffix(names[0]);
   }
 
   // Apply same bundled + remote merge flow to official + custom in CLI.

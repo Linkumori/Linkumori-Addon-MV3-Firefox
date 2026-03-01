@@ -372,6 +372,19 @@ function deriveNameFromDomainPatterns(patterns) {
     return sorted[0].replace(/^\*\./, '').trim() || null;
 }
 
+// When baseName already collides, try to append the first meaningful path
+// segment from the URL pattern: youtube.com + /pagead → youtube.com_pagead
+function derivePathQualifiedName(providerGroup, baseName) {
+    for (const provider of providerGroup) {
+        const up = provider.data?.urlPattern;
+        if (typeof up !== 'string') continue;
+        const s = up.replace(/\\\//g, '/').replace(/\\\./g, '.').replace(/\\\-/g, '-');
+        const m = s.match(/[a-z0-9](?:\.[a-z]{2,})*\/?\/([a-z][a-z0-9_-]{1,})/i);
+        if (m && m[1]) return `${baseName}_${m[1].toLowerCase()}`;
+    }
+    return null;
+}
+
 function createMergedRemoteProviderName(providerGroup) {
     // 1. Try urlPattern from any provider in the group
     for (const provider of providerGroup) {
@@ -394,12 +407,15 @@ function createMergedRemoteProviderName(providerGroup) {
         if (derived) return derived;
     }
 
-    // 3. Fallback: primary source name, or shortest existing name
+    // 3. Fallback: primary source name, or shortest existing name.
+    // Strip artificial _N suffixes added during key-dedup so e.g. "dell.com_1"
+    // recovers its clean name "dell.com".
+    const stripSuffix = name => name.replace(/_\d+$/, '');
     const prioritized = providerGroup.filter(provider => provider.isPrimarySource);
-    if (prioritized.length > 0) return prioritized[0].name;
+    if (prioritized.length > 0) return stripSuffix(prioritized[0].name);
     const names = providerGroup.map(provider => provider.name);
     names.sort((a, b) => a.length - b.length);
-    return names[0];
+    return stripSuffix(names[0]);
 }
 
 function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new Set()) {
@@ -430,30 +446,26 @@ function mergeRemoteProvidersByUrlPattern(providers, primaryProviderNames = new 
     const usedNames = new Set();
 
     Object.values(providerGroups).forEach(providerGroup => {
+        let finalProvider;
         if (providerGroup.length === 1) {
-            // Single provider – keep original data, but ensure name uniqueness
-            const provider = providerGroup[0];
-            let baseName = provider.name;
-            let finalName = baseName;
-            let counter = 1;
-            while (usedNames.has(finalName)) {
-                finalName = `${baseName}_${counter++}`;
-            }
-            usedNames.add(finalName);
-            mergedProviders[finalName] = provider.data;
-            return;
+            finalProvider = providerGroup[0].data;
+        } else {
+            finalProvider = mergeRemoteProviderGroup(providerGroup);
         }
 
-        // Multiple providers to merge
-        const mergedProvider = mergeRemoteProviderGroup(providerGroup);
-        let baseName = createMergedRemoteProviderName(providerGroup);
+        const baseName = createMergedRemoteProviderName(providerGroup);
         let finalName = baseName;
-        let counter = 1;
-        while (usedNames.has(finalName)) {
-            finalName = `${baseName}_${counter++}`;
+        if (usedNames.has(finalName)) {
+            const pathName = derivePathQualifiedName(providerGroup, baseName);
+            if (pathName && !usedNames.has(pathName)) {
+                finalName = pathName;
+            } else {
+                let counter = 1;
+                do { finalName = `${baseName}_${counter++}`; } while (usedNames.has(finalName));
+            }
         }
         usedNames.add(finalName);
-        mergedProviders[finalName] = mergedProvider;
+        mergedProviders[finalName] = finalProvider;
     });
 
     return mergedProviders;
@@ -604,8 +616,8 @@ function storageAsJSON() {
     };
     
     Object.entries(storage).forEach(([key, value]) => {
-        // Skip ClearURLsData and linkumori-theme from export
-        if (key !== 'ClearURLsData' && key !== 'linkumori-theme') {
+        // Skip ClearURLsData, linkumori-theme and dataHash from export
+        if (key !== 'ClearURLsData' && key !== 'linkumori-theme' && key !== 'dataHash') {
             json[key] = storageDataAsString(key);
         }
     });
@@ -1519,25 +1531,33 @@ function mergeCustomRules(bundledRules) {
                     }
                     const mergedProvider = mergeRemoteProviderGroup(baseGroup);
                     const mergedName = createMergedRemoteProviderName(baseGroup);
-                    let baseName = mergedName;
-                    let finalName = baseName;
-                    let counter = 1;
-                    while (usedNames.has(finalName)) {
-                        finalName = `${baseName}_${counter++}`;
+                    let finalName = mergedName;
+                    if (usedNames.has(finalName)) {
+                        const pathName = derivePathQualifiedName(baseGroup, mergedName);
+                        if (pathName && !usedNames.has(pathName)) {
+                            finalName = pathName;
+                        } else {
+                            let counter = 1;
+                            do { finalName = `${mergedName}_${counter++}`; } while (usedNames.has(finalName));
+                        }
                     }
                     usedNames.add(finalName);
                     finalProviders[finalName] = mergedProvider;
                 }
-                
+
                 // Add merged custom providers by key (they replace any with same key)
                 for (const customGroup of customGroupsByKey.values()) {
                     const mergedProvider = mergeRemoteProviderGroup(customGroup);
                     const mergedName = createMergedRemoteProviderName(customGroup);
-                    let baseName = mergedName;
-                    let finalName = baseName;
-                    let counter = 1;
-                    while (usedNames.has(finalName)) {
-                        finalName = `${baseName}_${counter++}`;
+                    let finalName = mergedName;
+                    if (usedNames.has(finalName)) {
+                        const pathName = derivePathQualifiedName(customGroup, mergedName);
+                        if (pathName && !usedNames.has(pathName)) {
+                            finalName = pathName;
+                        } else {
+                            let counter = 1;
+                            do { finalName = `${mergedName}_${counter++}`; } while (usedNames.has(finalName));
+                        }
                     }
                     usedNames.add(finalName);
                     finalProviders[finalName] = mergedProvider;
